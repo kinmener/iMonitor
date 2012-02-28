@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+
+<project name="iMonitor Preprocessor" default="compile-and-test" basedir=".">
+  <property name="version"
+    value="0.1">
+  </property>
+  <property name="javacc.root"
+    value="/nfs/site/disks/an_umg_disk2409/whung7/local/javacc-5.0">
+  </property>
+  <property name="debug_parser"
+    value="false">
+  </property>
+  <property name="debug_scanner"
+    value="false">
+  </property>
+
+  <target name="compile-and-test" depends="compile">
+    <exec failonerror="true" executable="java">
+      <arg value="-classpath"/>
+      <arg value="."/>
+      <arg value="iMonitorPreprocessor"/>
+      <arg value="IdealImplicitBoundedBuffer.java_im"/>
+      <arg value="out_IdealImplicitBoundedBuffer.java_im"/>
+    </exec>
+  </target>
+
+  <target name="compile" depends="generated-files">
+    <javac srcdir="."
+      destdir="." >
+    </javac>
+  </target>
+
+  <target name="clean">
+    <delete>
+      <fileset dir=".">
+        <include name="iMonitor.jj"/>
+        <include name="iMonitorPreprocessor.java"/>
+        <include name="iMonitorPreprocessorTokenManager.java"/>
+        <include name="iMonitorPreprocessorConstants.java"/>
+        <include name="iMonitorPreprocessorTreeConstants.java"/>
+        <include name="JJTiMonitorPreprocessorState.java"/>
+        <include name="*CharStream*.java"/>
+        <include name="Token.java"/>
+        <include name="TokenMgrError.java"/>
+        <include name="ParseException.java"/>
+        <include name="Node.java"/>
+        <include name="*.class"/>
+      </fileset>
+    </delete>
+  </target>
+
+  <target name="preprocessor-files-init">
+    <uptodate property="preprocessor.gen"
+      targetfile="iMonitor.jjt">
+      <srcfiles dir="." includes="iMonitorPreprocessor.java"/>
+    </uptodate>
+  </target>
+
+  <target name="generated-files" depends="preprocessor-files-init" if="preprocessor.gen">
+    <exec failonerror="true" executable="jjtree" >
+      <arg value="iMonitor.jjt"/>
+    </exec>
+    <exec failonerror="true" executable="javacc" >
+      <arg value="-DEBUG_PARSER=${debug_parser}"/>
+      <arg value="-DEBUG_TOKEN_MANAGER=${debug_scanner}"/>
+      <arg value="iMonitor.jj"/>
+    </exec>
+  </target>
+</project>
