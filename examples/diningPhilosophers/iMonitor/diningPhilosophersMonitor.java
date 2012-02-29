@@ -58,6 +58,7 @@ class DiningServerImpl extends DiningServer {
   	    public boolean isTrue() { return state[i_dummy] == State.EATING; } } ) ;
 
 	  cond_1.await();	
+	  __monitor__628.removeCondition(cond_1);
   } }); }
 
   /**

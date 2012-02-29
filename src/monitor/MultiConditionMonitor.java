@@ -35,4 +35,9 @@ public class MultiConditionMonitor extends AbstractImplicitMonitor  {
         mapConditions.put(assertion, condition);
         return new MultiCondition(condition, assertion, mapConditions);
     }
+    
+    @Override
+    public void removeCondition(AbstractCondition condition) {
+        assert mapConditions.remove(((MultiCondition)condition).getAssertion()) != null;
+    }
 }

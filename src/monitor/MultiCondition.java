@@ -16,6 +16,10 @@ public class MultiCondition extends AbstractCondition {
         assertion = assertion_;
         mapConditions = mapConditions_;
     }
+    
+    public Assertion getAssertion() {
+        return assertion;
+    }
 
     @Override
     public void await() {

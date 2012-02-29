@@ -19,4 +19,6 @@ public class NaiveImplicitMonitor extends AbstractImplicitMonitor {
         if(condition == null) condition = lock.newCondition();
         return new NavieCondition(condition, assertion);
     }
+    public void removeCondition(AbstractCondition abstractCondition) {
+    }
 }

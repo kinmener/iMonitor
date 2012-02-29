@@ -37,7 +37,8 @@ public abstract class AbstractImplicitMonitor {
       finally {
        /* if( occupant_ == Thread.currentThread() ) */ Leave() ; }
     }
-    public abstract AbstractCondition makeCondition(Assertion assertion); 
+    public abstract AbstractCondition makeCondition(Assertion assertion);
+    public abstract void removeCondition(AbstractCondition abstractCondition);
 }
 
 
