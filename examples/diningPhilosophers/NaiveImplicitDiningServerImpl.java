@@ -1,15 +1,15 @@
  
 import monitor.*;	//auto-gen iMonitor
 
-class DiningServerImpl extends DiningServer {
+public class NaiveImplicitDiningServerImpl extends DiningServer {
  
-  private AbstractImplicitMonitor __monitor__628 = new MultiConditionMonitor(); //auto-gen
+  private AbstractImplicitMonitor __monitor__628 = new NaiveImplicitMonitor(); //auto-gen
   /**
 
     * Constructor.
     * @param numPhils The number of dining philosophers.
     */
-  private DiningServerImpl(int numPhils) {
+  private NaiveImplicitDiningServerImpl(int numPhils) {
     super(numPhils);
   }
 
@@ -20,7 +20,7 @@ class DiningServerImpl extends DiningServer {
     * @return A dining server table object.
     */
   public static DiningServer newInstance(int numPhils) {
-    DiningServer instance = new DiningServerImpl(numPhils);
+    DiningServer instance = new NaiveImplicitDiningServerImpl(numPhils);
     return instance;
   }
 

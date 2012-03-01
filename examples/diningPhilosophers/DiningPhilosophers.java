@@ -31,6 +31,8 @@ class Philosopher implements Runnable {
      * Thread internal to a philosopher.
      */
    private Thread me = null;
+   private int numEat;
+   private DoneCounter doneCounter;
 
    /**
      * Constructor.
@@ -39,12 +41,16 @@ class Philosopher implements Runnable {
      * @param napEat Amount of time in milliseconds to simulate eating.
      * @param ds The dining ``table'' or server.
      */
-   private Philosopher(int id, int napThink, int napEat, DiningServer ds) {
+   private Philosopher(int id, int napThink, int napEat, DiningServer ds, 
+           int numEat, DoneCounter dc) {
       this.name = "Philosopher " + id;
       this.id = id;
       this.napThink = napThink;
       this.napEat = napEat;
       this.ds = ds;
+      this.numEat = numEat;
+      this.doneCounter = dc;
+
       /* Do the following
        *
        *       (me = new Thread(this)).start();
@@ -64,8 +70,8 @@ class Philosopher implements Runnable {
      * @return A philosopher object.
      */
    public static Philosopher newInstance(int id, int napThink, int napEat,
-         DiningServer ds) {
-      Philosopher instance = new Philosopher(id, napThink, napEat, ds);
+         DiningServer ds, int numEat, DoneCounter dc) {
+      Philosopher instance = new Philosopher(id, napThink, napEat, ds, numEat, dc);
       (instance.me = new Thread(instance)).start();
       return instance;
    }
@@ -98,7 +104,7 @@ class Philosopher implements Runnable {
      */
    public void run() {
       if (Thread.currentThread() != me) return;
-      while (true) {
+      for(int i = 0; i < numEat; ++i) {
          if (Thread.interrupted()) {
             System.out.println("age=" + AgeRandom.age() + ", " + name
                + " interrupted");
@@ -121,6 +127,7 @@ class Philosopher implements Runnable {
             return;
          }
       }
+      doneCounter.increment();
    }
 }
 
@@ -130,7 +137,7 @@ class Philosopher implements Runnable {
   * @author Stephen J. Hartley
   * @version 2005 July
   */
-class DiningPhilosophers {
+public class DiningPhilosophers {
 
    /**
      * Driver.
@@ -138,44 +145,63 @@ class DiningPhilosophers {
      */
    public static void main(String[] args) {
       int numPhilosophers = 5;
-      int runTime = 60;      // seconds
-      int napThink = 8, napEat = 2;
+      int numEat = 100;
+      int napThink = 80, napEat = 20;
+      DoneCounter doneCounter = new DoneCounter();
+      DiningServer ds = null; 
       try {
          numPhilosophers = Integer.parseInt(args[0]);
-         runTime = Integer.parseInt(args[1]);
-         napThink = Integer.parseInt(args[2]);
-         napEat = Integer.parseInt(args[3]);
-      } catch (Exception e) { /* use defaults */ }
+         switch(args[1]) {
+                case "n":
+                    ds = NaiveImplicitDiningServerImpl.newInstance(numPhilosophers);
+                case "m":
+                    ds = MultiConditionDiningServerImpl.newInstance(numPhilosophers);
+                default:
+                    ds = ExplicitDiningServerImpl.newInstance(numPhilosophers);
+         }
+         numEat = Integer.parseInt(args[2]);
+         napThink = Integer.parseInt(args[3]);
+         napEat = Integer.parseInt(args[4]);
+      } catch (Exception e) { /* use defaults */ 
+            if(ds == null) {
+                    ds = ExplicitDiningServerImpl.newInstance(numPhilosophers);
+            }
+      }
       System.out.println("DiningPhilosophers: numPhilosophers="
-         + numPhilosophers + ", runTime=" + runTime
+         + numPhilosophers + ", numEat =" + numEat
          + ", napThink=" + napThink + ", napEat=" + napEat);
 
+      doneCounter.set(numPhilosophers);
       // create the DiningServer object
-      DiningServer ds = DiningServerImpl.newInstance(numPhilosophers);
 
+      long startTime = System.currentTimeMillis();
       // create the Philosophers
       // (they have self-starting threads)
       Philosopher[] p = new Philosopher[numPhilosophers];
       for (int i = 0; i < numPhilosophers; i++) p[i] =
-         Philosopher.newInstance(i, napThink*1000, napEat*1000, ds);
+         Philosopher.newInstance(i, napThink, napEat, ds, numEat, doneCounter);
       System.out.println("All Philosopher threads started");
 
+      doneCounter.waitForDone();
+      long execTime = System.currentTimeMillis() - startTime;
+      System.out.println( "Main done. Total Time: " + execTime );
       // let the Philosophers run for a while
-      try {
-         Thread.sleep(runTime*1000);
-         System.out.println("age=" + AgeRandom.age()
-            + ", time to terminate the Philosophers and exit");
-         for (int i = 0; i < numPhilosophers; i++) {
-            p[i].timeToQuit();
-            System.out.println("age=" + AgeRandom.age()
-               + ", philosopher" + i + " told");
-         }
-         for (int i = 0; i < numPhilosophers; i++) {
-            p[i].pauseTilDone();
-            System.out.println("age=" + AgeRandom.age()
-               + ", philosopher" + i + " done");
-         }
-      } catch (InterruptedException e) { /* ignored */ }
-      System.out.println("age=" + AgeRandom.age() + ", all Philosophers are done");
+      //try {
+      //   Thread.sleep(runTime*1000);
+
+      //   System.out.println("age=" + AgeRandom.age()
+      //      + ", time to terminate the Philosophers and exit");
+      //   for (int i = 0; i < numPhilosophers; i++) {
+      //      p[i].timeToQuit();
+      //      System.out.println("age=" + AgeRandom.age()
+      //         + ", philosopher" + i + " told");
+      //   }
+      //   for (int i = 0; i < numPhilosophers; i++) {
+      //      p[i].pauseTilDone();
+      //      System.out.println("age=" + AgeRandom.age()
+      //         + ", philosopher" + i + " done");
+      //   }
+      //} catch (InterruptedException e) { /* ignored */ }
+      //System.out.println("age=" + AgeRandom.age() + ", all Philosophers are done");
    }
 }

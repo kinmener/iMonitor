@@ -1,8 +1,8 @@
 
 import monitor.*;	//auto-gen iMonitor
 
-public  class IdealImplicitBoundedBuffer implements ObjectBoundedBufferInterface {
-   private AbstractImplicitMonitor monitor = new MultiConditionMonitor(); //auto-gen
+public  class NaiveImplicitBoundedBuffer implements ObjectBoundedBufferInterface {
+   private AbstractImplicitMonitor monitor = new NaiveImplicitMonitor(); //auto-gen
    private AbstractCondition cond_1 = monitor.makeCondition( //auto-gen
          new  Assertion() {
             public boolean isTrue() { return count > 0; } } ) ;
@@ -13,7 +13,7 @@ public  class IdealImplicitBoundedBuffer implements ObjectBoundedBufferInterface
    private final Object[] items;
    private int putptr, takeptr, count;
 
-   public IdealImplicitBoundedBuffer(int n) {
+   public NaiveImplicitBoundedBuffer(int n) {
       items = new Object[n];
       putptr = takeptr = count = 0;
    }
@@ -25,7 +25,7 @@ public  class IdealImplicitBoundedBuffer implements ObjectBoundedBufferInterface
             items[putptr] = x; 
             if (++putptr == items.length) putptr = 0;
             ++count;
-            System.out.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
+//            System.out.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
          }} ) ;
    }
 
@@ -36,7 +36,7 @@ public  class IdealImplicitBoundedBuffer implements ObjectBoundedBufferInterface
             Object x = items[takeptr]; 
             if (++takeptr == items.length) takeptr = 0;
             --count;
-            System.out.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
+ //           System.out.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
             return x;
          }} ) ;
    }

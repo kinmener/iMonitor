@@ -7,7 +7,7 @@
   * @version 2005 July
   */
 
-abstract class DiningServer {
+public abstract class DiningServer {
    /**
      * Constants for thinking, hungry, and eating states.
      */

@@ -1,41 +1,43 @@
 
 package monitor;
 
-//import java.util.ArrayList ;
-import java.util.concurrent.locks.Lock; 
-import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class AbstractImplicitMonitor {
-    final Lock lock = new ReentrantLock(true);
-    volatile Thread occupant = null;
 
-    protected abstract void Enter(); 
+    protected abstract void enter(); 
 
-    protected abstract void Leave(); 
+    protected abstract void leave(); 
 
     public void DoWithin(Runnable runnable) {
-        Enter();
+        enter();
         try {
             runnable.run();  
         } finally {
-            Leave();
+            leave();
         }
     }
     public<T> T DoWithin( RunnableWithResult<T> runnable ) {
-        Enter() ;
+        enter() ;
         try {   
             return runnable.run() ; 
         }
         finally {
-            Leave() ; 
+            leave() ; 
         }
     }
     public<T extends Exception> void DoWithin( RunnableWithException<T> runnable ) throws T {
-      Enter() ;
+      enter() ;
       try {
         runnable.run() ; }
       finally {
-       /* if( occupant_ == Thread.currentThread() ) */ Leave() ; }
+       leave() ; }
+    }
+    public<T1, T2 extends Exception> T1 DoWithin( RunnableWithResultAndException<T1, T2> runnable ) throws T2 {
+      enter() ;
+      try {
+        return runnable.run() ; }
+      finally {
+       leave() ; }
     }
     public abstract AbstractCondition makeCondition(Assertion assertion);
     public abstract void removeCondition(AbstractCondition abstractCondition);

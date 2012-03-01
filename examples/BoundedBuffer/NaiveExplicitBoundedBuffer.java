@@ -25,7 +25,7 @@ class NaiveExplicitBoundedBuffer implements ObjectBoundedBufferInterface {
       items_[putptr] = x; 
       if (++putptr == items_.length) putptr = 0;
       ++count;
-      System.out.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
+      //System.out.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
       not_empty_.signal();
     } finally {
       lock_.unlock();
@@ -40,7 +40,7 @@ class NaiveExplicitBoundedBuffer implements ObjectBoundedBufferInterface {
       Object x = items_[takeptr]; 
       if (++takeptr == items_.length) takeptr = 0;
       --count;
-      System.out.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
+      //System.out.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
       not_full_.signal();
       return x;
     } finally {

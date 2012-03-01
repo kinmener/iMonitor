@@ -5,13 +5,13 @@
   * @author Stephen J. Hartley
   * @version 2005 July
   */
-monitor class DiningServerImpl extends DiningServer {
+public monitor class IdealImplicitDiningServerImpl extends DiningServer {
  
   /**
     * Constructor.
     * @param numPhils The number of dining philosophers.
     */
-  private DiningServerImpl(int numPhils) {
+  private IdealImplicitDiningServerImpl(int numPhils) {
     super(numPhils);
   }
 

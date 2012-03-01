@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Condition;
   * @author Stephen J. Hartley
   * @version 2005 July
   */
-class DiningServerImpl extends DiningServer {
+public class ExplicitDiningServerImpl extends DiningServer {
    /**
      * Mutual exclusion lock for read-update-write access to philosopher
      * state information to prevent race conditions.
@@ -24,7 +24,7 @@ class DiningServerImpl extends DiningServer {
      * Constructor.
      * @param numPhils The number of dining philosophers.
      */
-   private DiningServerImpl(int numPhils) {
+   private ExplicitDiningServerImpl(int numPhils) {
       super(numPhils);
       mutex = new ReentrantLock();
       self = new Condition[numPhils];
@@ -38,7 +38,7 @@ class DiningServerImpl extends DiningServer {
      * @return A dining server table object.
      */
    public static DiningServer newInstance(int numPhils) {
-      DiningServer instance = new DiningServerImpl(numPhils);
+      DiningServer instance = new ExplicitDiningServerImpl(numPhils);
       return instance;
    }
 
