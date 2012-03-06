@@ -1,0 +1,14 @@
+public class TestMonitor{
+    private int numProc;
+    private int numAccess;
+
+    public TestMonitor(int numProc_) {
+        numProc = numProc_;
+        numAccess = 0;
+    }
+    
+    public void access(int myId) {
+        await((numAccess % numProc) == myId);
+        numAccess++;
+    }
+}

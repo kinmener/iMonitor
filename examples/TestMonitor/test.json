@@ -1,0 +1,12 @@
+{
+  "num_tasks": 128000,
+  "num_times": 10,
+  "monitor_type": [
+    "explicit",
+    "implicit_naive_global",
+    "global_multi_condition"
+  ],
+  "num_proc": [
+    2, 4, 8, 16, 32, 64, 128
+  ]
+}

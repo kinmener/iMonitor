@@ -22,15 +22,12 @@ public class TestBoundedBuffer {
         try {
             switch(args[0]) {
                 case "n":
-                    System.out.println("NaiveImplicitBoundedBuffer");
                     rw_controller = new NaiveImplicitBoundedBuffer(4);
                     break;
                 case "m":
-                    System.out.println("MultiConditionBoundedBuffer");
                     rw_controller = new MultiConditionBoundedBuffer(4);
                     break;
                 default:
-                    System.out.println("ExplicitBoundedBuffer");
                     rw_controller = new NaiveExplicitBoundedBuffer(4);
 
             }
@@ -38,7 +35,6 @@ public class TestBoundedBuffer {
             numActions = Integer.parseInt(args[2]);
         } catch (Exception e) { /* use defaults */ 
             if(rw_controller == null) {
-                System.out.println("ExplicitBoundedBuffer");
                 rw_controller = new NaiveExplicitBoundedBuffer(4);
             }
         }
@@ -50,7 +46,7 @@ public class TestBoundedBuffer {
 
         doneCounter.set( CONSUMERS + PRODUCERS ) ;
         long startTime = System.currentTimeMillis();
-        System.out.println("Please wait. This takes a while");
+        //System.out.println("Please wait. This takes a while");
         for( int k=0 ; k < CONSUMERS ; ++k ) {
           Thread w = new ObjectConsumer( rw_controller, doneCounter, numActions ) ;
           w.start(); }
@@ -59,7 +55,7 @@ public class TestBoundedBuffer {
           r.start(); }
         doneCounter.waitForDone() ;
         long execTime = System.currentTimeMillis() - startTime;
-        System.out.println( "Main done. Total Time: " + execTime );
+        System.out.println( execTime );
     }
 }
 
@@ -81,7 +77,7 @@ class ObjectProducer extends TestThread {
     		catch(InterruptedException e ) { }
     		delay(10) ;
     	}
-    	System.out.println("ObjectProducer " +Thread.currentThread() +" Done ") ; 
+    	//System.out.println("ObjectProducer " +Thread.currentThread() +" Done ") ; 
     	int count = doneCounter.increment() ;
     }
 }
@@ -107,7 +103,7 @@ class ObjectConsumer extends TestThread {
          // sb.append( ch ) ;
           delay(10) ;
         }
-        System.out.println("ObjectConsumer " +Thread.currentThread() + " Done ") ; 
+        //System.out.println("ObjectConsumer " +Thread.currentThread() + " Done ") ; 
         doneCounter.increment() ;
     }
         //System.out.println("ObjectConsumer " +Thread.currentThread() +" <" + sb + ">" ) ; }

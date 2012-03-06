@@ -94,8 +94,8 @@ class Philosopher implements Runnable {
    private void think() throws InterruptedException {
       int napping;
       napping = 1 + (int) AgeRandom.random(napThink);
-      System.out.println("age=" + AgeRandom.age() + ", " + name
-         + " is thinking for " + napping + " ms");
+      //System.out.println("age=" + AgeRandom.age() + ", " + name
+      //   + " is thinking for " + napping + " ms");
       Thread.sleep(napping);
    }
 
@@ -106,24 +106,24 @@ class Philosopher implements Runnable {
       if (Thread.currentThread() != me) return;
       for(int i = 0; i < numEat; ++i) {
          if (Thread.interrupted()) {
-            System.out.println("age=" + AgeRandom.age() + ", " + name
-               + " interrupted");
+         //   System.out.println("age=" + AgeRandom.age() + ", " + name
+         //      + " interrupted");
             return;
          }
          try {
             think();
          } catch (InterruptedException e) {
-            System.out.println("age=" + AgeRandom.age() + ", " + name
-               + " interrupted out of think");
+         //   System.out.println("age=" + AgeRandom.age() + ", " + name
+         //      + " interrupted out of think");
             return;
          }
-         System.out.println("age=" + AgeRandom.age() + ", " + name
-            + " wants to dine");
+         //System.out.println("age=" + AgeRandom.age() + ", " + name
+         //   + " wants to dine");
          try {
             ds.dine(name, id, napEat);  // got hungry, try to eat
          } catch (InterruptedException e) {
-            System.out.println("age=" + AgeRandom.age() + ", " + name
-               + " interrupted out of dine");
+         //   System.out.println("age=" + AgeRandom.age() + ", " + name
+         //      + " interrupted out of dine");
             return;
          }
       }
@@ -167,9 +167,9 @@ public class DiningPhilosophers {
                     ds = ExplicitDiningServerImpl.newInstance(numPhilosophers);
             }
       }
-      System.out.println("DiningPhilosophers: numPhilosophers="
-         + numPhilosophers + ", numEat =" + numEat
-         + ", napThink=" + napThink + ", napEat=" + napEat);
+      //System.out.println("DiningPhilosophers: numPhilosophers="
+      //   + numPhilosophers + ", numEat =" + numEat
+      //   + ", napThink=" + napThink + ", napEat=" + napEat);
 
       doneCounter.set(numPhilosophers);
       // create the DiningServer object
@@ -180,11 +180,11 @@ public class DiningPhilosophers {
       Philosopher[] p = new Philosopher[numPhilosophers];
       for (int i = 0; i < numPhilosophers; i++) p[i] =
          Philosopher.newInstance(i, napThink, napEat, ds, numEat, doneCounter);
-      System.out.println("All Philosopher threads started");
+      //System.out.println("All Philosopher threads started");
 
       doneCounter.waitForDone();
       long execTime = System.currentTimeMillis() - startTime;
-      System.out.println( "Main done. Total Time: " + execTime );
+      System.out.println( execTime );
       // let the Philosophers run for a while
       //try {
       //   Thread.sleep(runTime*1000);

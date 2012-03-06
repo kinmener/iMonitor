@@ -73,8 +73,8 @@ public abstract class DiningServer {
    private void eat(String name, int napEat) throws InterruptedException {
       int napping;
       napping = 1 + (int) AgeRandom.random(napEat);
-      System.out.println("age=" + AgeRandom.age() + ", " + name
-         + " is eating for " + napping + " ms");
+      //System.out.println("age=" + AgeRandom.age() + ", " + name
+      //   + " is eating for " + napping + " ms");
       Thread.sleep(napping);
    }
 
@@ -106,6 +106,6 @@ public abstract class DiningServer {
       for (int i = 0; i < numPhils; i++) {
          line.append(", " + i + " is " + state[i]);
       }
-      System.out.println(line);
+      //System.out.println(line);
    }
 }
