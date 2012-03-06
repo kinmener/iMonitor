@@ -1,5 +1,5 @@
 {
-  "num_tasks": 128000,
+  "num_tasks": 512000,
   "num_times": 10,
   "monitor_type": [
     "explicit",

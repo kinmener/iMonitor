@@ -1,4 +1,4 @@
-#! /nfs/site/home/whung7/data/local/bin/python3.2
+#! /home/ecelrc/students/whung1/local/bin/python3.2
 from subprocess import check_call, Popen, PIPE
 from time import sleep
 from optparse import OptionParser
@@ -25,7 +25,7 @@ if __name__ == "__main__":
          sum = 0
          result_file.write(str(num_proc) + ", ")
          for i in range(0, exp_env["num_times"]):
-            exp_thread = Popen(["java", "-cp", "../../dist/lib/iMonitor-20120302.jar:.", 
+            exp_thread = Popen(["java", "-cp", "../../dist/lib/iMonitor-20120305.jar:.", 
                "Test", str(num_proc), str(int(exp_env["num_tasks"]/num_proc)), type[:1]],
                stdout=PIPE)
 

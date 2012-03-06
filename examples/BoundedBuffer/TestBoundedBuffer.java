@@ -20,11 +20,11 @@ public class TestBoundedBuffer {
         ObjectBoundedBufferInterface rw_controller = null;
 
         try {
-            switch(args[0]) {
-                case "n":
+            switch(args[0].charAt(0)) {
+                case 'n':
                     rw_controller = new NaiveImplicitBoundedBuffer(4);
                     break;
-                case "m":
+                case 'm':
                     rw_controller = new MultiConditionBoundedBuffer(4);
                     break;
                 default:

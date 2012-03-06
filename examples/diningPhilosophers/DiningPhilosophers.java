@@ -151,10 +151,10 @@ public class DiningPhilosophers {
       DiningServer ds = null; 
       try {
          numPhilosophers = Integer.parseInt(args[0]);
-         switch(args[1]) {
-                case "n":
+         switch(args[1].charAt(0)) {
+                case 'n':
                     ds = NaiveImplicitDiningServerImpl.newInstance(numPhilosophers);
-                case "m":
+                case 'm':
                     ds = MultiConditionDiningServerImpl.newInstance(numPhilosophers);
                 default:
                     ds = ExplicitDiningServerImpl.newInstance(numPhilosophers);
