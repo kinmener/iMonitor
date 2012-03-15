@@ -1,4 +1,5 @@
  
+package examples.DiningPhilosophers;
 import monitor.*;	//auto-gen iMonitor
 
 public class MultiConditionDiningServerImpl extends DiningServer {

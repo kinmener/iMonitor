@@ -11,12 +11,16 @@
 /** Test a bounded buffer with multiple producers and consumers.
  */
 
+package examples.BoundedBuffer;
+
+import examples.util.DoneCounter;
+
 public class TestBoundedBuffer {
 
     public static void main(String[] args) {
         int CONSUMERS = 10;
         int PRODUCERS = 10;
-        int numActions = 10; 
+        int totalNumActions = 10; 
         ObjectBoundedBufferInterface rw_controller = null;
 
         try {
@@ -32,7 +36,7 @@ public class TestBoundedBuffer {
 
             }
             CONSUMERS = PRODUCERS = Integer.parseInt(args[1]);
-            numActions = Integer.parseInt(args[2]);
+            totalNumActions = Integer.parseInt(args[2]);
         } catch (Exception e) { /* use defaults */ 
             if(rw_controller == null) {
                 rw_controller = new NaiveExplicitBoundedBuffer(4);
@@ -48,10 +52,10 @@ public class TestBoundedBuffer {
         long startTime = System.currentTimeMillis();
         //System.out.println("Please wait. This takes a while");
         for( int k=0 ; k < CONSUMERS ; ++k ) {
-          Thread w = new ObjectConsumer( rw_controller, doneCounter, numActions ) ;
+          Thread w = new ObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS ) ;
           w.start(); }
         for( int k=0 ; k < PRODUCERS ; ++k ) {
-          Thread r = new ObjectProducer( rw_controller, doneCounter, numActions ) ;
+          Thread r = new ObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS) ;
           r.start(); }
         doneCounter.waitForDone() ;
         long execTime = System.currentTimeMillis() - startTime;

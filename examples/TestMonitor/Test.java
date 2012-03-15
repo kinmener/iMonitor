@@ -1,3 +1,5 @@
+
+package examples.TestMonitor;
 class TestThread extends Thread {
     private TestMonitor monitor;
     private int numAccess; 
@@ -18,11 +20,11 @@ public class Test{
     public static void main (String [] args)
     {
         int numProc = 16;
-        int numAccess = 1000;
+        int totalNumAccess = 1000;
         TestMonitor monitor = null;
         try {
             numProc = Integer.parseInt(args[0]); 
-            numAccess = Integer.parseInt(args[1]); 
+            totalNumAccess = Integer.parseInt(args[1]); 
             switch(args[2].charAt(0)) {
                 case 'n':
                     monitor = new NaiveImplicitTestMonitor(numProc);
@@ -49,7 +51,7 @@ public class Test{
         long startTime = System.currentTimeMillis();
         Thread[] testThreads = new TestThread[numProc];
         for(int i = 0; i < numProc; ++i) {
-            testThreads[i] = new TestThread(monitor, numAccess, i);
+            testThreads[i] = new TestThread(monitor, totalNumAccess/numProc, i);
             testThreads[i].start();
         }
         for(int i = 0; i < numProc; ++i) {

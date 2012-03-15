@@ -1,4 +1,5 @@
 
+package examples.DiningPhilosophers;
 /**
   * A ``table'' at which the dining philosophers eat and think.
   * Concrete subclasses implement the takeForks and putForks methods.

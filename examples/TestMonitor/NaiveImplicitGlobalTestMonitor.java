@@ -1,4 +1,5 @@
 
+package examples.TestMonitor;
 import monitor.*;	//auto-gen iMonitor
 
 public class NaiveImplicitGlobalTestMonitor implements TestMonitor {

@@ -2,6 +2,7 @@
 /**
  * A thread with delays.
  */
+package examples.BoundedBuffer;
 
 public class TestThread extends Thread {
     protected void delay(int maxMilisec ) {

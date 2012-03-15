@@ -1,4 +1,6 @@
 
+package examples.DiningPhilosophers;
+import examples.util.DoneCounter;
 /**
   * Philosopher for the dining philosophers simulation.  Think, get hungry,
   * eat, ad nauseam.  Boring....

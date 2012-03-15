@@ -1,63 +1,49 @@
 <project name="iMonitor" default="dist" basedir=".">
 
-   <property name="src" location="src"/>
-   <property name="examples" location="examples"/>
-   <property name="build" location="build"/>
-   <property name="dist"  location="dist"/>
+  <property name="project_name" value="iMonitor"/>
+  <property name="src" location="src"/>
+  <property name="examples" location="examples"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
 
-   <target name="init">
-      <!-- Create the time stamp -->
-      <tstamp/>
-      <!-- Create the build directory structure used by compile -->
-      <mkdir dir="${build}"/>
-   </target>
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+  </target>
 
-   <target name="compile" depends="init"
-      description="compile the source " >
-      <!-- Compile the java code from ${src} into ${build} -->
-      <javac srcdir="${src}" destdir="${build}" includeantruntime="false"/>
-   </target>
+  <target name="compile" depends="init"
+    description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" includeantruntime="false" 
+      listfiles="true"/>
+  </target>
 
-   <target name="dist" depends="compile"
-      description="generate the distribution" >
-      <!-- Create the distribution directory -->
-      <mkdir dir="${dist}/lib"/>
-      <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-      <jar jarfile="${dist}/lib/iMonitor-${DSTAMP}.jar" basedir="${build}"/>
-   </target>
+  <target name="dist" depends="compile"
+    description="generate the distribution" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib"/>
+    <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+    <jar jarfile="${dist}/lib/${project_name}-${DSTAMP}.jar" basedir="${build}" 
+      includes="{build}/monitor" />
+  </target>
 
-   <target name="compile_test" depends="dist"
-      description="compile the test source " >
-      <!-- Compile the java code from ${src} into ${build} -->
-      <javac srcdir="${examples}/BoundedBuffer" destdir="${build}" includeantruntime="false"/>
+  <target name="compile_test" depends="dist"
+    description="compile the test source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${examples}" destdir="${build}" includeantruntime="false" 
+      listfiles="true">
       <classpath> 
-         <pathelement path="${dist}/lib/"/>
+        <pathelement location="${dist}/lib/${project_name}-${DSTAMP}.jar"/>
       </classpath>
-   </target>
+    </javac>
+  </target>
 
-   <target name="test" depends="compile_test" 
-      description="generate the test " >
-      <mkdir dir="${dist}/test"/>
-      <jar jarfile="${dist}/lib/iMonitor-${DSTAMP}.jar" basedir="${build}"/>
-   </target>
-
-   <target name="clean" description="clean up">
-      <delete dir="${build}"/>
-      <delete dir="${dist}"/>
-   </target>
-
-   <target name="jar">
-      <mkdir dir="build/jar"/>
-      <jar destfile="build/jar/monitor.jar" basedir="build/classes">
-         <manifest>
-            <attribute name="Main-Class" value="examples.TestBoundedBuffer"/>
-         </manifest>
-      </jar>
-   </target>
-
-   <target name="run">
-      <java jar="build/jar/monitor.jar" fork="true"/>
-   </target>
+  <target name="clean" description="clean up">
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
 
 </project>
 

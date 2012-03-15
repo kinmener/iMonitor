@@ -1,4 +1,4 @@
-
+package examples.DiningPhilosophers;
 import java.util.Random;
 
 /**

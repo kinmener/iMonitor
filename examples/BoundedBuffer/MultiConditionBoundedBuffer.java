@@ -1,4 +1,5 @@
 
+package examples.BoundedBuffer;
 import monitor.*;	//auto-gen iMonitor
 
 public class MultiConditionBoundedBuffer implements ObjectBoundedBufferInterface {

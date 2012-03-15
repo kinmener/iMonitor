@@ -1,4 +1,5 @@
 
+package examples.BoundedBuffer;
 /**
  * <p>Title: Monitor package and examples</p>
  * <p>Description: </p>
