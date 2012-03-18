@@ -1,13 +1,16 @@
-
 package examples.TestMonitor;
-import monitor.*;	//auto-gen iMonitor
 
-public class NaiveImplicitTestMonitor implements TestMonitor {
-    private AbstractImplicitMonitor __monitor__628 = new NaiveImplicitMonitor(); //auto-gen
+import monitor.AbstractCondition;
+import monitor.Assertion;
+import monitor.HashMonitor;
+
+
+public class HashTestMonitor implements TestMonitor {
+    private HashMonitor __monitor__628 = new HashMonitor(); //auto-gen
     private int numProc;
     private int numAccess;
 
-    public NaiveImplicitTestMonitor(int numProc_) {
+    public HashTestMonitor(int numProc_) {
         numProc = numProc_;
         numAccess = 0;
     }
@@ -18,7 +21,8 @@ public class NaiveImplicitTestMonitor implements TestMonitor {
             public void run() {
                 AbstractCondition cond_1 = __monitor__628.makeCondition( //auto-gen
                     new Assertion() {
-                        public boolean isTrue() { return (numAccess % numProc) == myId_dummy; } } ) ;
+                        public boolean isTrue() { return (numAccess % numProc) == myId_dummy; } },
+                        "(numAccess % numProc) == myId_dummy" + "_" + myId_dummy) ;
                 cond_1.await();
                 //System.out.println("myId: " + myId_dummy + " numAccess: " + numAccess);
                 ++numAccess;

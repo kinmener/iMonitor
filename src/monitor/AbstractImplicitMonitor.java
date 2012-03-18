@@ -40,7 +40,7 @@ public abstract class AbstractImplicitMonitor {
        leave() ; }
     }
     public abstract AbstractCondition makeCondition(Assertion assertion);
-    public abstract void removeCondition(AbstractCondition abstractCondition);
+    public abstract void removeCondition(AbstractCondition condition);
 }
 
 

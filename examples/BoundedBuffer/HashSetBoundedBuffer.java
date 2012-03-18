@@ -2,8 +2,8 @@
 package examples.BoundedBuffer;
 import monitor.*;	//auto-gen iMonitor
 
-public class MultiConditionBoundedBuffer implements ObjectBoundedBufferInterface {
-   private AbstractImplicitMonitor monitor = new MultiConditionMonitor(); //auto-gen
+public class HashSetBoundedBuffer implements ObjectBoundedBufferInterface {
+   private AbstractImplicitMonitor monitor = new HashSetMonitor(); //auto-gen
    private AbstractCondition cond_1 = monitor.makeCondition( //auto-gen
          new  Assertion() {
             public boolean isTrue() { return count > 0; } } ) ;
@@ -14,7 +14,7 @@ public class MultiConditionBoundedBuffer implements ObjectBoundedBufferInterface
    private final Object[] items;
    private int putptr, takeptr, count;
 
-   public MultiConditionBoundedBuffer(int n) {
+   public HashSetBoundedBuffer(int n) {
       items = new Object[n];
       putptr = takeptr = count = 0;
    }
@@ -26,7 +26,7 @@ public class MultiConditionBoundedBuffer implements ObjectBoundedBufferInterface
             items[putptr] = x; 
             if (++putptr == items.length) putptr = 0;
             ++count;
-//            System.out.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
+            System.out.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
          }} ) ;
    }
 
@@ -37,7 +37,7 @@ public class MultiConditionBoundedBuffer implements ObjectBoundedBufferInterface
             Object x = items[takeptr]; 
             if (++takeptr == items.length) takeptr = 0;
             --count;
- //           System.out.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
+            System.out.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
             return x;
          }} ) ;
    }

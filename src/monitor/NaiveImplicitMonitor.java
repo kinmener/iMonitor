@@ -22,4 +22,5 @@ public class NaiveImplicitMonitor extends AbstractImplicitMonitor {
     }
     public void removeCondition(AbstractCondition abstractCondition) {
     }
+    
 }

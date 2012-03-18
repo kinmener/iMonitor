@@ -2,12 +2,12 @@
 package examples.TestMonitor;
 import monitor.*;	//auto-gen iMonitor
 
-public class MultiConditionTestMonitor implements TestMonitor {
-    private AbstractImplicitMonitor __monitor__628 = new MultiConditionMonitor(); //auto-gen
+public class HashSetTestMonitor implements TestMonitor {
+    private AbstractImplicitMonitor __monitor__628 = new HashSetMonitor(); //auto-gen
     private int numProc;
     private int numAccess;
 
-    public MultiConditionTestMonitor(int numProc_) {
+    public HashSetTestMonitor(int numProc_) {
         numProc = numProc_;
         numAccess = 0;
     }
@@ -22,7 +22,6 @@ public class MultiConditionTestMonitor implements TestMonitor {
                 cond_1.await();
                 //System.out.println("myId: " + myId_dummy + " numAccess: " + numAccess);
                 ++numAccess;
-                __monitor__628.removeCondition(cond_1);
             }} ) ;
     }
 }

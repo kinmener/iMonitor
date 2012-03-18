@@ -25,19 +25,23 @@ public class TestBoundedBuffer {
 
         try {
             switch(args[0].charAt(0)) {
-                case 'n':
-                    rw_controller = new NaiveImplicitBoundedBuffer(4);
-                    break;
-                case 'm':
-                    rw_controller = new MultiConditionBoundedBuffer(4);
-                    break;
-                default:
-                    rw_controller = new NaiveExplicitBoundedBuffer(4);
+            case 'n':
+                rw_controller = new NaiveImplicitBoundedBuffer(4);
+                break;
+            case 'l':
+                rw_controller = new HashSetBoundedBuffer(4);
+                break;
+            case 'h':
+                rw_controller = new HashBoundedBuffer(4);
+                break;
+            default:
+                rw_controller = new NaiveExplicitBoundedBuffer(4);
 
             }
             CONSUMERS = PRODUCERS = Integer.parseInt(args[1]);
             totalNumActions = Integer.parseInt(args[2]);
         } catch (Exception e) { /* use defaults */ 
+            e.printStackTrace();
             if(rw_controller == null) {
                 rw_controller = new NaiveExplicitBoundedBuffer(4);
             }
@@ -46,17 +50,17 @@ public class TestBoundedBuffer {
         DoneCounter doneCounter = new DoneCounter() ;
 
 
-        
+
 
         doneCounter.set( CONSUMERS + PRODUCERS ) ;
         long startTime = System.currentTimeMillis();
-        //System.out.println("Please wait. This takes a while");
+        System.out.println("Please wait. This takes a while");
         for( int k=0 ; k < CONSUMERS ; ++k ) {
-          Thread w = new ObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS ) ;
-          w.start(); }
+            Thread w = new ObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS ) ;
+            w.start(); }
         for( int k=0 ; k < PRODUCERS ; ++k ) {
-          Thread r = new ObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS) ;
-          r.start(); }
+            Thread r = new ObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS) ;
+            r.start(); }
         doneCounter.waitForDone() ;
         long execTime = System.currentTimeMillis() - startTime;
         System.out.println( execTime );
@@ -73,16 +77,16 @@ class ObjectProducer extends TestThread {
         boundedBuffer = bb ; doneCounter = d ; numActions = n;}
 
     public void run() {
-    	for(int i=0 ; i < numActions ; ++i ) {
-    		delay(10) ;
-    		
-    		try {
-    			boundedBuffer.put( new Object() ) ; }
-    		catch(InterruptedException e ) { }
-    		delay(10) ;
-    	}
-    	//System.out.println("ObjectProducer " +Thread.currentThread() +" Done ") ; 
-    	int count = doneCounter.increment() ;
+        for(int i=0 ; i < numActions ; ++i ) {
+            delay(10) ;
+
+            try {
+                boundedBuffer.put( new Object() ) ; }
+            catch(InterruptedException e ) { }
+            delay(10) ;
+        }
+        System.out.println("ObjectProducer " +Thread.currentThread() +" Done ") ; 
+        doneCounter.increment() ;
     }
 }
 
@@ -96,19 +100,18 @@ class ObjectConsumer extends TestThread {
         boundedBuffer = bb ; doneCounter = d ; numActions = n; }
 
     public void run() {
-        //StringBuffer sb = new StringBuffer() ;
+        
 
         for(int i=0 ; i < numActions ; ++i ) {
-          delay(10) ;
-          Object x;
-          try {
-              x= boundedBuffer.take() ; }
-          catch(InterruptedException e ) { }
-         // sb.append( ch ) ;
-          delay(10) ;
+            delay(10) ;
+
+            try {
+                boundedBuffer.take() ; }
+            catch(InterruptedException e ) { }
+
+            delay(10) ;
         }
-        //System.out.println("ObjectConsumer " +Thread.currentThread() + " Done ") ; 
+        System.out.println("ObjectConsumer " +Thread.currentThread() + " Done ") ; 
         doneCounter.increment() ;
     }
-        //System.out.println("ObjectConsumer " +Thread.currentThread() +" <" + sb + ">" ) ; }
 }

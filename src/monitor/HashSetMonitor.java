@@ -1,16 +1,14 @@
 package monitor;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class HashMonitor extends AbstractImplicitMonitor  {
+public class HashSetMonitor extends AbstractImplicitMonitor  {
 
     Lock mutex = new ReentrantLock();
     HashSet<AssertionConditionPair> setPairs;
-    HashMap<String, HashSetCondition> mapConditions;
 
     @Override
     protected void enter() {
@@ -36,21 +34,6 @@ public class HashMonitor extends AbstractImplicitMonitor  {
         }
         return new HashSetCondition(assertion, condition, setPairs);
     }
-    
-    public HashSetCondition makeCondition(Assertion assertion, String key) {
-        if(mapConditions == null) {
-            mapConditions = new HashMap<String, HashSetCondition>();
-        }
-        if(mapConditions.containsKey(key)) {
-            return mapConditions.get(key);
-        }
-        
-        HashSetCondition ret = makeCondition(assertion);
-        mapConditions.put(key, ret);
-        return ret;
-    }
-    
-    
 
     @Override
     public void removeCondition(AbstractCondition condition) {

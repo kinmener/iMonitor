@@ -38,9 +38,12 @@ public class DependantMonitor extends AbstractImplicitMonitor  {
         mapConditions.put(assertion, condition);
         return new DependantCondition(condition, assertion, mapConditions);
     }
-    
+
     @Override
     public void removeCondition(AbstractCondition condition) {
-        assert mapConditions.remove(((DependantCondition)condition).getAssertion()) != null;
+        // TODO Auto-generated method stub
+        
     }
+    
+    
 }

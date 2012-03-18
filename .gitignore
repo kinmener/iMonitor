@@ -1,0 +1,8 @@
+build/
+bin/
+dist/
+eval/results/
+doc/tex/iMonitor.*
+!doc/tex/iMonitor.tex
+.classpath
+.project

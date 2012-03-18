@@ -2,15 +2,15 @@
 package examples.DiningPhilosophers;
 import monitor.*;	//auto-gen iMonitor
 
-public class MultiConditionDiningServerImpl extends DiningServer {
+public class HashSetDiningServerImpl extends DiningServer {
  
-  private AbstractImplicitMonitor __monitor__628 = new MultiConditionMonitor(); //auto-gen
+  private AbstractImplicitMonitor __monitor__628 = new HashSetMonitor(); //auto-gen
   /**
 
     * Constructor.
     * @param numPhils The number of dining philosophers.
     */
-  private MultiConditionDiningServerImpl(int numPhils) {
+  private HashSetDiningServerImpl(int numPhils) {
     super(numPhils);
   }
 
@@ -21,7 +21,7 @@ public class MultiConditionDiningServerImpl extends DiningServer {
     * @return A dining server table object.
     */
   public static DiningServer newInstance(int numPhils) {
-    DiningServer instance = new MultiConditionDiningServerImpl(numPhils);
+    DiningServer instance = new HashSetDiningServerImpl(numPhils);
     return instance;
   }
 
@@ -59,7 +59,6 @@ public class MultiConditionDiningServerImpl extends DiningServer {
   	    public boolean isTrue() { return state[i_dummy] == State.EATING; } } ) ;
 
 	  cond_1.await();	
-	  __monitor__628.removeCondition(cond_1);
   } }); }
 
   /**

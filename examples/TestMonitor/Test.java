@@ -32,11 +32,11 @@ public class Test{
                 case 'i':
                     monitor = new NaiveImplicitGlobalTestMonitor(numProc);
                     break;
-                case 'g':
-                    monitor = new MultiConditionGlobalTestMonitor(numProc);
+                case 'l':
+                    monitor = new HashSetTestMonitor(numProc);
                     break;
-                case 'm':
-                    monitor = new MultiConditionTestMonitor(numProc);
+                case 'h':
+                    monitor = new HashTestMonitor(numProc);
                     break;
                 default:
                     monitor = new ExplicitTestMonitor(numProc);

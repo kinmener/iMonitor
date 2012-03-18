@@ -156,8 +156,8 @@ public class DiningPhilosophers {
          switch(args[1].charAt(0)) {
                 case 'n':
                     ds = NaiveImplicitDiningServerImpl.newInstance(numPhilosophers);
-                case 'm':
-                    ds = MultiConditionDiningServerImpl.newInstance(numPhilosophers);
+                case 'l':
+                    ds = HashSetDiningServerImpl.newInstance(numPhilosophers);
                 default:
                     ds = ExplicitDiningServerImpl.newInstance(numPhilosophers);
          }
