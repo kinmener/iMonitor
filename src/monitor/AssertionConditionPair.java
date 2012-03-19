@@ -11,10 +11,12 @@ public class AssertionConditionPair {
         condition = condition_;
     }
     
-    public void conditionalSignal() {
+    public boolean conditionalSignal() {
         if(assertion.isTrue()) {
             condition.signal();
+            return true;
         }
+        return false;
     }
     
     public void conditionalAwait() throws InterruptedException {
@@ -24,6 +26,9 @@ public class AssertionConditionPair {
     }
     public void await() throws InterruptedException {
         condition.await();
+    }
+    public void signal() {
+        condition.signal();
     }
     public boolean assertionIsTrue() {
         return assertion.isTrue();

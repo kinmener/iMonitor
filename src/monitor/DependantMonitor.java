@@ -1,15 +1,24 @@
 package monitor;
 
 import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.HashSet;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DependantMonitor extends AbstractImplicitMonitor  {
 
-    Lock mutex = new ReentrantLock();
-    HashMap<Assertion, Condition> mapConditions;
+    Lock mutex;
+    HashSet<AssertionConditionPair> setPairs;
+    HashMap<String, HashSetCondition> mapConditions;
+    HashMap<String, AssertionConditionPair> mapDependantConditionPair;
+
+    public DependantMonitor() {
+        mutex = new ReentrantLock();
+        setPairs = new HashSet<AssertionConditionPair>();
+        mapConditions = new HashMap<String, HashSetCondition>() ;
+        mapDependantConditionPair = new HashMap<String, AssertionConditionPair> ();
+    }
 
     @Override
     protected void enter() {
@@ -18,32 +27,44 @@ public class DependantMonitor extends AbstractImplicitMonitor  {
 
     @Override
     protected void leave() {
-        if(mapConditions != null) {
-            //condition_.signalAll();
-            for(Entry<Assertion, Condition> e: mapConditions.entrySet()) {
-                if(e.getKey().isTrue()) {
-                    e.getValue().signal();
-                }
-            }
+
+        //condition_.signalAll();
+        for(AssertionConditionPair pair : setPairs) {
+            pair.conditionalSignal();
         }
+
+        mutex.unlock();
+    }
+
+    protected void leave(String funcKey) {
+
+        for(AssertionConditionPair pair : setPairs) {
+            pair.conditionalSignal();
+        }
+
         mutex.unlock();
     }
 
     @Override
-    public DependantCondition makeCondition(Assertion assertion) {
+    public HashSetCondition makeCondition(Assertion assertion) {
         Condition condition = mutex.newCondition();
-        if(mapConditions == null) {
-            mapConditions = new HashMap<Assertion, Condition>();
+
+        return new HashSetCondition(assertion, condition, setPairs);
+    }
+
+    public HashSetCondition makeCondition(Assertion assertion, String key) {
+
+        if(mapConditions.containsKey(key)) {
+            return mapConditions.get(key);
         }
-        mapConditions.put(assertion, condition);
-        return new DependantCondition(condition, assertion, mapConditions);
+
+        HashSetCondition ret = makeCondition(assertion);
+        mapConditions.put(key, ret);
+        return ret;
     }
 
     @Override
     public void removeCondition(AbstractCondition condition) {
-        // TODO Auto-generated method stub
-        
+        setPairs.remove(condition);   
     }
-    
-    
 }
