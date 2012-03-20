@@ -17,7 +17,9 @@ public class NaiveImplicitGlobalTestMonitor implements TestMonitor {
             final int i_dummy = i;
             conds[i] = __monitor__628.makeCondition( 
                     new Assertion() {
-                        public boolean isTrue() { return (numAccess % numProc) == i_dummy; } } ) ;
+                        public boolean isTrue() { return (numAccess % numProc) == i_dummy; } 
+                        public String getGlobalState() { return "NULL"; }
+                    } ) ;
 
         }
     }

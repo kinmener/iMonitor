@@ -26,6 +26,9 @@ public class Test{
             numProc = Integer.parseInt(args[0]); 
             totalNumAccess = Integer.parseInt(args[1]); 
             switch(args[2].charAt(0)) {
+                case 'd':
+                    monitor = new DependantTestMonitor(numProc);
+                    break;
                 case 'n':
                     monitor = new NaiveImplicitTestMonitor(numProc);
                     break;

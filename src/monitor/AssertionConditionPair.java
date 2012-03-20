@@ -33,4 +33,7 @@ public class AssertionConditionPair {
     public boolean assertionIsTrue() {
         return assertion.isTrue();
     }
+    public String getGlobalState() {
+        return assertion.getGlobalState();
+    }
 }

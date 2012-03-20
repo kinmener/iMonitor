@@ -6,10 +6,14 @@ public  class NaiveImplicitBoundedBuffer implements ObjectBoundedBufferInterface
    private AbstractImplicitMonitor monitor = new NaiveImplicitMonitor(); //auto-gen
    private AbstractCondition cond_1 = monitor.makeCondition( //auto-gen
          new  Assertion() {
-            public boolean isTrue() { return count > 0; } } ) ;
+            public boolean isTrue() { return count > 0; } 
+            public String getGlobalState() { return "NULL"; }
+         } ) ;
    private AbstractCondition cond_0 = monitor.makeCondition( //auto-gen
          new  Assertion() {
-            public boolean isTrue() { return count < items.length; } } ) ;
+            public boolean isTrue() { return count < items.length; } 
+            public String getGlobalState() { return "NULL"; }
+         } ) ;
 
    private final Object[] items;
    private int putptr, takeptr, count;

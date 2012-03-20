@@ -10,13 +10,13 @@ public class DependantMonitor extends AbstractImplicitMonitor  {
 
     Lock mutex;
     HashSet<AssertionConditionPair> setPairs;
-    HashMap<String, HashSetCondition> mapConditions;
+    HashMap<String, DependantCondition> mapConditions;
     HashMap<String, AssertionConditionPair> mapDependantConditionPair;
 
     public DependantMonitor() {
         mutex = new ReentrantLock();
         setPairs = new HashSet<AssertionConditionPair>();
-        mapConditions = new HashMap<String, HashSetCondition>() ;
+        mapConditions = new HashMap<String, DependantCondition>() ;
         mapDependantConditionPair = new HashMap<String, AssertionConditionPair> ();
     }
 
@@ -37,28 +37,66 @@ public class DependantMonitor extends AbstractImplicitMonitor  {
     }
 
     protected void leave(String funcKey) {
-
-        for(AssertionConditionPair pair : setPairs) {
-            pair.conditionalSignal();
+        if(mapDependantConditionPair.containsKey(funcKey) && 
+                mapDependantConditionPair.get(funcKey).conditionalSignal()) {
+            mutex.unlock();
+            return;
         }
 
+        for(AssertionConditionPair pair : setPairs) {
+            if(pair.conditionalSignal()) {
+                mapDependantConditionPair.put(funcKey, pair);
+                break;
+            }
+        }
         mutex.unlock();
+    }
+    public void DoWithin(Runnable runnable, String funcKey) {
+        enter();
+        try {
+            runnable.run();  
+        } finally {
+            leave(funcKey);
+        }
+    }
+    public<T> T DoWithin( RunnableWithResult<T> runnable, String funcKey) {
+        enter() ;
+        try {   
+            return runnable.run() ; 
+        }
+        finally {
+            leave(funcKey) ; 
+        }
+    }
+    public<T extends Exception> void DoWithin( RunnableWithException<T> runnable, String funcKey ) throws T {
+      enter() ;
+      try {
+        runnable.run() ; }
+      finally {
+       leave(funcKey) ; }
+    }
+    public<T1, T2 extends Exception> T1 DoWithin( RunnableWithResultAndException<T1, T2> runnable, String funcKey ) throws T2 {
+      enter() ;
+      try {
+        return runnable.run() ; }
+      finally {
+       leave(funcKey) ; }
     }
 
     @Override
-    public HashSetCondition makeCondition(Assertion assertion) {
+    public DependantCondition makeCondition(Assertion assertion) {
         Condition condition = mutex.newCondition();
 
-        return new HashSetCondition(assertion, condition, setPairs);
+        return new DependantCondition(assertion, condition, setPairs);
     }
 
-    public HashSetCondition makeCondition(Assertion assertion, String key) {
+    public DependantCondition makeCondition(Assertion assertion, String key) {
 
         if(mapConditions.containsKey(key)) {
             return mapConditions.get(key);
         }
 
-        HashSetCondition ret = makeCondition(assertion);
+        DependantCondition ret = makeCondition(assertion);
         mapConditions.put(key, ret);
         return ret;
     }
