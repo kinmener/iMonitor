@@ -1,0 +1,23 @@
+public monitor class IdealWaitingRoom {
+    private int numFreeSeats;
+    private final int numTotalSeats;
+    private boolean isBarberBusy;
+
+    public IdealWaitingRoom(int numTotalSeats_) {
+        numTotalSeats = numFreeSeats = numFreeSeats_;
+        isBarberBusy = false;
+    }
+    
+    public void cutHair() {
+        await(numFreeSeats < numTotalSeats);
+        numFreeSeats++;
+        // cut hair
+    }
+    public void waitToCut() {
+        if(numFreeSeats == 0) {
+            return;
+        }
+        await(!isBarberBusy);
+        // been cut hair
+    }
+}

@@ -1,0 +1,34 @@
+public monitor class ReadersWritersMonitor {
+    int rcnt;
+    int wcnt;
+    int wwaiting;
+
+    public ReadersWritersMonitor() {
+        rcnt = 0; 
+        wcnt = 0;
+        wwaiting = 0;
+    }
+
+    public void startRead() {
+        
+        await(wcnt == 0 && wwaiting == 0);
+        rcnt++;
+        return;
+    }
+
+    public void endRead() {
+        rcnt--;
+    }
+
+    public void startWrite() {
+  
+        wwaiting++;
+        await(rcnt == 0 && wcnt == 0);
+        wwaiting--;
+        wcnt = 1;
+    }
+
+    public void endWrite() {
+        wcnt = 0;
+    }
+}

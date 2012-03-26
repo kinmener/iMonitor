@@ -1,0 +1,35 @@
+public monitor class ReadersWritersMonitor {
+    int rcnt;
+    int tickets, serving;
+
+    public ReadersWritersMonitor() {
+        rcnt = 0; 
+        tickets = serving = 0;
+    }
+
+    public void startRead() {
+        int ticket = tickets;
+        tickets++;
+
+        await(ticket == serving);
+
+        rcnt++;
+        serving++;
+        return;
+    }
+
+    public void endRead() {
+        rcnt--;
+    }
+
+    public void startWrite() {
+        int ticket = tickets;
+        tickets++;
+
+        await(ticket == serving && rcnt == 0);
+    }
+
+    public void endWrite() {
+        serving++;
+    }
+}
