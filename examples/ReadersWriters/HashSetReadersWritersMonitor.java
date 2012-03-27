@@ -3,12 +3,12 @@
 package examples.ReadersWriters;
 import monitor.*;	//auto-gen iMonitor
 
-public class NaiveImplicitReadersWritersMonitor implements ReadersWritersMonitor {
+public class HashSetReadersWritersMonitor implements ReadersWritersMonitor {
     int rcnt;
     int wcnt;
     int wwaiting;
    
-    private AbstractImplicitMonitor monitor = new NaiveImplicitMonitor(); //auto-gen
+    private AbstractImplicitMonitor monitor = new HashSetMonitor(); //auto-gen
     private AbstractCondition okay_read = monitor.makeCondition( //auto-gen
          new  Assertion() {
             public boolean isTrue() { return (wcnt == 0 && wwaiting == 0); } 
@@ -18,7 +18,7 @@ public class NaiveImplicitReadersWritersMonitor implements ReadersWritersMonitor
             public boolean isTrue() { return (rcnt == 0 && wcnt == 0); } 
          } ) ;
 
-    public NaiveImplicitReadersWritersMonitor () {
+    public HashSetReadersWritersMonitor() {
         rcnt = 0; 
         wcnt = 0;
         wwaiting = 0;

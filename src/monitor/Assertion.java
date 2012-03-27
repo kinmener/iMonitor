@@ -39,8 +39,6 @@ public abstract class Assertion {
     /** This method says whether the assertion is true. */
     public abstract boolean isTrue() ;
 
-    public abstract String getGlobalState() ; 
-
     /** Throw an AssertionError if the assertion is not true. */
     public void check() {
         check( isTrue(), message ) ; }

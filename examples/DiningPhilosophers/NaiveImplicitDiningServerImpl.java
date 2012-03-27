@@ -57,7 +57,6 @@ public class NaiveImplicitDiningServerImpl extends DiningServer {
 		AbstractCondition cond_1 = __monitor__628.makeCondition( //auto-gen
   	  new Assertion() {
   	    public boolean isTrue() { return state[i_dummy] == State.EATING; } 
-        public String getGlobalState() { return "NULL"; }
       } ) ;
 
 	  cond_1.await();	

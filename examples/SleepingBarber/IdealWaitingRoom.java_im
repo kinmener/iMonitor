@@ -1,23 +1,26 @@
-public monitor class IdealWaitingRoom {
+public monitor class IdealBarberShop {
     private int numFreeSeats;
     private final int numTotalSeats;
-    private boolean isBarberBusy;
+    private int numAvailableBarbers;
 
-    public IdealWaitingRoom(int numTotalSeats_) {
+    public IdealBarberShop(int numTotalSeats_) {
         numTotalSeats = numFreeSeats = numFreeSeats_;
-        isBarberBusy = false;
+        numAvailableBarbers = 0;
     }
-    
-    public void cutHair() {
-        await(numFreeSeats < numTotalSeats);
-        numFreeSeats++;
-        // cut hair
+   
+    public void toCutHair() {
+        await(numFreeSeats < numTotalSeats); // some customers are waiting 
+        numFreeSeats++; 
+        numAvailableBarbers++;
     }
-    public void waitToCut() {
+
+    public boolean waitToCut() {
         if(numFreeSeats == 0) {
-            return;
+            return false;
         }
-        await(!isBarberBusy);
-        // been cut hair
+        numFreeSeats--;
+        await(numAvailableBarbers > 0);
+        numAvailableBarbers--;
+        return true;
     }
 }

@@ -10,14 +10,14 @@ public class DependantMonitor extends AbstractImplicitMonitor  {
 
     Lock mutex;
     HashSet<AssertionConditionPair> setPairs;
-    HashMap<String, DependantCondition> mapConditions;
-    HashMap<String, AssertionConditionPair> mapDependantConditionPair;
+    HashMap<String, HashSetCondition> mapConditions;
+    HashMap<String, AssertionConditionPair> mapHashSetConditionPair;
 
     public DependantMonitor() {
         mutex = new ReentrantLock();
         setPairs = new HashSet<AssertionConditionPair>();
-        mapConditions = new HashMap<String, DependantCondition>() ;
-        mapDependantConditionPair = new HashMap<String, AssertionConditionPair> ();
+        mapConditions = new HashMap<String, HashSetCondition>() ;
+        mapHashSetConditionPair = new HashMap<String, AssertionConditionPair> ();
     }
 
     @Override
@@ -37,15 +37,15 @@ public class DependantMonitor extends AbstractImplicitMonitor  {
     }
 
     protected void leave(String funcKey) {
-        if(mapDependantConditionPair.containsKey(funcKey) && 
-                mapDependantConditionPair.get(funcKey).conditionalSignal()) {
+        if(mapHashSetConditionPair.containsKey(funcKey) && 
+                mapHashSetConditionPair.get(funcKey).conditionalSignal()) {
             mutex.unlock();
             return;
         }
 
         for(AssertionConditionPair pair : setPairs) {
             if(pair.conditionalSignal()) {
-                mapDependantConditionPair.put(funcKey, pair);
+                mapHashSetConditionPair.put(funcKey, pair);
                 break;
             }
         }
@@ -84,19 +84,19 @@ public class DependantMonitor extends AbstractImplicitMonitor  {
     }
 
     @Override
-    public DependantCondition makeCondition(Assertion assertion) {
+    public HashSetCondition makeCondition(Assertion assertion) {
         Condition condition = mutex.newCondition();
 
-        return new DependantCondition(assertion, condition, setPairs);
+        return new HashSetCondition(assertion, condition, setPairs);
     }
 
-    public DependantCondition makeCondition(Assertion assertion, String key) {
+    public HashSetCondition makeCondition(Assertion assertion, String key) {
 
         if(mapConditions.containsKey(key)) {
             return mapConditions.get(key);
         }
 
-        DependantCondition ret = makeCondition(assertion);
+        HashSetCondition ret = makeCondition(assertion);
         mapConditions.put(key, ret);
         return ret;
     }

@@ -37,9 +37,6 @@ public class True_Assertion extends Assertion
     {
         return true ;
     }
-    public String getGlobalState() {
-        return "true";
-    }
     
     public static final True_Assertion singleton = new True_Assertion() ;
 }

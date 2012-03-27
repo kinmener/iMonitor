@@ -22,8 +22,8 @@ public class DependantTestMonitor implements TestMonitor {
                 AbstractCondition cond_1 = __monitor__628.makeCondition( //auto-gen
                     new Assertion() {
                         public boolean isTrue() { return (numAccess % numProc) == myId_dummy; } 
-                        public String getGlobalState() { return "" + (numAccess % numProc); } },
-                        "(numAccess % numProc) == myId_dummy" + "_" + myId_dummy) ;
+                    },
+                    "(numAccess % numProc) == myId_dummy" + "_" + myId_dummy) ;
                 cond_1.await();
                 //System.out.println("myId: " + myId_dummy + " numAccess: " + numAccess);
                 ++numAccess;

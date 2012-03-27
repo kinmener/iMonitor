@@ -22,7 +22,6 @@ public class HashTestMonitor implements TestMonitor {
                 AbstractCondition cond_1 = __monitor__628.makeCondition( //auto-gen
                     new Assertion() {
                         public boolean isTrue() { return (numAccess % numProc) == myId_dummy; } 
-                        public String getGlobalState() { return "NULL"; }
                     },
                         "(numAccess % numProc) == myId_dummy" + "_" + myId_dummy) ;
                 cond_1.await();

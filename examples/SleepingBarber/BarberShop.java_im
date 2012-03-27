@@ -1,0 +1,277 @@
+/*
+	A Solution to Sleeping Barber problem using semaphores:
+	
+	Solution uses a circular buffer with synchronized put and take methods. 
+	Abstract classes ConsumerWithSemaphores and ProducerWithSemaphores
+	are inherited.
+
+*/
+import javax.swing.*;
+import java.awt.*;
+
+/*
+	Application creates a window - 
+ 	packages javax.swing and java.awt are used
+		*/
+import java.awt.event.*;
+import java.util.*;
+
+// Class to represent customers 
+class Customer
+{
+	private int custNo;
+	
+	public Customer(int no)
+	{
+		custNo = no;
+	}
+	
+	public String toString()
+	{
+		return "Customer number " + custNo;
+	}
+}
+
+/*
+ * Class for barber = consumer of customers
+ */
+class Barber extends ConsumerWithSemaphores implements Runnable
+{
+
+	private String name = "Semaphoric barber";
+	private int maxCutTime;
+	private JTextArea noteBoard;
+	private Random rndGen;
+	
+	public Barber(CircularBufferWithSemaphores cb,int maxTime, JTextArea jta)
+	{
+		super(cb);
+		
+		maxCutTime = maxTime;
+		noteBoard = jta;
+		
+		rndGen = new Random();
+	}
+	
+	protected void consume(Object obj)
+	{
+		// We get Objects from buffer -> must cast
+		Customer c = (Customer)obj;
+				
+		noteBoard.append(name + " starts cutting the hair of " + c +"\n");
+		
+		try
+		{
+			Thread.sleep(1000 + Math.abs(rndGen.nextInt(1000 * maxCutTime)) );
+		}
+		catch(InterruptedException ie)
+		{
+				Thread.currentThread().interrupt();
+		}
+		
+		noteBoard.append(name + " stopped cutting the hair of " + c+"\n");
+	}
+	
+	public void run()
+	{
+		Object obj;
+		
+		while(!Thread.interrupted())
+		{
+			try
+			{
+				if( getNumStored() == 0 )
+					noteBoard.append(name + " sleeping.\n");
+				
+				obj = takeObject();
+				
+				consume(obj);
+				
+			}
+			catch(InterruptedException ie)
+			{
+				break;
+			}
+						
+		}
+	}
+		
+}
+
+/* 
+ * Class to produce customers for barber.
+ * Customer created at random intervals.
+ */	
+class CustomerAppearance extends ProducerWithSemaphores implements Runnable
+{
+	private int maxAppearTime;
+	private JTextArea noteBoard;
+	private int CustomerNum = 0;
+	private Random rndGen;
+	
+	public CustomerAppearance(CircularBufferWithSemaphores cb,
+							  int maxTime,JTextArea jta)
+	{
+		super(cb);
+		maxAppearTime = maxTime;
+		noteBoard = jta;
+		
+		rndGen = new Random();
+	}
+	
+	protected Object produce()
+	{
+		Object obj;
+		
+		try
+		{
+		Thread.sleep(1000 + Math.abs(rndGen.nextInt(1000 * maxAppearTime)) );
+		}
+		catch(InterruptedException ie)
+		{
+				;
+		}
+		
+		CustomerNum++;
+		
+		obj = new Customer(CustomerNum);
+		return obj;
+	}
+	
+	public void run()
+	{
+		Customer c;
+		
+		
+		while(true)
+		{
+			try
+			{
+				
+				// Produce outputs objects -> must cast
+				c = (Customer)produce();
+				
+				putObject(c);
+				
+				noteBoard.append(""+ c + "arrived.+\n");
+				
+			}
+			catch(InterruptedException ie)
+			{
+				break;
+			}
+						
+		}
+			
+	}
+		
+}
+
+/* 
+ * The main program with simple UI
+ * Customer producing thread is started with program
+ * Barber thread started and stopped from push button
+ * once stopped can not be restarted.
+ */
+public class BarberShop extends JFrame implements WindowListener,ActionListener
+{
+	CustomerAppearance caQueue = null;
+	Barber theBarber;
+	Thread BarberThread;
+	Thread CustomerThread;
+	
+	JButton startButton;
+	JTextArea threadNote = null;
+	
+	CircularBufferWithSemaphores chairs = null;
+	
+	public BarberShop() 
+	{
+		// Set layout manager
+		getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT));
+
+		// Set window title
+		this.setTitle("Sleeping Barber program.");
+
+		//Set window size
+		this.setSize(470,400);
+		this.setResizable(false);
+				
+		startButton = new JButton("Start/stop Barber");
+		getContentPane().add(startButton);
+		startButton.addActionListener(this);
+		
+		
+		threadNote = new JTextArea(18,40);
+		JScrollPane jScrollView = new JScrollPane(threadNote);
+		getContentPane().add(jScrollView);
+		
+		try
+		{
+			chairs = new CircularBufferWithSemaphores(4);
+		}
+		catch(IllegalArgumentException iae)
+		{
+			System.exit(-1);
+		}
+		
+		// Create threads for producer and consumer but 
+		// do not yet start:
+		caQueue = new CustomerAppearance(chairs,3,threadNote);
+		
+		theBarber = new Barber(chairs,5,threadNote);
+		
+		BarberThread = new Thread(theBarber);
+		
+		CustomerThread = new Thread(caQueue);
+		
+	}
+	
+	public static void main(String [] argv )
+	{
+		BarberShop bsProg = new BarberShop();
+		
+		// Show window
+		bsProg.show();
+		
+		// Add the window self as a listener!
+		bsProg.addWindowListener(bsProg);
+		
+		// Start the customer producing thread
+		bsProg.CustomerThread.start();
+	}
+	
+	/* These methods must be implemented because of interfac,
+  	  but they can be left empty */
+  public void windowOpened(WindowEvent e){ }
+  public void windowClosed(WindowEvent e) { }
+  public void windowActivated(WindowEvent e) { }
+  public void windowDeactivated(WindowEvent e) { }
+  public void windowIconified(WindowEvent e) { }
+  public void windowDeiconified(WindowEvent e) { }
+
+  // Only this method needs code!
+  public void windowClosing(WindowEvent e) 
+  {
+	  System.exit(0);
+  }
+
+
+  // Only method of ActionListener
+  public void actionPerformed(ActionEvent ae)
+  {
+	  if( ae.getSource() == startButton)
+	  {
+	  	  // If barber thread is running stop it - else start
+		  if(BarberThread.isAlive())
+		  {
+			  BarberThread.interrupt();
+		  }
+		  else
+		  {
+			  BarberThread.start();
+		  }
+	  }
+  }
+  
+}
