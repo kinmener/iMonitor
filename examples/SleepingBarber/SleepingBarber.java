@@ -1,3 +1,5 @@
+package examples.SleepingBarber;
+
 import java.util.concurrent.*;
 
 public class SleepingBarber extends Thread {
