@@ -88,7 +88,7 @@ class ObjectProducer extends TestThread {
             catch(InterruptedException e ) { }
             delay(10) ;
         }
-        System.out.println("ObjectProducer " +Thread.currentThread() +" Done ") ; 
+        //System.out.println("ObjectProducer " +Thread.currentThread() +" Done ") ; 
         doneCounter.increment() ;
     }
 }
@@ -114,7 +114,7 @@ class ObjectConsumer extends TestThread {
 
             delay(10) ;
         }
-        System.out.println("ObjectConsumer " +Thread.currentThread() + " Done ") ; 
+        //System.out.println("ObjectConsumer " +Thread.currentThread() + " Done ") ; 
         doneCounter.increment() ;
     }
 }
