@@ -156,10 +156,16 @@ public class DiningPhilosophers {
          switch(args[1].charAt(0)) {
                 case 'n':
                     ds = NaiveImplicitDiningServerImpl.newInstance(numPhilosophers);
+                    break;
                 case 'l':
                     ds = HashSetDiningServerImpl.newInstance(numPhilosophers);
+                    break;
+                case 'p':
+                    ds = PDSLLockDiningServerImpl.newInstance(numPhilosophers);
+                    break;
                 default:
                     ds = ExplicitDiningServerImpl.newInstance(numPhilosophers);
+                    break;
          }
          numEat = Integer.parseInt(args[2]);
          napThink = Integer.parseInt(args[3]);

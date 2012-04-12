@@ -1,4 +1,4 @@
-%-----------------------------------------------------------------------------
+%----------------------------------------------------------------------------
 %
 %               Template for sigplanconf LaTeX Class
 %
@@ -29,7 +29,8 @@
 % authoryear    To obtain author/year citation style instead of numeric.
 
 \usepackage{amsmath}
-\usepackage{graphicx}
+\usepackage{graphicx, subfig}
+\usepackage{fancyvrb}
 
 \begin{document}
 
@@ -71,70 +72,87 @@ keyword1, keyword2
 The text of the paper begins here.
 
 \section{Background}
-\section{Syntax and Framework of iMonitor}
+\begin{SaveVerbatim}{OriginBoundedBuffer}
+class BoundedBuffer {
+  int[] items;   
+  condition not_full, not_empty;
+  int putptr, takeptr, count;
+  public BoundedBuffer(int n) {
+    putptr = takeptr = count = 0;
+    items = new int[n];
+  } 
+  public void put(int x) {
+    if(count == items.length) {
+      not_full.await();
+    }
+    int x = items[putptr] = x;
+    if(++putptr == items.length) {
+      putptr = 0;
+    }
+    ++count;
+    not_empty.signal();
+  }
+  public int take() {
+    if(count == 0) {
+      not_empty.await();
+    }
+    int x = items[takeptr];
+    if(++takeptr == items.length) {
+      takeptr = 0;
+    }
+    not_full.signal();
+    return x;
+  }
+}
+\end{SaveVerbatim}
+
+\begin{SaveVerbatim}{iMonitorBoundedBuffer}
+monitor class BoundedBuffer { 
+  int[] items; 
+  int putptr, takeptr, count; 
+  public BoundedBuffer(int n) { 
+    putptr = takeptr = count = 0; 
+    items = new int[n]; 
+  } 
+  public void put(int x) { 
+    waituntil(count < items.length); 
+    int x = items[putptr] = x; 
+    if(++putptr == items.length) { 
+      putptr = 0; 
+    } 
+    ++count; 
+  } 
+  public int take() { 
+    waituntil(count > 0); 
+    int x = items[takeptr]; 
+    if(++takeptr == items.length) { 
+      takeptr = 0; 
+    }
+    return x;
+  }
+}
+\end{SaveVerbatim}
+
+\begin{figure}
+  \centering
+  \subfloat[Traditional Java] {
+    \BUseVerbatim[fontsize=\scriptsize]{OriginBoundedBuffer}
+  }
+  \subfloat[Java with iMonitor] {
+    \BUseVerbatim[fontsize=\scriptsize]{iMonitorBoundedBuffer}
+  }
+  \caption{Bounded-buffer example}
+\end{figure}
 
 
-\begin{table}
-  \begin{tabular}{| l | l | }
-    \hline
-    class BoundedBuffer \{ & 
-      monitor class BoundedBuffer \{ \\
-    \ \ int[] items;  & 
-      \ \   int[] items; \\
-    \ \ condition not\_full, not\_empty; & 
-      \ \ int putptr, takeptr, count; \\
-    \ \ int putptr, takeptr, count; & 
-      \ \ public BoundedBuffer(int n) \{ \\
-    \ \ public BoundedBuffer(int n) \{ &  
-      \ \ \ \ putptr = takeptr = count = 0; \\
-    \ \ \ \ putptr = takeptr = count = 0; & 
-      \ \ \ \ items = new int[n]; \\
-    \ \ \ \ items = new int[n]; & 
-      \ \ \} \\
-    \ \ \} & 
-      \ \ public void put(int x) \{ \\
-    \ \ public void put(int x) \{ & 
-      \ \ \ \ waituntil(count < items.length); \\
-    \ \ \ \ if(count == items.length) \{ &
-      \ \ \ \ int x = items[putptr] = x; \\
-    \ \ \ \ \ \ not\_full.await(); & 
-      \ \ \ \ if(++putptr == items.length) \{ \\
-    \ \ \ \ \} &  
-      \ \ \ \ \ \ putptr = 0; \\
-    \ \ \ \ int x = items[putptr] = x; & 
-      \ \ \ \ \} \\
-    \ \ \ \ if(++putptr == items.length) \{ & 
-      \ \ \ \ ++count; \\
-    \ \ \ \ \ \ putptr = 0; & 
-      \ \ \} \\
-    \ \ \ \ \} &
-      \ \ public int take() \{ \\
-    \ \ \ \ ++count; &
-      \ \ \ \ waituntil(count $>$ 0); \\
-    \ \ \ \ not\_empty.signal(); &
-      \ \ \ \ int x = items[takeptr]; \\
-    \ \ \} &
-      \ \ \ \ if(++takeptr == items.length) \{ \\
-    \ \ public int take() \{ &
-      \ \ \ \ \ \ takeptr = 0; \\
-    \ \ \ \ if(count == 0) \{ &
-      \ \ \ \ \} \\
-    \ \ \ \ \ \ not\_empty.await(); & 
-      \ \ \ \ return x; \\
-    \ \ \ \ \} &
-      \ \ \} \\
-    \ \ \ \ int x = items[takeptr]; &
-      \} \\
-    \ \ \ \ if(++takeptr == items.length) \{ & \\ 
-    \ \ \ \ \ \ takeptr = 0; & \\
-    \ \ \ \ \} & \\
-    \ \ \ \ not\_full.signal(); & \\
-    \ \ \ \ return x; & \\
-    \ \ \} & \\
-    \} & \\
-    \hline
-  \end{tabular}
-\end{table}
+\subsection{Mutual Exclusion and Synchronization}
+\subsection{Implicit-Signal v.s. Explicit-Signal}
+\subsection{Global v.s. Local Predicate}
+need to define global and local predicate
+
+\section{Framework of iMonitor}
+
+
 \begin{figure}[h!]
   \centering
   \includegraphics[width=70mm]{fig/flow.png}
@@ -142,13 +160,11 @@ The text of the paper begins here.
   \label{fig:framework}
 \end{figure}
 
-monitor variables (class variables)
 
 
-\section{Details of Implicit-Signal Monitors}
+\section{Details of iMonitor Implementation}
 The implementation of the implicit-signal monitor in iMonitor involves four 
 parts:
-
 \begin{enumerate}
   \item Monitor-constructor: the constructor of the monitor class, including 
     definitions and declarations of additional variables to provide mutual 
@@ -162,40 +178,102 @@ parts:
     each member function, involving code to guarantee mutal exclusion and 
     synchronization of monitor. 
 \end{enumerate}
+The implementation of iMonitor is summarized in Table \ref{tab:iMonitor_imp}
 
 
 
 \subsection{Naive}
 
-\begin{table}
+\begin{SaveVerbatim}{NaiveConstructorImp}
+Lock mutex;
+Condition cond;
+\end{SaveVerbatim}
+
+\begin{SaveVerbatim}{NaiveEntryImp}
+mutex.lock();
+\end{SaveVerbatim}
+
+\begin{SaveVerbatim}{NaiveWaituntilImp}
+if(!C) {
+  cond.signalAll();
+  do {
+    cond.await();
+  } while(!C);
+}
+\end{SaveVerbatim}
+
+\begin{SaveVerbatim}{NaiveExitImp}
+mutex.unlock();
+cond.signalAll();
+\end{SaveVerbatim}
+
+\begin{SaveVerbatim}{NConditionConstructorImp}
+Lock mutex;
+HashSet<AssertionConditionPair> setPairs;
+create AssertionConditionPair for each global predicate and put them into setPairs;
+\end{SaveVerbatim}
+
+\begin{SaveVerbatim}{NConditionWaituntilImp}
+if(C is local predicate) {
+  create AssertionConditionPair for C and put them into setPairs;
+} 
+if(!C) {
+  for(AssertionConditionPair pair : setPairs) {
+    pair.conditionalSignal();
+  }
+  do {
+    await();
+  } while(!C); 
+}
+
+\end{SaveVerbatim}
+
+\begin{SaveVerbatim}{NConditionExitImp}
+if(setPairs != null) {
+  for(AssertionConditionPair pair : setPairs) {
+    pair.conditionalSignal();
+  }
+}
+remove all local predicate in setPairs;
+mutex.unlock();
+\end{SaveVerbatim}
+
+\begin{table*}
   \center
-  \begin{tabular}{| l || l |}
+  \begin{tabular}{| l || l | l | }
     \hline
-    constructor & Lock mutex; \\
-                & Condition cond; \\
+                & Naive & N-Condition\\
     \hline
-    entry & mutex.lock(); \\
     \hline
-    waituntil C & if(!C) \{  \\
-                & \ \ cond.signalAll(); \\
-                & \ \ do \{ \\
-                & \ \ \ \ cond.await(); \\
-                & \ \ \}  while(!C); \\
-                & \} \\
+    Constructor & \BUseVerbatim{NaiveConstructorImp} 
+                & \BUseVerbatim{NConditionConstructorImp} \\
     \hline
-    exit & mutex.unlock(); \\
-         & cond.signalAll(); \\
+    Entry       & \BUseVerbatim{NaiveEntryImp} 
+                & \BUseVerbatim{NaiveEntryImp} \\
+    \hline
+    Waituntil C & \BUseVerbatim{NaiveWaituntilImp} 
+                & \BUseVerbatim{NConditionWaituntilImp} \\
+    \hline
+    Exit        & \BUseVerbatim{NaiveExitImp} 
+                & \BUseVerbatim{NConditionExitImp} \\
     \hline
   \end{tabular}
-  \caption{Naive monitor implementation}
-  \label{tab:naive_imp}
-\end{table}
+  \caption{iMonitor implementation}
+  \label{tab:iMonitor_imp}
+\end{table*}
 
-The implementation of naive implicit-signal monitor is shown in Table 
-\ref{tab:naive_imp}. One lock variable, {\bf \it mutex}, is declared for 
-mutual exclusion, which should be acquired in the begining of every member 
-function and released before the return statement. In addition, one condition
-variable, {\bf \it cond}, is declared for synchronization, 
+In the implementation of naive implicit-signal monitor, one lock variable, 
+$mutex$, is declared for mutual exclusion, which should be acquired in 
+the begining of every member function and released before the return statement.
+In addition, one condition variable, $cond$, is declared for 
+synchronization, on which the implementation of waituntil depends. In the 
+waituntil statement the predicate expression is checked initially. If the 
+expression is false; then all other threads which are waiting on $cond$ are 
+signaled to reevaluate their predicate expression since the monitor state may 
+change. The currenet thread then is blocked in a loop and reevaluate its 
+predicate expression when it is signaled. On the exit of a member function, 
+all threads waiting on $cond$ are signaled to reevaluate their preidcate 
+expression since the monitor state may change. 
 
 \subsection{N-Condition}
 

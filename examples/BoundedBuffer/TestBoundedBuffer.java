@@ -34,6 +34,9 @@ public class TestBoundedBuffer {
             case 'h':
                 rw_controller = new HashBoundedBuffer(4);
                 break;
+            case 'p':
+                rw_controller = new PDSLLockBoundedBuffer(4);
+                break;
             default:
                 rw_controller = new NaiveExplicitBoundedBuffer(4);
 
