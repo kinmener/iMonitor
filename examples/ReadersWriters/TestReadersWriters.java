@@ -76,6 +76,9 @@ public class TestReadersWriters {
         ReadersWritersMonitor monitor = null; 
         try {
             switch(args[0].charAt(0)) {
+            case 'p':
+                monitor = new PDSLReadersWritersMonitor();
+                break;
             case 'n':
                 monitor = new NaiveImplicitReadersWritersMonitor();
                 break;
