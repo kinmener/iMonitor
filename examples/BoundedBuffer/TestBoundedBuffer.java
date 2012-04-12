@@ -57,7 +57,7 @@ public class TestBoundedBuffer {
 
         doneCounter.set( CONSUMERS + PRODUCERS ) ;
         long startTime = System.currentTimeMillis();
-        System.out.println("Please wait. This takes a while");
+        //System.out.println("Please wait. This takes a while");
         for( int k=0 ; k < CONSUMERS ; ++k ) {
             Thread w = new ObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS ) ;
             w.start(); }
