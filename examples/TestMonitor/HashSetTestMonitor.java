@@ -2,7 +2,7 @@
 package examples.TestMonitor;
 import monitor.*;	//auto-gen iMonitor
 
-public class HashSetTestMonitor implements TestMonitor {
+public class HashSetTestMonitor extends TestMonitor {
     private AbstractImplicitMonitor __monitor__628 = new HashSetMonitor(); //auto-gen
     private int numProc;
     private int numAccess;
@@ -20,7 +20,9 @@ public class HashSetTestMonitor implements TestMonitor {
                     new Assertion() {
                         public boolean isTrue() { return (numAccess % numProc) == myId_dummy; } 
                     } ) ;
+                setCurrentCpuTime();
                 cond_1.await();
+                addSyncTime();
                 //System.out.println("myId: " + myId_dummy + " numAccess: " + numAccess);
                 ++numAccess;
             }} ) ;

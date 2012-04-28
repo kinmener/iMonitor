@@ -3,6 +3,7 @@ bin/
 dist/
 eval/results/
 doc/tex/iMonitor.*
+doc/tex/*.log
 !doc/tex/iMonitor.tex
 .classpath
 .project

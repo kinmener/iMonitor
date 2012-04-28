@@ -4,7 +4,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ExplicitExpensivePredicateMonitor {
+public class ExplicitExpensivePredicateMonitor implements ExpensivePredicateMonitor {
 
     Lock mutex;
     int[] values;
@@ -36,9 +36,9 @@ public class ExplicitExpensivePredicateMonitor {
             }
             pidOfMin = getPidOfMinValue();
         }
-        System.out.println("pid: " + pid + " value: " + values[pid]);
-        values[pid] += numProc;
+        values[pid] = values[pid] + numProc;
         conditions[getPidOfMinValue()].signal();
+        System.out.println("pid: " + pid + " set value: " + values[pid]);
         mutex.unlock();
     }
 
@@ -53,11 +53,11 @@ public class ExplicitExpensivePredicateMonitor {
         }
         return pid;
     } 
-    private int getAvg() {
-        int sum = 0;
-        for (int i = 0; i < values.length; ++i) {
-            sum += values[i];
-        }
-        return sum/values.length;
-    }
+  //  private int getAvg() {
+  //      int sum = 0;
+  //      for (int i = 0; i < values.length; ++i) {
+  //          sum += values[i];
+  //      }
+  //      return sum/values.length;
+  //  }
 }

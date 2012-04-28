@@ -2,7 +2,7 @@
 package examples.BoundedBuffer;
 import monitor.*;	//auto-gen iMonitor
 
-public class HashSetBoundedBuffer implements ObjectBoundedBufferInterface {
+public class HashSetBoundedBuffer extends ObjectBoundedBuffer {
    private AbstractImplicitMonitor monitor = new HashSetMonitor(); //auto-gen
    private AbstractCondition cond_1 = monitor.makeCondition( //auto-gen
          new  Assertion() {
@@ -24,7 +24,9 @@ public class HashSetBoundedBuffer implements ObjectBoundedBufferInterface {
    public void put(final Object x) {
       monitor.DoWithin( new Runnable() {
          public void run() {
+            setCurrentCpuTime();
             cond_0.await();	//auto-gen iMonitor
+            addSyncTime();
             items[putptr] = x; 
             if (++putptr == items.length) putptr = 0;
             ++count;
@@ -35,7 +37,9 @@ public class HashSetBoundedBuffer implements ObjectBoundedBufferInterface {
    public Object take() {
       return monitor.DoWithin( new RunnableWithResult<Object>() {
          public Object run() {
+            setCurrentCpuTime();
             cond_1.await();	//auto-gen iMonitor
+            addSyncTime();
             Object x = items[takeptr]; 
             if (++takeptr == items.length) takeptr = 0;
             --count;

@@ -1,9 +1,9 @@
 package pdsl;
 
 
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import locks.Condition;
+import locks.Lock;
+import locks.ReentrantLock;
 
 public class PDSLLock {
     private Lock innerLock;

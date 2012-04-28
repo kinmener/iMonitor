@@ -5,7 +5,7 @@ import monitor.Assertion;
 import monitor.DependantMonitor;
 
 
-public class DependantTestMonitor implements TestMonitor {
+public class DependantTestMonitor extends TestMonitor {
     private DependantMonitor __monitor__628 = new DependantMonitor(); //auto-gen
     private int numProc;
     private int numAccess;
@@ -24,7 +24,9 @@ public class DependantTestMonitor implements TestMonitor {
                         public boolean isTrue() { return (numAccess % numProc) == myId_dummy; } 
                     },
                     "(numAccess % numProc) == myId_dummy" + "_" + myId_dummy) ;
+                setCurrentCpuTime();
                 cond_1.await();
+                addSyncTime();
                 //System.out.println("myId: " + myId_dummy + " numAccess: " + numAccess);
                 ++numAccess;
             }}, "access_" + myId_dummy) ;

@@ -13,6 +13,8 @@
 
 package examples.BoundedBuffer;
 
+import java.lang.management.*;
+
 import examples.util.DoneCounter;
 
 public class TestBoundedBuffer {
@@ -21,7 +23,7 @@ public class TestBoundedBuffer {
         int CONSUMERS = 10;
         int PRODUCERS = 10;
         int totalNumActions = 10; 
-        ObjectBoundedBufferInterface rw_controller = null;
+        ObjectBoundedBuffer rw_controller = null;
 
         try {
             switch(args[0].charAt(0)) {
@@ -56,65 +58,82 @@ public class TestBoundedBuffer {
 
 
         doneCounter.set( CONSUMERS + PRODUCERS ) ;
+        TestThread[] threads = new TestThread[CONSUMERS + PRODUCERS];
         long startTime = System.currentTimeMillis();
         //System.out.println("Please wait. This takes a while");
         for( int k=0 ; k < CONSUMERS ; ++k ) {
-            Thread w = new ObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS ) ;
+            TestThread w = new ObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS ) ;
+            threads[k] = w;
             w.start(); }
         for( int k=0 ; k < PRODUCERS ; ++k ) {
-            Thread r = new ObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS) ;
+            TestThread r = new ObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS) ;
+            threads[k + CONSUMERS] = r;
             r.start(); }
         doneCounter.waitForDone() ;
         long execTime = System.currentTimeMillis() - startTime;
+        float totalCpuTime = 0.0f;
+
+        for(int i = 0; i < threads.length; ++i) {
+            totalCpuTime += threads[i].getCpuTime();
+            System.out.println("cpu time: " + threads[i].getCpuTime()/10e6);
+        }
+
+
         System.out.println( execTime );
+        System.out.println( totalCpuTime/10e6)  ;
+        System.out.println( rw_controller.getSyncTime() / 10e6);
     }
 }
 
 class ObjectProducer extends TestThread {
 
-    private ObjectBoundedBufferInterface boundedBuffer ;
+    private ObjectBoundedBuffer boundedBuffer ;
     private DoneCounter doneCounter ;
     private int numActions = 10;
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 
-    ObjectProducer( ObjectBoundedBufferInterface bb, DoneCounter d, int n) {
+    ObjectProducer( ObjectBoundedBuffer bb, DoneCounter d, int n) {
         boundedBuffer = bb ; doneCounter = d ; numActions = n;}
 
     public void run() {
+        long startTime = threadMXBean.getCurrentThreadCpuTime();
         for(int i=0 ; i < numActions ; ++i ) {
-            delay(10) ;
 
             try {
                 boundedBuffer.put( new Object() ) ; }
             catch(InterruptedException e ) { }
-            delay(10) ;
         }
         //System.out.println("ObjectProducer " +Thread.currentThread() +" Done ") ; 
+        long endTime = threadMXBean.getCurrentThreadCpuTime();
+        cpuTime = endTime - startTime;
         doneCounter.increment() ;
     }
 }
 
 class ObjectConsumer extends TestThread {
 
-    private ObjectBoundedBufferInterface boundedBuffer ;
+    private ObjectBoundedBuffer boundedBuffer ;
     private DoneCounter doneCounter ;
     private int numActions = 10;
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 
-    ObjectConsumer( ObjectBoundedBufferInterface bb, DoneCounter d, int n) {
+    ObjectConsumer( ObjectBoundedBuffer bb, DoneCounter d, int n) {
         boundedBuffer = bb ; doneCounter = d ; numActions = n; }
 
     public void run() {
         
+        long startTime = threadMXBean.getCurrentThreadCpuTime();
 
         for(int i=0 ; i < numActions ; ++i ) {
-            delay(10) ;
 
             try {
                 boundedBuffer.take() ; }
             catch(InterruptedException e ) { }
 
-            delay(10) ;
         }
         //System.out.println("ObjectConsumer " +Thread.currentThread() + " Done ") ; 
+        long endTime = threadMXBean.getCurrentThreadCpuTime();
+        cpuTime = endTime - startTime;
         doneCounter.increment() ;
     }
 }

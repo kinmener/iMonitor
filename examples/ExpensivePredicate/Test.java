@@ -1,11 +1,10 @@
 
 package examples.ExpensivePredicate;
-
 class TestThread extends Thread {
-    private ExplicitExpensivePredicateMonitor monitor;
+    private ExpensivePredicateMonitor monitor;
     private int numAccess; 
     private int myId;
-    public TestThread(ExplicitExpensivePredicateMonitor monitor_, int numAccess_, int myId_) {
+    public TestThread(ExpensivePredicateMonitor monitor_, int numAccess_, int myId_) {
         monitor = monitor_;
         numAccess = numAccess_;
         myId = myId_;
@@ -22,11 +21,14 @@ public class Test{
     {
         int numProc = 16;
         int totalNumAccess = 1000;
-        ExplicitExpensivePredicateMonitor monitor = null;
+        ExpensivePredicateMonitor monitor = null;
         try {
             numProc = Integer.parseInt(args[0]); 
             totalNumAccess = Integer.parseInt(args[1]); 
             switch(args[2].charAt(0)) {
+                case 'l':
+                    monitor = new HashSetExpensivePredicateMonitor(numProc);
+                    break;
                 default:
                     monitor = new ExplicitExpensivePredicateMonitor(numProc);
 

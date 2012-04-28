@@ -6,7 +6,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-class NaiveExplicitBoundedBuffer implements ObjectBoundedBufferInterface {
+class NaiveExplicitBoundedBuffer extends ObjectBoundedBuffer{
   final Lock lock_ = new ReentrantLock();
   final Condition not_full_  = lock_.newCondition(); 
   final Condition not_empty_ = lock_.newCondition(); 
@@ -22,8 +22,10 @@ class NaiveExplicitBoundedBuffer implements ObjectBoundedBufferInterface {
   public void put(Object x) throws InterruptedException {
     lock_.lock();
     try {
+      setCurrentCpuTime();
       while (count == items_.length) 
         not_full_.await();
+      addSyncTime();
       items_[putptr] = x; 
       if (++putptr == items_.length) putptr = 0;
       ++count;
@@ -37,8 +39,10 @@ class NaiveExplicitBoundedBuffer implements ObjectBoundedBufferInterface {
   public Object take() throws InterruptedException {
     lock_.lock();
     try {
+      setCurrentCpuTime();
       while (count == 0) 
         not_empty_.await();
+      addSyncTime();
       Object x = items_[takeptr]; 
       if (++takeptr == items_.length) takeptr = 0;
       --count;

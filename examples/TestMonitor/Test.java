@@ -1,6 +1,13 @@
 
 package examples.TestMonitor;
+import java.lang.management.*;
+
 class TestThread extends Thread {
+    long  cpuTime;
+    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    public long getCpuTime() {
+        return cpuTime; 
+    }
     private TestMonitor monitor;
     private int numAccess; 
     private int myId;
@@ -10,9 +17,12 @@ class TestThread extends Thread {
         myId = myId_;
     }
     public void run() {
+        long startTime = threadMXBean.getCurrentThreadCpuTime();
         for(int i = 0; i < numAccess; ++i) {
             monitor.access(myId);
         }
+        long endTime = threadMXBean.getCurrentThreadCpuTime();
+        cpuTime = endTime - startTime;
     }
 }
     
@@ -31,9 +41,6 @@ public class Test{
                     break;
                 case 'n':
                     monitor = new NaiveImplicitTestMonitor(numProc);
-                    break;
-                case 'i':
-                    monitor = new NaiveImplicitGlobalTestMonitor(numProc);
                     break;
                 case 'l':
                     monitor = new HashSetTestMonitor(numProc);
@@ -55,19 +62,23 @@ public class Test{
         }
 
         long startTime = System.currentTimeMillis();
-        Thread[] testThreads = new TestThread[numProc];
+        TestThread[] testThreads = new TestThread[numProc];
         for(int i = 0; i < numProc; ++i) {
             testThreads[i] = new TestThread(monitor, totalNumAccess/numProc, i);
             testThreads[i].start();
         }
+        float totalCpuTime = 0.0f;
         for(int i = 0; i < numProc; ++i) {
             try {
                 testThreads[i].join();
+                totalCpuTime += testThreads[i].getCpuTime();
             } catch(InterruptedException e) {
                 e.printStackTrace();
             }
         }
         long execTime = System.currentTimeMillis() - startTime;
         System.out.println( execTime );
+        System.out.println( totalCpuTime/10e6);
+        System.out.println( monitor.getSyncTime()/10e6);
     }
 }

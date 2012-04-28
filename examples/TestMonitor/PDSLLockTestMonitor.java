@@ -6,7 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import pdsl.PDSLLock;
 
-public class PDSLLockTestMonitor implements TestMonitor {
+public class PDSLLockTestMonitor extends TestMonitor {
     final PDSLLock mutex = new PDSLLock();
     
     private int numProc;
@@ -18,12 +18,14 @@ public class PDSLLockTestMonitor implements TestMonitor {
     }
     public void access(int myId) {
         mutex.lock();
+        setCurrentCpuTime();
         while((numAccess % numProc) != myId) {
             try {
                 mutex.await(); 
             } catch(InterruptedException e) {
             }
         }
+        addSyncTime();
         //System.out.println("myId: " + myId + " numAccess: " + numAccess);
         ++numAccess;
         mutex.unlock();

@@ -4,7 +4,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ExplicitTestMonitor implements TestMonitor {
+public class ExplicitTestMonitor extends TestMonitor {
     final Lock mutex = new ReentrantLock();
     Condition[] conds;
     
@@ -21,7 +21,10 @@ public class ExplicitTestMonitor implements TestMonitor {
         }
     }
     public void access(int myId) {
+        setCurrentCpuTime();
         mutex.lock();
+        addSyncTime();
+        setCurrentCpuTime();
         while((numAccess % numProc) != myId) {
             try {
                 conds[numAccess % numProc].signal();
@@ -29,6 +32,7 @@ public class ExplicitTestMonitor implements TestMonitor {
             } catch(InterruptedException e) {
             }
         }
+        addSyncTime();
         //System.out.println("myId: " + myId_dummy + " numAccess: " + numAccess);
         ++numAccess;
         conds[numAccess % numProc].signal();

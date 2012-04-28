@@ -5,7 +5,7 @@ import monitor.Assertion;
 import monitor.HashMonitor;
 import monitor.RunnableWithResult;
 
-public class HashBoundedBuffer implements ObjectBoundedBufferInterface {
+public class HashBoundedBuffer extends ObjectBoundedBuffer {
     private final Object[] items;
     private int putptr, takeptr, count;
     
@@ -29,26 +29,30 @@ public class HashBoundedBuffer implements ObjectBoundedBufferInterface {
     }
 
     public void put(final Object x) {
-        System.out.println("in put");
+        //System.out.println("in put");
         monitor.DoWithin( new Runnable() {
             public void run() {
+                setCurrentCpuTime();
                 cond_0.await();     //auto-gen iMonitor
+                addSyncTime();
                 items[putptr] = x; 
                 if (++putptr == items.length) putptr = 0;
                 ++count;
-                System.out.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
+                //System.out.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
             }} ) ;
     }
 
     public Object take() {
-        System.out.println("in take");
+        //System.out.println("in take");
         return monitor.DoWithin( new RunnableWithResult<Object>() {
             public Object run() {
+                setCurrentCpuTime();
                 cond_1.await();     //auto-gen iMonitor
+                addSyncTime();
                 Object x = items[takeptr]; 
                 if (++takeptr == items.length) takeptr = 0;
                 --count;
-                System.out.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
+                //System.out.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
                 return x;
             }} ) ;
     }
