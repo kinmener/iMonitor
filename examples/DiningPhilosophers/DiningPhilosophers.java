@@ -1,5 +1,8 @@
 
 package examples.DiningPhilosophers;
+
+import java.lang.management.*;
+
 import examples.util.DoneCounter;
 /**
   * Philosopher for the dining philosophers simulation.  Think, get hungry,
@@ -35,6 +38,13 @@ class Philosopher implements Runnable {
    private Thread me = null;
    private int numEat;
    private DoneCounter doneCounter;
+
+   private long cpuTime = 0;
+   private ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+
+   public long getCpuTime() {
+       return cpuTime;
+   }
 
    /**
      * Constructor.
@@ -98,7 +108,7 @@ class Philosopher implements Runnable {
       napping = 1 + (int) AgeRandom.random(napThink);
       //System.out.println("age=" + AgeRandom.age() + ", " + name
       //   + " is thinking for " + napping + " ms");
-      Thread.sleep(napping);
+      //Thread.sleep(napping);
    }
 
    /**
@@ -106,6 +116,8 @@ class Philosopher implements Runnable {
      */
    public void run() {
       if (Thread.currentThread() != me) return;
+      long startTime = threadMXBean.getCurrentThreadCpuTime();
+
       for(int i = 0; i < numEat; ++i) {
          if (Thread.interrupted()) {
          //   System.out.println("age=" + AgeRandom.age() + ", " + name
@@ -129,6 +141,8 @@ class Philosopher implements Runnable {
             return;
          }
       }
+      long endTime = threadMXBean.getCurrentThreadCpuTime();
+      cpuTime = endTime - startTime;
       doneCounter.increment();
    }
 }
@@ -187,12 +201,22 @@ public class DiningPhilosophers {
       // (they have self-starting threads)
       Philosopher[] p = new Philosopher[numPhilosophers];
       for (int i = 0; i < numPhilosophers; i++) p[i] =
-         Philosopher.newInstance(i, napThink, napEat, ds, numEat, doneCounter);
+         p[i] = Philosopher.newInstance(i, napThink, napEat, ds, numEat, doneCounter);
       //System.out.println("All Philosopher threads started");
 
       doneCounter.waitForDone();
+      float totalCpuTime = 0.0f;
+
+      for(int i = 0; i < p.length; ++i) {
+          totalCpuTime += p[i].getCpuTime();
+          //System.out.println("cpu time: " + threads[i].getCpuTime()/10e6);
+      }
+
       long execTime = System.currentTimeMillis() - startTime;
       System.out.println( execTime );
+      System.out.println( totalCpuTime/10e6)  ;
+      System.out.println( ds.getSyncTime() / 10e6);
+      
       // let the Philosophers run for a while
       //try {
       //   Thread.sleep(runTime*1000);

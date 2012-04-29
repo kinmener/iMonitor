@@ -5,7 +5,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-public class ExplicitReadersWritersMonitor implements ReadersWritersMonitor {
+public class ExplicitReadersWritersMonitor extends ReadersWritersMonitor {
     final ReentrantLock mutex = new ReentrantLock();
     final Condition okay_read = mutex.newCondition(); 
     final Condition okay_write = mutex.newCondition(); 
@@ -21,9 +21,11 @@ public class ExplicitReadersWritersMonitor implements ReadersWritersMonitor {
     public void startRead() {
         mutex.lock();
         try {
+            setCurrentCpuTime();
             while(wcnt == 1 || mutex.getWaitQueueLength(okay_write) > 0) {
                 okay_read.await();
             }
+            addSyncTime();
 
             rcnt++;
             okay_read.signal();
@@ -51,9 +53,11 @@ public class ExplicitReadersWritersMonitor implements ReadersWritersMonitor {
     public void startWrite() {
         mutex.lock();
         try {
+            setCurrentCpuTime();
             while(rcnt != 0 || wcnt != 0) {
                 okay_write.await();
             }
+            addSyncTime();
             wcnt = 1;
             //System.out.println("Writer " + Thread.currentThread() + "starts to write");
             //System.out.println("wwaiting: " + mutex.getWaitQueueLength(okay_write) + "\t rcnt: " + rcnt + "\twcnt: " + wcnt);

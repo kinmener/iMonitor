@@ -6,7 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import pdsl.PDSLLock;
 
-public class PDSLReadersWritersMonitor implements ReadersWritersMonitor {
+public class PDSLReadersWritersMonitor extends ReadersWritersMonitor {
     final PDSLLock mutex = new PDSLLock();
 
     int rcnt;
@@ -22,9 +22,11 @@ public class PDSLReadersWritersMonitor implements ReadersWritersMonitor {
     public void startRead() {
         mutex.lock();
         try {
+            setCurrentCpuTime();
             while(wcnt == 1 || wwaiting > 0) {
                 mutex.await();
             }
+            addSyncTime();
 
             rcnt++;
             //System.out.println("Reader " + Thread.currentThread() + "starts to read");
@@ -49,9 +51,11 @@ public class PDSLReadersWritersMonitor implements ReadersWritersMonitor {
         mutex.lock();
         try {
             wwaiting++;
+            setCurrentCpuTime();
             while(rcnt != 0 || wcnt != 0) {
                 mutex.await();
             }
+            addSyncTime();
             wwaiting--;
             wcnt = 1;
             //System.out.println("Writer " + Thread.currentThread() + "starts to write");

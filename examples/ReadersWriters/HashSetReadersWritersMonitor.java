@@ -3,7 +3,7 @@
 package examples.ReadersWriters;
 import monitor.*;	//auto-gen iMonitor
 
-public class HashSetReadersWritersMonitor implements ReadersWritersMonitor {
+public class HashSetReadersWritersMonitor extends ReadersWritersMonitor {
     int rcnt;
     int wcnt;
     int wwaiting;
@@ -27,7 +27,9 @@ public class HashSetReadersWritersMonitor implements ReadersWritersMonitor {
     public void startRead() {
       monitor.DoWithin( new Runnable() {
          public void run() {
+            setCurrentCpuTime();
             okay_read.await();
+            addSyncTime();
             rcnt++;
             //System.out.println("Reader " + Thread.currentThread() + "starts to read");
             //System.out.println("wwaiting: " + wwaiting + "\t rcnt: " + rcnt + "\twcnt: " + wcnt);
@@ -49,7 +51,9 @@ public class HashSetReadersWritersMonitor implements ReadersWritersMonitor {
          public void run() {
   
             wwaiting++;
+            setCurrentCpuTime();
             okay_write.await();
+            addSyncTime();
             wwaiting--;
             wcnt = 1;
             //System.out.println("Writer " + Thread.currentThread() + "starts to write");

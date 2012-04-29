@@ -75,7 +75,7 @@ public class TestBoundedBuffer {
 
         for(int i = 0; i < threads.length; ++i) {
             totalCpuTime += threads[i].getCpuTime();
-            System.out.println("cpu time: " + threads[i].getCpuTime()/10e6);
+            //System.out.println("cpu time: " + threads[i].getCpuTime()/10e6);
         }
 
 

@@ -65,7 +65,9 @@ public class PDSLLockDiningServerImpl extends DiningServer {
          printState("begin takeForks");
          test(i);
          printState("end   takeForks");
+         setCurrentCpuTime();
          while (state[i] != State.EATING) mutex.await();
+         addSyncTime();
       } finally { mutex.unlock(); } // unlock whether or not exceptions thrown
    }
 

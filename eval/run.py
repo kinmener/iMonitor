@@ -66,10 +66,13 @@ if __name__ == "__main__":
 
       # open file to write
       if params_idx[group_by_idx] == 0:
-         try: 
-            result_file.close()
+         try:
+            for j in range(0, 3):
+               result_file[i].close()
          except: 
-            result_file = None
+            result_file = [] 
+            for j in range(0, 3):
+               result_file.append(None)
          
          file_name = working_dir + "/" + exp_info["result_base_dir"] + "/" + exp_dir + "/exp_results_"
          for j in range(0, len(params_idx)):
@@ -77,39 +80,50 @@ if __name__ == "__main__":
                file_name += str(params_list[j][params_idx[j]]) 
             if j != len(params_idx) - 1:
                file_name += "_"
-            else: 
-               file_name += ".csv"
 
-         result_file = open(file_name, "w")
-         result_file.write(exp_info["group_by"] + ", ")
-         for i in range(0, exp_info["num_times"]):
-            result_file.write(str(i + 1) + ", ")
+         result_file[0] = open(file_name + "_wall_time.csv", "w")
+         result_file[1] = open(file_name + "_cpu_time.csv", "w")
+         result_file[2] = open(file_name + "_sync_time.csv", "w")
 
-         result_file.write("max, min, avg. w/o max and min\n")
-         result_file.flush()
+         for j in range(0, 3):
+            result_file[j].write(exp_info["group_by"] + ", ")
+            for k in range(0, exp_info["num_times"]):
+               result_file[j].write(str(k + 1) + ", ")
+
+            result_file[j].write("max, min, avg. w/o max and min\n")
+            result_file[j].flush()
 
       # perform experiments num of times
-      max = -1
-      min = sys.maxsize
-      sum = 0
-      result_file.write(str(params_list[group_by_idx][params_idx[group_by_idx]]) + ", ")
+      max = []
+      min = []
+      sum = []
+
+      for j in range(0, 3):
+         result_file[j].write(str(params_list[group_by_idx][params_idx[group_by_idx]]) + ", ")
+         max.append(-1)
+         min.append(sys.maxsize)
+         sum.append(0)
+
+
       for j in range(0, exp_info["num_times"]):
          exp_thread = Popen(cmd, stdout=PIPE)
 
-         for line in exp_thread.stdout:
-            run_time = int(line)
-            sum += run_time
-            if max < run_time: 
-               max = run_time
-            if min > run_time:
-               min = run_time
+         for k in range(0, 3):
+            line = exp_thread.stdout.readline()
+            run_time = round(float(line))
+            sum[k] += run_time
+            if max[k] < run_time: 
+               max[k] = run_time
+            if min[k] > run_time:
+               min[k] = run_time
 
-            result_file.write(str(run_time) + ", ")
+            result_file[k].write(str(run_time) + ", ")
          
-      sum -= max
-      sum -= min
-      result_file.write(str(max) + ", " + str(min) + ", " + str(sum/(exp_info["num_times"] - 2)) + "\n")
-      result_file.flush()
+      for k in range(0, 3):
+         sum[k] -= max[k]
+         sum[k] -= min[k]
+         result_file[k].write(str(max[k]) + ", " + str(min[k]) + ", " + str(sum[k]/(exp_info["num_times"] - 2)) + "\n")
+         result_file[k].flush()
 
      
       # maintain the params idx
