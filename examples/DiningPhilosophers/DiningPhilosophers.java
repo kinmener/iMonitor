@@ -177,6 +177,9 @@ public class DiningPhilosophers {
                 case 'p':
                     ds = PDSLLockDiningServerImpl.newInstance(numPhilosophers);
                     break;
+                case 'h':
+                    ds = HashDiningServerImpl.newInstance(numPhilosophers);
+                    break;
                 default:
                     ds = ExplicitDiningServerImpl.newInstance(numPhilosophers);
                     break;
