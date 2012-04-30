@@ -30,7 +30,7 @@ public class HashSetBoundedBuffer extends ObjectBoundedBuffer {
             items[putptr] = x; 
             if (++putptr == items.length) putptr = 0;
             ++count;
-            System.out.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
+            //System.out.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
          }} ) ;
    }
 
@@ -43,7 +43,7 @@ public class HashSetBoundedBuffer extends ObjectBoundedBuffer {
             Object x = items[takeptr]; 
             if (++takeptr == items.length) takeptr = 0;
             --count;
-            System.out.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
+            //System.out.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
             return x;
          }} ) ;
    }
