@@ -106,7 +106,7 @@ public class TestReadersWriters {
             case 'e':
                 monitor = new ExplicitReadersWritersMonitor();
                 break;
-            case 'h':
+            case 'l':
                 monitor = new HashSetReadersWritersMonitor();
                 break;
             }
