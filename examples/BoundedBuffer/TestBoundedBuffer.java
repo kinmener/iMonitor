@@ -39,6 +39,9 @@ public class TestBoundedBuffer {
             case 'p':
                 rw_controller = new PDSLLockBoundedBuffer(4);
                 break;
+            case 'c':
+                rw_controller = new NConditionLockBoundedBuffer(4);
+                break;
             default:
                 rw_controller = new NaiveExplicitBoundedBuffer(4);
 
@@ -98,6 +101,7 @@ class ObjectProducer extends TestThread {
     public void run() {
         long startTime = threadMXBean.getCurrentThreadCpuTime();
         for(int i=0 ; i < numActions ; ++i ) {
+            delay(5);
 
             try {
                 boundedBuffer.put( new Object() ) ; }
@@ -125,6 +129,7 @@ class ObjectConsumer extends TestThread {
         long startTime = threadMXBean.getCurrentThreadCpuTime();
 
         for(int i=0 ; i < numActions ; ++i ) {
+            delay(5);
 
             try {
                 boundedBuffer.take() ; }

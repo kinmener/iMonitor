@@ -94,6 +94,9 @@ public class TestReadersWriters {
         ReadersWritersMonitor monitor = null; 
         try {
             switch(args[0].charAt(0)) {
+            case 'c':
+                monitor = new NConditionReadersWritersMonitor();
+                break;
             case 'p':
                 monitor = new PDSLReadersWritersMonitor();
                 break;

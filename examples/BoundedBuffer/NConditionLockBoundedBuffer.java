@@ -7,16 +7,19 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-import pdsl.PDSLLock;
+import pdsl.NConditionLock;
+import pdsl.PDSLCondition;
 
-class PDSLLockBoundedBuffer extends ObjectBoundedBuffer {
-  final PDSLLock lock_ = new PDSLLock();
+class NConditionLockBoundedBuffer extends ObjectBoundedBuffer {
+  final NConditionLock lock_ = new NConditionLock();
+  final PDSLCondition not_full_ = lock_.newCondition();
+  final PDSLCondition not_empty_ = lock_.newCondition();
 
   final Object[] items_;
   int putptr, takeptr, count;
 
 
-  public PDSLLockBoundedBuffer(int n) {
+  public NConditionLockBoundedBuffer(int n) {
     items_ = new Object[n];
     putptr = takeptr = count = 0;
   }
@@ -26,7 +29,7 @@ class PDSLLockBoundedBuffer extends ObjectBoundedBuffer {
     try {
       setCurrentCpuTime();
       while (count == items_.length) 
-        lock_.await();
+        not_full_.await();
       addSyncTime();
       items_[putptr] = x; 
       if (++putptr == items_.length) putptr = 0;
@@ -43,7 +46,7 @@ class PDSLLockBoundedBuffer extends ObjectBoundedBuffer {
       setCurrentCpuTime();
       mapThreadCpuTime.put(Thread.currentThread().getId(), threadMXBean.getCurrentThreadCpuTime());
       while (count == 0) 
-        lock_.await();
+        not_empty_.await();
       addSyncTime();
       Object x = items_[takeptr]; 
       if (++takeptr == items_.length) takeptr = 0;

@@ -109,7 +109,7 @@ public abstract class DiningServer {
         for (int i = 0; i < numPhils; i++) {
             line.append(", " + i + " is " + state[i]);
         }
-        //System.out.println(line);
+        System.out.println(line);
     }
     public long getSyncTime() {
         return syncTime;

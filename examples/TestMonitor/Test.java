@@ -51,6 +51,9 @@ public class Test{
                 case 'p':
                     monitor = new PDSLLockTestMonitor(numProc);
                     break;
+                case 'c':
+                    monitor = new NConditionLockTestMonitor(numProc);
+                    break;
                 default:
                     monitor = new ExplicitTestMonitor(numProc);
 

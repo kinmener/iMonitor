@@ -108,7 +108,7 @@ class Philosopher implements Runnable {
       napping = 1 + (int) AgeRandom.random(napThink);
       //System.out.println("age=" + AgeRandom.age() + ", " + name
       //   + " is thinking for " + napping + " ms");
-      //Thread.sleep(napping);
+      Thread.sleep(napping);
    }
 
    /**
@@ -173,6 +173,9 @@ public class DiningPhilosophers {
                     break;
                 case 'l':
                     ds = HashSetDiningServerImpl.newInstance(numPhilosophers);
+                    break;
+                case 'c':
+                    ds = NConditionLockDiningServerImpl.newInstance(numPhilosophers);
                     break;
                 case 'p':
                     ds = PDSLLockDiningServerImpl.newInstance(numPhilosophers);

@@ -465,6 +465,8 @@ public abstract class AbstractQueuedSynchronizer
          */
         volatile Thread thread;
 
+        volatile long waitTime;     //wlhung
+
         /**
          * Link to next node waiting on condition, or the special
          * value SHARED.  Because condition queues are accessed only
@@ -510,6 +512,7 @@ public abstract class AbstractQueuedSynchronizer
         Node(Thread thread, int waitStatus) { // Used by Condition
             this.waitStatus = waitStatus;
             this.thread = thread;
+            this.waitTime = System.currentTimeMillis();     // wlhung
         }
     }
 
