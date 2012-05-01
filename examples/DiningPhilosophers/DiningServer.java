@@ -104,12 +104,12 @@ public abstract class DiningServer {
     protected void printState(String caller) {
         // Build a line and use one println() instead of several print()'s
         // so that multiple threads' output does not become interleaved.
-        StringBuffer line = new StringBuffer();
-        line.append(caller);
-        for (int i = 0; i < numPhils; i++) {
-            line.append(", " + i + " is " + state[i]);
-        }
-        System.out.println(line);
+        //StringBuffer line = new StringBuffer();
+        //line.append(caller);
+        //for (int i = 0; i < numPhils; i++) {
+        //    line.append(", " + i + " is " + state[i]);
+        //}
+        //System.out.println(line);
     }
     public long getSyncTime() {
         return syncTime;
