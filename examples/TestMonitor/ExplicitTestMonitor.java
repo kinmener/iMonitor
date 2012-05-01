@@ -23,7 +23,6 @@ public class ExplicitTestMonitor extends TestMonitor {
     public void access(int myId) {
         setCurrentCpuTime();
         mutex.lock();
-        addSyncTime();
         setCurrentCpuTime();
         while((numAccess % numProc) != myId) {
             try {
