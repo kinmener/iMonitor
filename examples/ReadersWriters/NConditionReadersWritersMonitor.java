@@ -32,9 +32,9 @@ public class NConditionReadersWritersMonitor extends ReadersWritersMonitor {
             addSyncTime();
 
             rcnt++;
-            System.out.println("Reader " + Thread.currentThread() + "starts to read");
-            System.out.println("wwaiting: " + wwaiting + "\t rcnt: " + rcnt + "\twcnt: " + wcnt);
-            System.out.flush();
+            //System.out.println("Reader " + Thread.currentThread() + "starts to read");
+            //System.out.println("wwaiting: " + wwaiting + "\t rcnt: " + rcnt + "\twcnt: " + wcnt);
+            //System.out.flush();
         } catch(InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -45,8 +45,8 @@ public class NConditionReadersWritersMonitor extends ReadersWritersMonitor {
     public void endRead() {
         mutex.lock();
         rcnt--;
-        System.out.println("Reader " + Thread.currentThread() + "ends reading");
-        System.out.flush();
+        //System.out.println("Reader " + Thread.currentThread() + "ends reading");
+        //System.out.flush();
         mutex.unlock();
     }
 
@@ -61,9 +61,9 @@ public class NConditionReadersWritersMonitor extends ReadersWritersMonitor {
             addSyncTime();
             wwaiting--;
             wcnt = 1;
-            System.out.println("Writer " + Thread.currentThread() + "starts to write");
-            System.out.println("wwaiting: " + wwaiting + "\t rcnt: " + rcnt + "\twcnt: " + wcnt);
-            System.out.flush();
+            //System.out.println("Writer " + Thread.currentThread() + "starts to write");
+            //System.out.println("wwaiting: " + wwaiting + "\t rcnt: " + rcnt + "\twcnt: " + wcnt);
+            //System.out.flush();
         } 
         catch(InterruptedException e)  {
             e.printStackTrace();
@@ -76,8 +76,8 @@ public class NConditionReadersWritersMonitor extends ReadersWritersMonitor {
     public void endWrite() {
         mutex.lock();
         wcnt = 0;
-        System.out.println("Writer " + Thread.currentThread() + "end writing");
-        System.out.flush();
+        //System.out.println("Writer " + Thread.currentThread() + "end writing");
+        //System.out.flush();
         mutex.unlock();
     }
 }
