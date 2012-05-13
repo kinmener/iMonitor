@@ -5,6 +5,16 @@ import java.util.HashMap;
 import java.lang.management.*;
 
 public abstract class ReadersWritersMonitor {
+    private long syncTime = 0;
+    private HashMap<Long, Long> mapThreadCpuTime = new HashMap<Long, Long>();
+    private ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+
+    public ReadersWritersMonitor() {
+        if(!threadMXBean.isThreadCpuTimeEnabled()) {
+            threadMXBean.setThreadCpuTimeEnabled(true);
+        }
+    }
+
     public abstract void startRead();
     public abstract void endRead();
     public abstract void startWrite();
@@ -22,7 +32,4 @@ public abstract class ReadersWritersMonitor {
         syncTime += threadMXBean.getCurrentThreadCpuTime() - mapThreadCpuTime.get(Thread.currentThread().getId());
     }
   
-    long syncTime = 0;
-    HashMap<Long, Long> mapThreadCpuTime = new HashMap<Long, Long>();
-    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 }
