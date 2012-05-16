@@ -151,7 +151,7 @@ public class TestReadersWriters {
         }
         long execTime = System.currentTimeMillis() - startTime;
         System.out.println( execTime );
-        System.out.println( totalCpuTime/10e6)  ;
-        System.out.println( monitor.getSyncTime() / 10e6);
+        System.out.println( totalCpuTime/1e6)  ;
+        System.out.println( monitor.getSyncTime() / 1e6);
     }
 }

@@ -83,8 +83,8 @@ public class TestBoundedBuffer {
 
 
         System.out.println( execTime );
-        System.out.println( totalCpuTime/10e6)  ;
-        System.out.println( rw_controller.getSyncTime() / 10e6);
+        System.out.println( totalCpuTime/1e6)  ;
+        System.out.println( rw_controller.getSyncTime() / 1e6);
     }
 }
 

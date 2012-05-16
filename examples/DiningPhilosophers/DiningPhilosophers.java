@@ -220,8 +220,8 @@ public class DiningPhilosophers {
 
       long execTime = System.currentTimeMillis() - startTime;
       System.out.println( execTime );
-      System.out.println( totalCpuTime/10e6)  ;
-      System.out.println( ds.getSyncTime() / 10e6);
+      System.out.println( totalCpuTime/1e6)  ;
+      System.out.println( ds.getSyncTime() / 1e6);
       
       // let the Philosophers run for a while
       //try {
