@@ -22,7 +22,9 @@ public class HashMonitor extends AbstractImplicitMonitor  {
         if(setPairs != null) {
             //condition_.signalAll();
             for(AssertionConditionPair pair : setPairs) {
-                pair.conditionalSignal();
+                if(pair.conditionalSignal()) {
+                    break;
+                }
             }
         }
         mutex.unlock();
