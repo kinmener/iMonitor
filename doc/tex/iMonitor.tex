@@ -62,19 +62,91 @@
 \category{CR-number}{subcategory}{third-level}
 
 \terms
-term1, term2
+Algorithms, Design, Languages, Performance
 
 \keywords
-keyword1, keyword2
+Automatic signal, concurrency, explicit signal, implicit signal,
+monitor, parallel
 
-\section{Introduction}
+\section{Introduction} \label{sec:intro}
 
-The text of the paper begins here.
+Developing efficient and robust concurrent programs within a limited time is 
+critical than ever. On the one hand, the multi-core processor, which allows 
+multiple thread to be executed at the same time, has become the mainstream of 
+computers; however, the power of multi-core processors is limited due to the 
+lack of concurrent softwares. On the other hand, to compete with other rivals
+and satisfy consumer demands in software industry, a software needs to be 
+developed quickly(may need more details). The concurrent programming is 
+different from the traditional sequential programming. Multiple threads may 
+interact with each other and try to access the same source. Therefore, providing
+gauranteed correctness of current programs is more difficult than sequential 
+programs. In addition, the debugging process is panic in concurrent 
+programs due to the thread scheduling. 
 
-\section{Background}
+The monitor \cite{hoa74} is commonly used in concurrent programing for 
+maintaining the mutual exclusion of shared resources and providing the 
+synchronization mechanism between threads. Buhr and Harji \cite{bh05} divide 
+monitors into two categories, the explicit-signal monitor and the 
+implicit-signal monitor. Buhr and Harji use the explicit-signal monitor to 
+simulate the implicit-signal monitor and point out that the implicit-signal 
+monitor is easy to be used but not as efficient as the explicit-signal monitor.
+Besides, the implicit-signal is useful in concurrent programming, especially 
+for prototyping. 
+
+
+Most programming languages, including the popular object-oriented language Java,
+only provide the explicit-signal monitor but not implicit-signal. This research 
+focuses on developing a framework supporting implicit-signal in the modern 
+programming language - Java. 
+
+This paper is organized as follows. Section \ref{sec:bg} gives the background. 
+Our framework are presented in Section \ref{sec:fw} and the practical 
+implementation details are discussed in Section \ref{sec:imp}. The proposed 
+methods are then evaluated with experiments in Section \ref{sec:eval}. 
+Section \ref{sec:conclu} gives the concluding remarks.
+
+\section{Background} \label{sec:bg}
+
+
+\subsection{Monitor}
+Monitor is an object or module intended to be used safely by more than one 
+thread in concurrent programming. A monitor alleviates the pain by providing mutual 
+exclusion and synchronization. The monitor can be divided into two categories. The first 
+one type is called explicit-signal monitor, which relies on a lock to ensure mutual 
+exclusion, and uses condition variables and signal/wait statement for synchronization.
+
+The other is the implicit-signal monitor, which does not relies on additional lock variable 
+but ensures mutual exclusion by nature, and adopt a waituntil predicate statement to 
+construct synchronization. The program will wait until the predicate is true, and then 
+execute the remain program. Explicit-signal and implicit-signal monitors have different 
+pros and cons. The explicit-signal has more complex syntax than the implicit-signal 
+monitor. In addition, the explicit-signal needs the programmers to write the mutual 
+exclusion and synchronization mechanism manually, which increases the chance of
+writing incorrect code. However, in practice, explicit-signal is more efficient than 
+implicit-signal. The implicit-signal monitor is still useful in prototyping and verification. 
+Nevertheless, most of modern programing languages do not provide the implicit-signal 
+monitor mechanism.
+
+\subsection{Predicate}
+A predicate which depends on some variables is a statement that is either true or 
+false. For example, $x > 0$ is a predicate where x is an integer variable. Predicates are 
+commonly used to describe the properties of conditions. Therefore, predicates are often 
+used in concurrent programming to describe conditions for synchronization.
+
+local predicate v.s. global predicate
+
+\subsection{Motivations for Implicit-Monitor}
+The multi-core programs are more difficult to write and debug than the 
+sequential prgrams. 
+Fig.~\ref{fig:bounded_buffer_example} shows an example to demonstrate the
+implicit-signal monitor is easier to be used. The programer use lock and 
+condition variables with signal/await statement in the implicit-signal monitor
+but only waituntil predicat in implicit-signal monitor. 
+
 \begin{SaveVerbatim}{OriginBoundedBuffer}
 class BoundedBuffer {
-  int[] items;   
+  int[] items;  
+  lock mutex;
   condition not_full, not_empty;
   int putptr, takeptr, count;
   public BoundedBuffer(int n) {
@@ -82,6 +154,7 @@ class BoundedBuffer {
     items = new int[n];
   } 
   public void put(int x) {
+    mutex.lock();
     if(count == items.length) {
       not_full.await();
     }
@@ -91,8 +164,10 @@ class BoundedBuffer {
     }
     ++count;
     not_empty.signal();
+    mutex.unlock();
   }
   public int take() {
+    mutex.lock();
     if(count == 0) {
       not_empty.await();
     }
@@ -101,6 +176,7 @@ class BoundedBuffer {
       takeptr = 0;
     }
     not_full.signal();
+    mutex.unlock();
     return x;
   }
 }
@@ -135,23 +211,29 @@ monitor class BoundedBuffer {
 
 \begin{figure}
   \centering
-  \subfloat[Traditional Java] {
-    \BUseVerbatim[fontsize=\scriptsize]{OriginBoundedBuffer}
+  \subfloat[Explicit-Signal] {
+    \BUseVerbatim[fontsize=\tiny]{OriginBoundedBuffer}
   }
-  \subfloat[Java with iMonitor] {
-    \BUseVerbatim[fontsize=\scriptsize]{iMonitorBoundedBuffer}
+  \subfloat[Implicit-Signal] {
+    \BUseVerbatim[fontsize=\tiny]{iMonitorBoundedBuffer}
   }
   \caption{Bounded-buffer example}
+  \label{fig:bounded_buffer_example}
 \end{figure}
 
-
-\subsection{Mutual Exclusion and Synchronization}
-\subsection{Implicit-Signal v.s. Explicit-Signal}
-\subsection{Global v.s. Local Predicate}
-need to define global and local predicate
-
-\section{Framework of iMonitor}
-
+\section{Framework of iMonitor} \label{sec:fw}
+To make the implicit-signal available in the modern high-level language, Java, 
+the iMonitor framework is proposed. Fig.~\ref{fig:framework} illustrates the 
+framework of the iMonitor. The iMonitor takes a Java-extension program providing
+the implicit-signal mechanism as input. The iMonitor framework supports monitor
+class and waituntil statement. Then the iMonitor preprocessor transfers
+the iMonitor code into the tradition Java code which can be compiled with 
+iMonitor library. The iMonitor Java library implements different kinds of 
+implicit-signal monitor mechanisms. Programmers may choose one mechanism 
+which is the most efficient for their requirements by providing some 
+parameters to the preprocessor. Rewriting programs is unnecessary for
+implementing diffenet approaches of implicit-signal monitors. The flexibility 
+is provided without any additional cost. 
 
 \begin{figure}[h!]
   \centering
@@ -162,7 +244,7 @@ need to define global and local predicate
 
 
 
-\section{Details of iMonitor Implementation}
+\section{Details of iMonitor Implementation} \label{sec:imp}
 The implementation of the implicit-signal monitor in iMonitor involves four 
 parts:
 \begin{enumerate}
@@ -178,115 +260,299 @@ parts:
     each member function, involving code to guarantee mutal exclusion and 
     synchronization of monitor. 
 \end{enumerate}
-The implementation of iMonitor is summarized in Table \ref{tab:iMonitor_imp}
+%I would like to use Table \ref{tab:constructor_imp},
+%\ref{tab:entry_imp}, \ref{tab:waituntilc_imp} and \ref{tab:exit_imp} to sumarize
+%the implementations of different kinds of implicit-signal monitors. 
 
 
 
 \subsection{Naive}
 
 \begin{SaveVerbatim}{NaiveConstructorImp}
-Lock mutex;
-Condition cond;
+Lock L;
+Condition C;
 \end{SaveVerbatim}
 
 \begin{SaveVerbatim}{NaiveEntryImp}
-mutex.lock();
+lock L 
 \end{SaveVerbatim}
 
 \begin{SaveVerbatim}{NaiveWaituntilImp}
-if(!C) {
-  cond.signalAll();
-  do {
-    cond.await();
-  } while(!C);
-}
+if P is false
+  signal all C
+  do 
+    wait C
+  while P is false
 \end{SaveVerbatim}
 
 \begin{SaveVerbatim}{NaiveExitImp}
-mutex.unlock();
-cond.signalAll();
+signal all C
+unlock L
 \end{SaveVerbatim}
 
 \begin{SaveVerbatim}{NConditionConstructorImp}
-Lock mutex;
-HashSet<AssertionConditionPair> setPairs;
-create AssertionConditionPair for each global predicate and put them into setPairs;
+Lock L
+List<Predicate, Condition> LIST
+foreach global predicate P
+  create a pair <P, C>
+  add <P, C> to LIST
 \end{SaveVerbatim}
 
 \begin{SaveVerbatim}{NConditionWaituntilImp}
-if(C is local predicate) {
-  create AssertionConditionPair for C and put them into setPairs;
-} 
-if(!C) {
-  for(AssertionConditionPair pair : setPairs) {
-    pair.conditionalSignal();
-  }
-  do {
-    await();
-  } while(!C); 
-}
+if P is a local predicate 
+  create a pair <P, C>
+  add <P, C> to LIST
+ 
+if P is false 
+  foreach <PI, CI> in LIST
+    if PI is true
+      signal CI
+      break
+  do 
+    wait C
+  while P is false
 
+if P is a local predicate 
+  remove <P, C> from LIST
 \end{SaveVerbatim}
 
 \begin{SaveVerbatim}{NConditionExitImp}
-if(setPairs != null) {
-  for(AssertionConditionPair pair : setPairs) {
-    pair.conditionalSignal();
-  }
-}
-remove all local predicate in setPairs;
-mutex.unlock();
+foreach <P, C> in LIST
+  if P is true
+    signal C
+    break
+
+unlock L
 \end{SaveVerbatim}
 
-\begin{table*}
-  \center
-  \begin{tabular}{| l || l | l | }
-    \hline
-                & Naive & N-Condition\\
-    \hline
-    \hline
-    Constructor & \BUseVerbatim{NaiveConstructorImp} 
-                & \BUseVerbatim{NConditionConstructorImp} \\
-    \hline
-    Entry       & \BUseVerbatim{NaiveEntryImp} 
-                & \BUseVerbatim{NaiveEntryImp} \\
-    \hline
-    Waituntil C & \BUseVerbatim{NaiveWaituntilImp} 
-                & \BUseVerbatim{NConditionWaituntilImp} \\
-    \hline
-    Exit        & \BUseVerbatim{NaiveExitImp} 
-                & \BUseVerbatim{NConditionExitImp} \\
-    \hline
-  \end{tabular}
-  \caption{iMonitor implementation}
-  \label{tab:iMonitor_imp}
-\end{table*}
+
+\begin{SaveVerbatim}{MapConditionConstructorImp}
+Lock L
+Map<Predicate, Condition> MAP
+foreach global predicate P
+  create a pair <P, C>
+  add <P, C> to MAP 
+\end{SaveVerbatim}
+
+\begin{SaveVerbatim}{MapConditionWaituntilImp}
+if P is a local predicate 
+  PE := LocalVariableEvaluation(P)
+  if PE is not in MAP
+    create a pair <PE, C>
+    add <PE, C> to MAP
+ 
+if P is false 
+  foreach <PI, CI> in MAP
+    if PI is true
+      signal CI
+      break
+  do 
+    wait C
+  while P is false
+\end{SaveVerbatim}
+
+\begin{SaveVerbatim}{MapConditionExitImp}
+foreach <PE, C> in MAP
+  if PE is true
+    signal C
+    break
+
+unlock L
+\end{SaveVerbatim}
+
+
+%\begin{table*}
+%  \center
+%  \begin{tabular}{| l || l | l | }
+%    \hline
+%    Naive & \BUseVerbatim{NaiveConstructorImp} \\
+%                
+%    \hline
+%    N-Condition & \BUseVerbatim{NConditionConstructorImp} \\
+%    \hline
+%    Map & \BUseVerbatim{MapConditionConstructorImp} \\
+%    \hline
+%  \end{tabular}
+%  \caption{iMonitor implementation(Contructor)}
+%  \label{tab:constructor_imp}
+%\end{table*}
+%
+%\begin{table*}
+%  \center
+%  \begin{tabular}{| l || l |}
+%    \hline
+%    Naive & \BUseVerbatim{NaiveEntryImp} \\
+%                
+%    \hline
+%    N-Condition & \BUseVerbatim{NaiveEntryImp} \\
+%    \hline
+%    Map & \BUseVerbatim{NaiveEntryImp} \\
+%    \hline
+%  \end{tabular}
+%  \caption{iMonitor implementation(Entry)}
+%  \label{tab:entry_imp}
+%\end{table*}
+%
+%\begin{table*}
+%  \center
+%  \begin{tabular}{| l || l |}
+%    \hline
+%    Naive & \BUseVerbatim{NaiveWaituntilImp} \\
+%                
+%    \hline
+%    N-Condition & \BUseVerbatim{NConditionWaituntilImp} \\
+%    \hline
+%    Map & \\
+%    \hline
+%  \end{tabular}
+%  \caption{iMonitor implementation(Waituntil C)}
+%  \label{tab:waituntilc_imp}
+%\end{table*}
+%
+%\begin{table*}
+%  \center
+%  \begin{tabular}{| l || l |}
+%    \hline
+%    Naive & \BUseVerbatim{NaiveExitImp} \\
+%                
+%    \hline
+%    N-Condition & \BUseVerbatim{NConditionExitImp} \\
+%    \hline
+%    Map & \BUseVerbatim{MapConditionExitImp} \\
+%    \hline
+%  \end{tabular}
+%  \caption{iMonitor implementation(Exit)}
+%  \label{tab:exit_imp}
+%\end{table*}
+
 
 In the implementation of naive implicit-signal monitor, one lock variable, 
-$mutex$, is declared for mutual exclusion, which should be acquired in 
+$L$, is declared for mutual exclusion, which should be acquired in 
 the begining of every member function and released before the return statement.
-In addition, one condition variable, $cond$, is declared for 
+In addition, one condition variable, $C$, is declared for 
 synchronization, on which the implementation of waituntil depends. In the 
-waituntil statement the predicate expression is checked initially. If the 
-expression is false; then all other threads which are waiting on $cond$ are 
+waituntil statement, the predicate expression is checked initially. If the 
+expression is false; then all other threads which are waiting on $C$ are 
 signaled to reevaluate their predicate expression since the monitor state may 
 change. The currenet thread then is blocked in a loop and reevaluate its 
 predicate expression when it is signaled. On the exit of a member function, 
-all threads waiting on $cond$ are signaled to reevaluate their preidcate 
-expression since the monitor state may change. 
+all threads waiting on $C$ are signaled to reevaluate their preidcate 
+expression since the monitor state may change. Table \ref{tab:imp_naive} 
+sumarizes the implementation of naive implicit-signal monitor. Although 
+the naive implicit-signal monitor is easy to implement, it is inefficient. 
+When a predicate is evaluated as false or a thread want to leave the monitor, 
+all other threads waiting one the same monitor will be awaked and need to 
+recheck their conditions.
+
+\begin{table}
+    \center
+    \begin{tabular}{|l|l|} 
+      \hline
+      Constructor & \BUseVerbatim{NaiveConstructorImp}\\
+      \hline
+      Enter & \BUseVerbatim{NaiveEntryImp}\\
+      \hline
+      Waituntil $P$ & \BUseVerbatim{NaiveWaituntilImp}\\
+      \hline
+      Exit & \BUseVerbatim{NaiveExitImp} \\
+      \hline
+    \end{tabular}
+    \caption{The naive implicit-signal monitor implementation}
+    \label{tab:imp_naive}
+\end{table}
 
 \subsection{N-Condition}
+Instead of using only one conditional variable for synchronization, the 
+N-condition implicit-signal monitor uses multiple conditional variables.
+Every predicate in a waituntial statement has associated a conditional variable.
+The pair of a predicate and a conditional variable is stored in a shared list, 
+$LIST$. For each global predicate, a pair of a predicate and a conditional 
+variable is created in the constructor. In the waituntil statement, the type of 
+predicate is checked. If the predicate is local predicate, then a coresponding 
+conditional variable is crated and stored. The predicate expression is then 
+checked. If the predicate is false, a thread which waits on a predicate which is
+true at this point is signaled. The current thread then is blocked and recheck 
+the predicate expression when it is signaled. After the predicate is evaluated 
+as true, the pair of predicate and conditional variable is removed from the 
+$LIST$ if the predicate ls local predicat. When a thread finishes jobs and wants
+to leave the monitor, the list of pridcates are checked. The thread which waits 
+on a true predicate is signaled. Table \ref{tab:imp_n_cond} sumarized the 
+implementation. Note that, in the waituntil statement, the a conditional
+variable is created for a local predicate. It is expensive when a program has 
+many waituntil statements with local predicates.
+% remove signal all 
 
-\subsection{HashMap-Condition}
-\subsection{Dependent-Condition} 
-\section{Experimental Results}
+\begin{table}
+    \center
+    \begin{tabular}{|l|l|} 
+      \hline
+      Constructor & \BUseVerbatim{NConditionConstructorImp}\\
+      \hline
+      Enter & \BUseVerbatim{NaiveEntryImp}\\
+      \hline
+      Waituntil $P$ & \BUseVerbatim{NConditionWaituntilImp}\\
+      \hline
+      Exit & \BUseVerbatim{NConditionExitImp} \\
+      \hline
+    \end{tabular}
+    \caption{The N-condition implicit-signal monitor implementation}
+    \label{tab:imp_n_cond}
+\end{table}
+
+\subsection{Map-Condition}
+The map-condition predicate uses the data structure map to store pairs of 
+preicates and conditional variables. A predicate and a corresponding conditional
+variable are treated as key and value respectively. For every global predicate, 
+a coresponding conditional variable is created and the pair of a predicate and a
+conditional variable is added to the map in the constructor. For every local 
+predicate, the local variable evaluation has been applied to the local 
+predicate. Every loacl variable is replaced in the local predicate by its value
+at this point. The local variable evaluation does not affect on the results of 
+predicate evaluations since other threads cannot change the value of local 
+variables but only global variables. After applying local variable evaluation to
+the local predicate, a new predicate with only global variable is derived. Then
+if the new predicate has not been added to the shared map, then the new 
+predicated is added to the map with a coresponding conditional variable. This 
+\begin{table}
+    \center
+    \begin{tabular}{|l|l|} 
+      \hline
+      Constructor & \BUseVerbatim{MapConditionConstructorImp}\\
+      \hline
+      Enter & \BUseVerbatim{NaiveEntryImp}\\
+      \hline
+      Waituntil $P$ & \BUseVerbatim{MapConditionWaituntilImp}\\
+      \hline
+      Exit & \BUseVerbatim{MapConditionExitImp} \\
+      \hline
+    \end{tabular}
+    \caption{The map-condition implicit-signal monitor implementation}
+    \label{tab:imp_map_cond}
+\end{table}
+
+\section{Evaluations} \label{sec:eval}
+To evaluate the performance of iMonitor, both implicit- and explicit-monitor solutions for the bounded-buffer problem and the dining philosophers problem were implemented. We would like to evaluate the runtime of different approaches. All of the experiments were conducted on a machine with 16 Intel(R) Xeon(R) X5560 CPUs and 64 GBs memory. 
+The bounded-buffer problem is also known as the producer-consumer problem. There are two kinds of processes, producers and consumers, which are trying to obtain access the shared resource. Producers try to put items into the buffer and consumers try to take items out from the buffer. Every operation should be mutual exclusion. In addition, a producer cannot put any item when the buffer is full and a consumer cannot take any item when the buffer is empty. Figure 2. shows the experimental results of the bounded-buffer problem. The x-axis indicates the number of threads and y-axis represents the runtime. Three type of monitors have been compared. Our experimental results shows that the N-condition monitor is as efficient as or even better than explicit-signal monitor. 
+The dining philosophers problem is often used in computer science to describe the synchronization issues. There are N philosophers siting around at a table with a dish in front of them and a chopstick in between each philosopher. A philosopher only think or eat. A philosopher needs to pick two chopsticks at the same time for eating and he does not put down a chopstick until he finishes eating. If the chopstick is hold by another philosopher, then the philosopher who want to eat must wait. In addition, a philosopher 
+cannot eat forever, which means he will put down chopstick eventually. Every philosopher must be able to eat eventually if he is hungary. Figure 3. illustrate the experimental results of the dining philosophers problem. The x-axis depicts the runtime and the y-axis describes the number of philosophers. As can be seen, three approaches has the similar results. The implementations of Naive and N-condition are as efficient as the implementation of explicit signal monitor. 
+Form above two experiment results, the iMonitor provides a simpler syntax
+implicit-signal monitor mechanism which may also be more efficient than
+explicit signal monitor. However, more experiments are needed to evaluate the
+performance between 
+explicit-signal and the implicit-signal monitor of iMonitor; but these two experiments shows the potential of implicit-signal monitor.
+
 \subsection{Bounded-Buffer Problem}
 \subsection{Reader/Writer Problem}
 \subsection{Dining Philosophers  Problem}
-\subsection{Sleeping Barber Problem}
+%\subsection{Sleeping Barber Problem}
 \subsection{Access Patterns}
 
-\section{Conclusions}
+%\section{Discussions}
+%\subsection{Comparision between different implementations}
+%\subsection{Practical Issues} Need a big project to demonstrate 
+
+
+\section{Conclusions} \label{sec:conclu}
 
 \appendix
 \section{Appendix Title}
@@ -306,8 +572,13 @@ Acknowledgments, if needed.
 \begin{thebibliography}{}
     \softraggedright
 
-  \bibitem[Buhr et~al.(2005)Buhr, P.A.]{bh05}
-    Buhr, P. A. and Harji, A. S. Implicit-Signal Monitors. ACM Transactions on Programming Languages and Systems, 27(6), 1270Ð1343. ACM. doi:10.1145/1108970.1108975
+  \bibitem {bh05}
+    P. A. Buhr and A. S. Harji. Implicit-Signal Monitors. ACM Transactions on 
+    Programming Languages and Systems ACM, 27(6):1270-1343, Nov. 2005.
+
+  \bibitem {hoa74}
+     C. A. R. Hoare. Monitors: an operating system structuring concept. Commun. 
+     ACM 17, 10(Oct. 1974), 549-557.
 
 \end{thebibliography}
 
