@@ -30,6 +30,7 @@
 
 \usepackage{amsmath}
 \usepackage{graphicx, subfig}
+\usepackage{epstopdf}
 \usepackage{fancyvrb}
 
 \begin{document}
@@ -240,6 +241,7 @@ class BoundedBuffer {
     if(++takeptr == items.length) {
       takeptr = 0;
     }
+    --count;
     not_full.signal();
     mutex.unlock();
     return x;
@@ -269,6 +271,7 @@ monitor class BoundedBuffer {
     if(++takeptr == items.length) { 
       takeptr = 0; 
     }
+    --count;
     return x;
   }
 }
@@ -301,9 +304,9 @@ requirements by providing some parameters to the preprocessor. Rewriting
 programs is unnecessary for different approaches of implicit-signal monitors. 
 The flexibility is provided without any additional cost. 
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
   \centering
-  \includegraphics[width=70mm]{fig/flow.png}
+  \includegraphics[width=80mm]{fig/flow.eps}
   \caption{The framework of iMonitor}
   \label{fig:framework}
 \end{figure}
@@ -400,7 +403,7 @@ foreach global predicate P
 
 \begin{SaveVerbatim}{MapConditionWaituntilImp}
 if P is a local predicate 
-  PE := LocalVariableEvaluation(P)
+  PE := Globalization(P)
   if PE is not in MAP
     create a pair <PE, C>
     add <PE, C> to MAP
@@ -603,16 +606,75 @@ variables has been reduced.
 \end{table}
 
 \section{Evaluations} \label{sec:eval}
-To evaluate the performance of iMonitor, both implicit- and explicit-monitor 
-solutions for different problems were implemented. We would like to evaluate the
-runtime of different approaches. All of the experiments were conducted on a 
-machine with 16 Intel(R) Xeon(R) X5560 CPUs and 64 GBs memory.
+Four kind of experiments were performed to evaluate the performances of the
+explicit-signal monitor with original Java and the implicit-signal monitor with
+iMonitor framework. All of the experiments were conducted on a machine with 16 
+Intel(R) Xeon(R) X5560 CPUs and 64 GBs memory. 
 
 
+Fig.~\ref{fig:pc_eval} shows the results of producer-consumer problem. The
+x-axis indicates the number of producers and consumers; the y-axis indicates the
+runtime in seconds. Total 512000 $put$ and $take$ operations were executed by
+all producers and consumers. As expected, the naive approach is much slower than
+others. Both N-Condition and map approaches are slightly slower in most cases.
+This phenomenon can be explained as follows. Observe explicit-signal and 
+implicit-signal approaches for the producer-consumer problem is shown in 
+Fig.~\ref{fig:bb_exp}. In the implicit-signal approaches, there are only two 
+waituntil statements with global predicates, $count > 0$ and 
+$count < items.length$. In the naive approach, producers and consumers are
+awaken every time when a thread await or want to leave the monitor. Therefore,
+if a consumer waits because $count = 0$, all other consumers are awaken and
+check the predicate $count > 0$. Such kind of operations are redundant and lead
+to the inefficiency of naive implementation. The N-Condition and map
+implementations only need to check two global predicates in a waituntil
+statement and the exit of monitor. Hence, the N-Condition and map implementation 
+has the similar performance and only slightly slower than the explicit-signal
+monitor approach. 
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/pc.eps}
+  \caption{The results of producer-consumer problem}
+  \label{fig:pc_eval}
+\end{figure}
 
-\subsection{Bounded-Buffer Problem}
-\subsection{Reader/Writer Problem}
-\subsection{Dining Philosophers  Problem}
+Fig.~\ref{fig:rw_eval} shows the results of reader-writer problem. The
+x-axis indicates the number of readers and writers; the y-axis indicates the
+runtime in seconds. Total 1280 read/write operations were executed by all
+readers and writers. Since readers can read with each other at the same time.
+The runtime decreases as number of readers increases. Need to figure out why 
+explicit-signal approach is so slow in 1/5. Maybe the implementation? 
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/rw.eps}
+  \caption{The results of reader-writer problem}
+  \label{fig:rw_eval}
+\end{figure}
+
+Fig.~\ref{fig:dp_eval} shows the results of dining philosophers problem. The
+x-axis indicates the number of philosophers; the y-axis indicates the
+runtime in seconds. Every philosopher performed 100 eat operations with a
+randomly thinking time, philosophers do nothing at this time, between 1 to 20 
+milliseconds. Fig.~\ref{fig:dp_eval} does not show the results of N-Condition 
+implementations since the results are much worse than other implementations. It
+takes around 10 minutes for 128 philosophers. The reason is that many waituntil
+statements with local predicate are used in this problem. Therefore, many
+conditional variables are created and removed at runtime. As can be seen, the
+other three approaches have the similar results. This phenomenon can be
+explained as follows. The thinking time is much larger than the synchronization 
+time in the monitor. Therefore, the runtime is dominated by the thinking time.
+%These results suggest that if applications do not have many operations to access
+a monitor, the performance will not have much difference in implicit-signal and
+explicit-signal monitor.
+
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/dp.eps}
+  \caption{The results of dining philosophers problem}
+  \label{fig:dp_eval}
+\end{figure}
+
 %The dining philosophers problem is often used in computer science to describe 
 %the synchronization issues. There are N philosophers siting around at a table 
 %with a dish in front of them and a chopstick in between each philosopher. A 
@@ -627,11 +689,31 @@ machine with 16 Intel(R) Xeon(R) X5560 CPUs and 64 GBs memory.
 %has the similar results. The implementations of Naive and N-condition are as 
 %efficient as the implementation of explicit signal monitor. 
 %
-\subsection{Access Patterns}
+Fig.~\ref{fig:rr_eval} shows the results of round-robin access pattern. The
+x-axis indicates the number of threads; the y-axis indicates the
+runtime in seconds. In this set of experiments, threads are allowed to enter a
+monitor in round-robin scheduling. Again, the results of N-Condition approach
+are not shown because their performance is much worse than others. Total 
+128000 operations were performed on the monitor. In this set
+of experiment, the explicit-signal approach has an advantage since it can
+explicitly to signal the next thread to enter the monitor. As can be seen, the
+performance of explicit-signal approach is steady as the number of thread
+increases. In comparison with our implicit-signal approaches, threads can only 
+wait to enter the monitor. The runtime increases much as the number of thread 
+increase in naive implementation. For the map approach, the performance is 
+worse than the explicit-signal approach with a steady difference. 
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/rr.eps}
+  \caption{The results of round-robin access pattern}
+  \label{fig:rr_eval}
+\end{figure}
 
 %\section{Discussions}
-%\subsection{Comparision between different implementations}
+%\subsection{Comparison between different implementations}
 %\subsection{Practical Issues} Need a big project to demonstrate 
+\section{Practical Case Study} Need a big project to demonstrate 
 
 
 \section{Conclusions} \label{sec:conclu}
