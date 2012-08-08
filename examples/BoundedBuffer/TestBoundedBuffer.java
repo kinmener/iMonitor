@@ -33,7 +33,7 @@ public class TestBoundedBuffer {
             case 'l':
                 rw_controller = new HashSetBoundedBuffer(4);
                 break;
-            case 'h':
+            case 'm':
                 rw_controller = new HashBoundedBuffer(4);
                 break;
             case 'p':
@@ -83,8 +83,8 @@ public class TestBoundedBuffer {
 
 
         System.out.println( execTime );
-        System.out.println( totalCpuTime/1e6)  ;
-        System.out.println( rw_controller.getSyncTime() / 1e6);
+        //System.out.println( totalCpuTime/1e6)  ;
+        //System.out.println( rw_controller.getSyncTime() / 1e6);
     }
 }
 
@@ -93,13 +93,13 @@ class ObjectProducer extends TestThread {
     private ObjectBoundedBuffer boundedBuffer ;
     private DoneCounter doneCounter ;
     private int numActions = 10;
-    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    //ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 
     ObjectProducer( ObjectBoundedBuffer bb, DoneCounter d, int n) {
         boundedBuffer = bb ; doneCounter = d ; numActions = n;}
 
     public void run() {
-        long startTime = threadMXBean.getCurrentThreadCpuTime();
+        //long startTime = threadMXBean.getCurrentThreadCpuTime();
         for(int i=0 ; i < numActions ; ++i ) {
             delay(5);
 
@@ -108,8 +108,8 @@ class ObjectProducer extends TestThread {
             catch(InterruptedException e ) { }
         }
         //System.out.println("ObjectProducer " +Thread.currentThread() +" Done ") ; 
-        long endTime = threadMXBean.getCurrentThreadCpuTime();
-        cpuTime = endTime - startTime;
+        //long endTime = threadMXBean.getCurrentThreadCpuTime();
+        //cpuTime = endTime - startTime;
         doneCounter.increment() ;
     }
 }
@@ -119,14 +119,14 @@ class ObjectConsumer extends TestThread {
     private ObjectBoundedBuffer boundedBuffer ;
     private DoneCounter doneCounter ;
     private int numActions = 10;
-    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    //ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 
     ObjectConsumer( ObjectBoundedBuffer bb, DoneCounter d, int n) {
         boundedBuffer = bb ; doneCounter = d ; numActions = n; }
 
     public void run() {
         
-        long startTime = threadMXBean.getCurrentThreadCpuTime();
+        //long startTime = threadMXBean.getCurrentThreadCpuTime();
 
         for(int i=0 ; i < numActions ; ++i ) {
             delay(5);
@@ -137,8 +137,8 @@ class ObjectConsumer extends TestThread {
 
         }
         //System.out.println("ObjectConsumer " +Thread.currentThread() + " Done ") ; 
-        long endTime = threadMXBean.getCurrentThreadCpuTime();
-        cpuTime = endTime - startTime;
+        //long endTime = threadMXBean.getCurrentThreadCpuTime();
+        //cpuTime = endTime - startTime;
         doneCounter.increment() ;
     }
 }

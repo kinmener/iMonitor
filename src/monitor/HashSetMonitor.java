@@ -21,7 +21,7 @@ public class HashSetMonitor extends AbstractImplicitMonitor  {
             //condition_.signalAll();
             for(AssertionConditionPair pair : setPairs) {
                 if (pair.conditionalSignal()) {
-                    break;
+//                    break;
                 }
             }
         }

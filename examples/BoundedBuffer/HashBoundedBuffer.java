@@ -32,9 +32,9 @@ public class HashBoundedBuffer extends ObjectBoundedBuffer {
         //System.out.println("in put");
         monitor.DoWithin( new Runnable() {
             public void run() {
-                setCurrentCpuTime();
+                //setCurrentCpuTime();
                 cond_0.await();     //auto-gen iMonitor
-                addSyncTime();
+                //addSyncTime();
                 items[putptr] = x; 
                 if (++putptr == items.length) putptr = 0;
                 ++count;
@@ -46,9 +46,9 @@ public class HashBoundedBuffer extends ObjectBoundedBuffer {
         //System.out.println("in take");
         return monitor.DoWithin( new RunnableWithResult<Object>() {
             public Object run() {
-                setCurrentCpuTime();
+                //setCurrentCpuTime();
                 cond_1.await();     //auto-gen iMonitor
-                addSyncTime();
+                //addSyncTime();
                 Object x = items[takeptr]; 
                 if (++takeptr == items.length) takeptr = 0;
                 --count;

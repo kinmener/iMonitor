@@ -24,10 +24,10 @@ class PDSLLockBoundedBuffer extends ObjectBoundedBuffer {
   public void put(Object x) throws InterruptedException {
     lock_.lock();
     try {
-      setCurrentCpuTime();
+//      setCurrentCpuTime();
       while (count == items_.length) 
         lock_.await();
-      addSyncTime();
+//      addSyncTime();
       items_[putptr] = x; 
       if (++putptr == items_.length) putptr = 0;
       ++count;
@@ -40,11 +40,10 @@ class PDSLLockBoundedBuffer extends ObjectBoundedBuffer {
   public Object take() throws InterruptedException {
     lock_.lock();
     try {
-      setCurrentCpuTime();
-      mapThreadCpuTime.put(Thread.currentThread().getId(), threadMXBean.getCurrentThreadCpuTime());
+//      setCurrentCpuTime();
       while (count == 0) 
         lock_.await();
-      addSyncTime();
+//      addSyncTime();
       Object x = items_[takeptr]; 
       if (++takeptr == items_.length) takeptr = 0;
       --count;

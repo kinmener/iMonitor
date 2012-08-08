@@ -23,7 +23,7 @@ public class HashSetCondition extends AbstractCondition {
             //                condition.signalAll();
             for(AssertionConditionPair pair : setPairs) {
                 if(pair.conditionalSignal()) {
-                    break;
+//                    break;
                 }
             }
             do {
