@@ -1,22 +1,15 @@
 package examples.ReadersWriters;
 
-import java.lang.management.*;
-
 import java.util.Random;
 
 import examples.util.DoneCounter;
 class Reader extends Thread {
-    private long  cpuTime;
     private static final Random rnd = new Random();
     private DoneCounter doneCounter ;
     ReadersWritersMonitor monitor;
     int numRead;
     int maxReadTime;
-    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 
-    public long getCpuTime() {
-        return cpuTime; 
-    }
     public Reader(ReadersWritersMonitor monitor_, int numRead_, int maxReadTime_, DoneCounter doneCounter_) {
         monitor = monitor_;
         numRead = numRead_;
@@ -26,7 +19,6 @@ class Reader extends Thread {
     }
 
     public void run() {
-        long startTime = threadMXBean.getCurrentThreadCpuTime();
         for(int i = 0; i < numRead; ++i) {
             monitor.startRead();
             // read
@@ -38,8 +30,6 @@ class Reader extends Thread {
             }
             monitor.endRead();
         }
-        long endTime = threadMXBean.getCurrentThreadCpuTime();
-        cpuTime = endTime - startTime;
         doneCounter.increment() ;
     }
 }
@@ -51,11 +41,7 @@ class Writer extends Thread {
     ReadersWritersMonitor monitor; 
     int numWrite;
     int maxWriteTime;
-    ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 
-    public long getCpuTime() {
-        return cpuTime; 
-    }
     public Writer(ReadersWritersMonitor monitor_, int numWrite_, int maxWriteTime_, DoneCounter doneCounter_) {
         monitor = monitor_;
         numWrite = numWrite_;
@@ -63,7 +49,6 @@ class Writer extends Thread {
         doneCounter = doneCounter_;
     }
     public void run() {
-        long startTime = threadMXBean.getCurrentThreadCpuTime();
         for (int i = 0; i < numWrite; ++i) {
             monitor.startWrite();
             // write
@@ -75,8 +60,6 @@ class Writer extends Thread {
             }
             monitor.endWrite();
         }
-        long endTime = threadMXBean.getCurrentThreadCpuTime();
-        cpuTime = endTime - startTime;
         doneCounter.increment() ;
     }
 }
@@ -94,23 +77,17 @@ public class TestReadersWriters {
         ReadersWritersMonitor monitor = null; 
         try {
             switch(args[0].charAt(0)) {
-            case 'c':
-                monitor = new NConditionReadersWritersMonitor();
-                break;
-            case 'p':
-                monitor = new PDSLReadersWritersMonitor();
-                break;
             case 'n':
                 monitor = new NaiveImplicitReadersWritersMonitor();
                 break;
             case 'e':
                 monitor = new ExplicitReadersWritersMonitor();
                 break;
-            case 'h':
-                monitor = new HashReadersWritersMonitor();
+            case 'm':
+                monitor = new MapReadersWritersMonitor();
                 break;
-            case 'l':
-                monitor = new HashSetReadersWritersMonitor();
+            case 's':
+                monitor = new SetReadersWritersMonitor();
                 break;
             }
             WRITERS = Integer.parseInt(args[1]);
@@ -142,19 +119,9 @@ public class TestReadersWriters {
             w[k].start(); 
         }
 
-        float totalCpuTime = 0.0f;
         doneCounter.waitForDone() ;
-        for(int i = 0; i < r.length; ++i) {
-            totalCpuTime += r[i].getCpuTime();
-            //System.out.println("cpu time: " + threads[i].getCpuTime()/10e6);
-        }
-        for(int i = 0; i < w.length; ++i) {
-            totalCpuTime += w[i].getCpuTime();
-            //System.out.println("cpu time: " + threads[i].getCpuTime()/10e6);
-        }
+        
         long execTime = System.currentTimeMillis() - startTime;
         System.out.println( execTime );
-        System.out.println( totalCpuTime/1e6)  ;
-        System.out.println( monitor.getSyncTime() / 1e6);
     }
 }

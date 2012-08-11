@@ -1,18 +1,21 @@
 package monitor;
 
 import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class AssertionConditionPair {
-    private Assertion assertion;
-    private Condition condition;
+    final private Assertion assertion;
+    final private Condition condition;
+    final private ReentrantLock mutex;
     
-    public AssertionConditionPair(Assertion assertion_, Condition condition_) {
-        assertion = assertion_;
-        condition = condition_;
+    public AssertionConditionPair(Assertion assertion, ReentrantLock mutex) {
+        this.assertion = assertion;
+        this.mutex = mutex;
+        this.condition = mutex.newCondition();
     }
-    
+
     public boolean conditionalSignal() {
-        if(assertion.isTrue()) {
+        if(mutex.hasWaiters(condition) && assertion.isTrue()) {
             condition.signal();
             return true;
         }

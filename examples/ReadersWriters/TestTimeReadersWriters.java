@@ -126,8 +126,8 @@ public class TestTimeReadersWriters {
             case 'e':
                 monitor = new ExplicitReadersWritersMonitor();
                 break;
-            case 'h':
-                monitor = new HashSetReadersWritersMonitor();
+            case 's':
+                monitor = new SetReadersWritersMonitor();
                 break;
             }
             WRITERS = READERS = Integer.parseInt(args[1]);

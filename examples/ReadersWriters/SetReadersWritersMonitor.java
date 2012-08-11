@@ -5,12 +5,12 @@ import monitor.*;	//auto-gen iMonitor
 
 import examples.util.Common;
 
-public class NaiveImplicitReadersWritersMonitor extends ReadersWritersMonitor {
+public class SetReadersWritersMonitor extends ReadersWritersMonitor {
     int rcnt;
     int wcnt;
     int wwaiting;
    
-    private AbstractImplicitMonitor monitor = new NaiveImplicitMonitor(); //auto-gen
+    private AbstractImplicitMonitor monitor = new SetMonitor(); //auto-gen
     private AbstractCondition okay_read = monitor.makeCondition( //auto-gen
          new  Assertion() {
             public boolean isTrue() { return (wcnt == 0 && wwaiting == 0); } 
@@ -20,7 +20,7 @@ public class NaiveImplicitReadersWritersMonitor extends ReadersWritersMonitor {
             public boolean isTrue() { return (rcnt == 0 && wcnt == 0); } 
          } ) ;
 
-    public NaiveImplicitReadersWritersMonitor () {
+    public SetReadersWritersMonitor() {
         rcnt = 0; 
         wcnt = 0;
         wwaiting = 0;

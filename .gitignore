@@ -4,6 +4,7 @@ dist/
 eval/results/
 doc/tex/iMonitor.*
 doc/tex/*.log
+doc/tex/fig/*.pdf
 !doc/tex/iMonitor.tex
 .classpath
 .project

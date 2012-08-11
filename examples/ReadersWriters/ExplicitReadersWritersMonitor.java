@@ -4,6 +4,7 @@ package examples.ReadersWriters;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import examples.util.Common;
 
 public class ExplicitReadersWritersMonitor extends ReadersWritersMonitor {
     final ReentrantLock mutex = new ReentrantLock();
@@ -21,17 +22,14 @@ public class ExplicitReadersWritersMonitor extends ReadersWritersMonitor {
     public void startRead() {
         mutex.lock();
         try {
-            setCurrentCpuTime();
             while(wcnt == 1 || mutex.getWaitQueueLength(okay_write) > 0) {
                 okay_read.await();
             }
-            addSyncTime();
 
             rcnt++;
             okay_read.signal();
-            //System.out.println("Reader " + Thread.currentThread() + "starts to read");
-            //System.out.println("wwaiting: " + mutex.getWaitQueueLength(okay_write) + "\t rcnt: " + rcnt + "\twcnt: " + wcnt);
-            //System.out.flush();
+            Common.println("Reader " + Thread.currentThread() + "starts to read");
+            Common.println("wwaiting: " + mutex.getWaitQueueLength(okay_write) + "\t rcnt: " + rcnt + "\twcnt: " + wcnt);
         } catch(InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -45,23 +43,19 @@ public class ExplicitReadersWritersMonitor extends ReadersWritersMonitor {
         if(rcnt == 0) {
             okay_write.signal();
         }
-        //System.out.println("Reader " + Thread.currentThread() + "ends reading");
-        //System.out.flush();
+        Common.println("Reader " + Thread.currentThread() + "ends reading");
         mutex.unlock();
     }
 
     public void startWrite() {
         mutex.lock();
         try {
-            setCurrentCpuTime();
             while(rcnt != 0 || wcnt != 0) {
                 okay_write.await();
             }
-            addSyncTime();
             wcnt = 1;
-            //System.out.println("Writer " + Thread.currentThread() + "starts to write");
-            //System.out.println("wwaiting: " + mutex.getWaitQueueLength(okay_write) + "\t rcnt: " + rcnt + "\twcnt: " + wcnt);
-            //System.out.flush();
+            Common.println("Writer " + Thread.currentThread() + "starts to write");
+            Common.println("wwaiting: " + mutex.getWaitQueueLength(okay_write) + "\t rcnt: " + rcnt + "\twcnt: " + wcnt);
         } 
         catch(InterruptedException e)  {
             e.printStackTrace();
@@ -80,8 +74,7 @@ public class ExplicitReadersWritersMonitor extends ReadersWritersMonitor {
         else {
             okay_read.signal();
         }
-        //System.out.println("Writer " + Thread.currentThread() + "end writing");
-        //System.out.flush();
+        Common.println("Writer " + Thread.currentThread() + "end writing");
         mutex.unlock();
     }
 }

@@ -16,9 +16,9 @@ public class NaiveImplicitMonitor extends AbstractImplicitMonitor {
         mutex.unlock();
     }
 
-    public NavieCondition makeCondition(Assertion assertion) {
+    public NaiveCondition makeCondition(Assertion assertion) {
         if(condition == null) condition = mutex.newCondition();
-        return new NavieCondition(condition, assertion);
+        return new NaiveCondition(condition, assertion);
     }
     public void removeCondition(AbstractCondition abstractCondition) {
     }

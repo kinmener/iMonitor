@@ -2,15 +2,15 @@
 package examples.DiningPhilosophers;
 import monitor.*;	//auto-gen iMonitor
 
-public class NaiveImplicitDiningServerImpl extends DiningServer {
+public class MapDiningServerImpl extends DiningServer {
 
-    private AbstractImplicitMonitor __monitor__628 = new NaiveImplicitMonitor(); //auto-gen
+    private MapMonitor __monitor__628 = new MapMonitor(); //auto-gen
     /**
 
      * Constructor.
      * @param numPhils The number of dining philosophers.
      */
-    private NaiveImplicitDiningServerImpl(int numPhils) {
+    private MapDiningServerImpl(int numPhils) {
         super(numPhils);
     }
 
@@ -21,7 +21,7 @@ public class NaiveImplicitDiningServerImpl extends DiningServer {
      * @return A dining server table object.
      */
     public static DiningServer newInstance(int numPhils) {
-        DiningServer instance = new NaiveImplicitDiningServerImpl(numPhils);
+        DiningServer instance = new MapDiningServerImpl(numPhils);
         return instance;
     }
 
@@ -57,10 +57,10 @@ public class NaiveImplicitDiningServerImpl extends DiningServer {
                 AbstractCondition cond_1 = __monitor__628.makeCondition( //auto-gen
                     new Assertion() {
                         public boolean isTrue() { return state[i_dummy] == State.EATING; } 
-                    } ) ;
+                    },
+                    "state[i_dummy] == State.EATING" + "_" + i_dummy) ;
 
-
-                cond_1.await();	
+                cond_1.await();
             } }); }
 
             /**

@@ -171,17 +171,11 @@ public class DiningPhilosophers {
                 case 'n':
                     ds = NaiveImplicitDiningServerImpl.newInstance(numPhilosophers);
                     break;
-                case 'l':
-                    ds = HashSetDiningServerImpl.newInstance(numPhilosophers);
+                case 's':
+                    ds = SetDiningServerImpl.newInstance(numPhilosophers);
                     break;
-                case 'c':
-                    ds = NConditionLockDiningServerImpl.newInstance(numPhilosophers);
-                    break;
-                case 'p':
-                    ds = PDSLLockDiningServerImpl.newInstance(numPhilosophers);
-                    break;
-                case 'h':
-                    ds = HashDiningServerImpl.newInstance(numPhilosophers);
+                case 'm':
+                    ds = MapDiningServerImpl.newInstance(numPhilosophers);
                     break;
                 default:
                     ds = ExplicitDiningServerImpl.newInstance(numPhilosophers);
@@ -211,17 +205,10 @@ public class DiningPhilosophers {
       //System.out.println("All Philosopher threads started");
 
       doneCounter.waitForDone();
-      float totalCpuTime = 0.0f;
 
-      for(int i = 0; i < p.length; ++i) {
-          totalCpuTime += p[i].getCpuTime();
-          //System.out.println("cpu time: " + threads[i].getCpuTime()/10e6);
-      }
 
       long execTime = System.currentTimeMillis() - startTime;
       System.out.println( execTime );
-      System.out.println( totalCpuTime/1e6)  ;
-      System.out.println( ds.getSyncTime() / 1e6);
       
       // let the Philosophers run for a while
       //try {
