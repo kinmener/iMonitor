@@ -13,8 +13,12 @@ import java.util.HashMap;
 import java.lang.management.*;
 
 public abstract class ObjectBoundedBuffer {
+    protected Object[] items;
     public abstract void put (Object x)  throws InterruptedException ;
     public abstract Object take ()  throws InterruptedException ;
     public abstract void put(final int n) throws InterruptedException;
     public abstract Object[] take(final int n) throws InterruptedException;
+    public int size() {
+        return items.length;
+    }
 }

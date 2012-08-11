@@ -8,7 +8,6 @@ import monitor.RunnableWithResult;
 import examples.util.Common;
 
 public class MapBoundedBuffer extends ObjectBoundedBuffer {
-    private final Object[] items;
     private int putPtr, takePtr, count;
     
     private MapMonitor monitor = new MapMonitor(); //auto-gen

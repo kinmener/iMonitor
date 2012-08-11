@@ -15,7 +15,7 @@ package examples.BoundedBuffer;
 
 import examples.util.DoneCounter;
 
-public class TestBoundedBuffer {
+public class TestRandomBoundedBuffer {
 
     public static void main(String[] args) {
         int CONSUMERS = 10;
@@ -59,11 +59,11 @@ public class TestBoundedBuffer {
         long startTime = System.currentTimeMillis();
         //System.out.println("Please wait. This takes a while");
         for( int k=0 ; k < CONSUMERS ; ++k ) {
-            TestThread w = new ObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS ) ;
+            TestThread w = new RandomObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS ) ;
             threads[k] = w;
             w.start(); }
         for( int k=0 ; k < PRODUCERS ; ++k ) {
-            TestThread r = new ObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS) ;
+            TestThread r = new RandomObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS) ;
             threads[k + CONSUMERS] = r;
             r.start(); }
         doneCounter.waitForDone() ;
@@ -73,13 +73,13 @@ public class TestBoundedBuffer {
     }
 }
 
-class ObjectProducer extends TestThread {
+class RandomObjectProducer extends TestThread {
 
     private ObjectBoundedBuffer boundedBuffer ;
     private DoneCounter doneCounter ;
     private int numActions = 10;
 
-    ObjectProducer( ObjectBoundedBuffer bb, DoneCounter d, int n) {
+    RandomObjectProducer( ObjectBoundedBuffer bb, DoneCounter d, int n) {
         boundedBuffer = bb ; doneCounter = d ; numActions = n;}
 
     public void run() {
@@ -87,29 +87,35 @@ class ObjectProducer extends TestThread {
             //delay(5);
 
             try {
-                boundedBuffer.put(1) ; }
+                boundedBuffer.put( new Object() ) ; }
             catch(InterruptedException e ) { }
         }
         doneCounter.increment() ;
     }
 }
 
-class ObjectConsumer extends TestThread {
+class RandomObjectConsumer extends TestThread {
 
     private ObjectBoundedBuffer boundedBuffer ;
     private DoneCounter doneCounter ;
     private int numActions = 10;
 
-    ObjectConsumer( ObjectBoundedBuffer bb, DoneCounter d, int n) {
+    RandomObjectConsumer( ObjectBoundedBuffer bb, DoneCounter d, int n) {
         boundedBuffer = bb ; doneCounter = d ; numActions = n; }
 
     public void run() {
-        
-        for(int i=0 ; i < numActions ; ++i ) {
-            //delay(5);
+       
+        while (numActions > 0) {
+            int n = 1;
+            if (boundedBuffer.size() > numActions) {
+                n += Math.random() * numActions; 
+            } else {
+                n += Math.random() * boundedBuffer.size(); 
+            }
 
+            numActions -= n;
             try {
-                boundedBuffer.take() ; }
+                boundedBuffer.take(n) ; }
             catch(InterruptedException e ) { }
 
         }

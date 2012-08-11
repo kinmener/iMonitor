@@ -15,7 +15,6 @@ public class SetBoundedBuffer extends ObjectBoundedBuffer {
                 public boolean isTrue() { return count < items.length; } 
             } ) ;
 
-    private final Object[] items;
     private int putPtr, takePtr, count;
 
     public SetBoundedBuffer(int n) {

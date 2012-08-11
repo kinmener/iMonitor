@@ -10,7 +10,6 @@ public monitor class ReadersWritersMonitor {
     }
 
     public void startRead() {
-        
         await(wcnt == 0 && wwaiting == 0);
         rcnt++;
         return;

@@ -13,7 +13,6 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
     final Condition notFull  = mutex.newCondition(); 
     final Condition notEmpty = mutex.newCondition(); 
 
-    final Object[] items;
     int putPtr, takePtr, count;
 
     public ExplicitBoundedBuffer(int n) {
@@ -64,7 +63,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
             }
             count += n;
             Common.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
-            notEmpty.signal();
+            notEmpty.signalAll();
         } finally {
             mutex.unlock();
         }
@@ -84,7 +83,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
             }
             count -= n;
             Common.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
-            notFull.signal();
+            notFull.signalAll();
             return ret;
         } finally {
             mutex.unlock();
