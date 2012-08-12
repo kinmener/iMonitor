@@ -19,7 +19,7 @@ public class TestRandomBoundedBuffer {
 
     public static void main(String[] args) {
         int CONSUMERS = 10;
-        int PRODUCERS = 10;
+        int PRODUCERS = 1;
         int bufSize = 10;
         int totalNumActions = 10; 
         ObjectBoundedBuffer rw_controller = null;
@@ -43,7 +43,7 @@ public class TestRandomBoundedBuffer {
                 rw_controller = new ExplicitBoundedBuffer(bufSize);
 
             }
-            CONSUMERS = PRODUCERS = Integer.parseInt(args[2]);
+            CONSUMERS = Integer.parseInt(args[2]);
             totalNumActions = Integer.parseInt(args[3]);
         } catch (Exception e) { /* use defaults */ 
             e.printStackTrace();
@@ -111,9 +111,11 @@ class RandomObjectConsumer extends TestThread {
         while (numActions > 0) {
             int n = 1;
             if (boundedBuffer.size() > numActions) {
-                n += Math.random() * numActions; 
+                n += numActions/2;
+                n += Math.random() * (numActions / 2); 
             } else {
-                n += Math.random() * boundedBuffer.size(); 
+               n += boundedBuffer.size()/2;
+                n += Math.random() * (boundedBuffer.size() / 2); 
             }
 
             numActions -= n;

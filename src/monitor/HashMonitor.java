@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class HashMonitor extends AbstractImplicitMonitor  {
 
-    ReentrantLock mutex = new ReentrantLock();
+    ReentrantLock mutex = new ReentrantLock(true);
     HashSet<AssertionConditionPair> setPair 
          = new HashSet<AssertionConditionPair>();
     HashMap<String, HashCondition> mapCondition 
