@@ -36,6 +36,9 @@ public class Test{
                 case 'm':
                     monitor = new MapRoundRobinMonitor(numProc);
                     break;
+                case 'h':
+                    monitor = new HashRoundRobinMonitor(numProc);
+                    break;
                 default:
                     monitor = new ExplicitRoundRobinMonitor(numProc);
 
