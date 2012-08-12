@@ -5,7 +5,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class NaiveImplicitMonitor extends AbstractImplicitMonitor {
-    private Lock mutex = new ReentrantLock();
+    private Lock mutex = new ReentrantLock(true);
     private Condition condition = null;
     
     protected final void enter() {

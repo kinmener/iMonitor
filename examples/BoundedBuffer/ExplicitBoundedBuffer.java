@@ -9,7 +9,7 @@ import examples.util.Common;
 
 
 class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
-    final Lock mutex = new ReentrantLock();
+    final Lock mutex = new ReentrantLock(true);
     final Condition notFull  = mutex.newCondition(); 
     final Condition notEmpty = mutex.newCondition(); 
 
@@ -55,7 +55,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
     public void put(final int n) throws InterruptedException {
         mutex.lock();
         try {
-            while ((n + count) >= items.length) 
+            while ((n + count) > items.length) 
                 notFull.await();
             for (int i = 0; i < n; i++) {
                 items[putPtr++] = new Object(); 
@@ -82,7 +82,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
                 if (takePtr == items.length) takePtr = 0;
             }
             count -= n;
-            Common.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
+            Common.println("Consumer " + Thread.currentThread() + " takes " + n + " objs, remaining #obj: " + count) ; 
             notFull.signalAll();
             return ret;
         } finally {

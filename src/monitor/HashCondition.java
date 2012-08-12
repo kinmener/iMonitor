@@ -6,28 +6,34 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class HashCondition extends AbstractCondition {
 
-    private AssertionConditionPair self;
-    private HashSet<AssertionConditionPair> setPairs;
+    private final AssertionConditionPair self;
+    private final HashSet<AssertionConditionPair> setPair;
     private final String key;
 
+
     public HashCondition(Assertion assertion, ReentrantLock mutex, 
-            HashSet<AssertionConditionPair> setPairs_, String key) {
+            HashSet<AssertionConditionPair> setPair, String key) {
         self = new AssertionConditionPair(assertion, mutex);
-        setPairs = setPairs_;
-        setPairs.add(self);
+        setPair.add(self);
+        this.setPair = setPair;
         this.key = key;
     }
 
-
+    public AssertionConditionPair getSelf() {
+       return self;
+    }
     public String getKey() {
-        return key;
+       return key;
     }
 
+    public boolean hasWaiters() {
+       return self.hasWaiters();
+    }
     @Override
     public void await() {
         if(!self.assertionIsTrue()) {
-            //                condition.signalAll();
-            for(AssertionConditionPair pair : setPairs) {
+            // condition.signalAll();
+            for(AssertionConditionPair pair : setPair) {
                 if(pair.conditionalSignal()) {
                     break;
                 }
@@ -41,9 +47,5 @@ public class HashCondition extends AbstractCondition {
                 }
             } while(!self.assertionIsTrue()); 
         }
-    }
-
-    public void remove() {
-        setPairs.remove(self);
     }
 }

@@ -36,6 +36,9 @@ public class TestRandomBoundedBuffer {
             case 'm':
                 rw_controller = new MapBoundedBuffer(bufSize);
                 break;
+            case 'h':
+                rw_controller = new HashBoundedBuffer(bufSize);
+                break;
             default:
                 rw_controller = new ExplicitBoundedBuffer(bufSize);
 

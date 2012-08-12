@@ -1,4 +1,4 @@
-#! /nfs/site/disks/an_umg_disk2409/whung7/local/bin/python3.2
+#! /home/ecelrc/students/whung1/local/bin/python3
 from subprocess import check_call, Popen, PIPE
 from time import sleep, localtime, strftime
 from optparse import OptionParser

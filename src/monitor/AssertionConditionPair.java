@@ -14,6 +14,10 @@ public class AssertionConditionPair {
         this.condition = mutex.newCondition();
     }
 
+    public boolean hasWaiters() {
+       return mutex.hasWaiters(condition);
+    }
+
     public boolean conditionalSignal() {
         if(mutex.hasWaiters(condition) && assertion.isTrue()) {
             condition.signal();

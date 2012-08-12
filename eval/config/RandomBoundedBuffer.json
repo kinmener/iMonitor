@@ -17,12 +17,13 @@
       128
     ],
     "num_tasks": [ 
-      512000
+      51200
     ],
     "monitor_type": [
       "explicit",
       "naive",
-      "set", 
+      "set",
+      "hash",
       "map"
     ],
     "num_proc": [

@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class MapMonitor extends AbstractImplicitMonitor  {
 
-    final ReentrantLock mutex = new ReentrantLock();
+    final ReentrantLock mutex = new ReentrantLock(true);
     final HashMap<String, MapCondition> mapCondition
             = new HashMap<String, MapCondition>();
 

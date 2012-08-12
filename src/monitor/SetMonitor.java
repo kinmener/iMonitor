@@ -6,7 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class SetMonitor extends AbstractImplicitMonitor  {
 
-    final private ReentrantLock mutex = new ReentrantLock();
+    final private ReentrantLock mutex = new ReentrantLock(true);
     final private HashSet<SetCondition> setCondition 
             = new HashSet<SetCondition>();
 

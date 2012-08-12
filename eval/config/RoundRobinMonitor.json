@@ -18,7 +18,8 @@
     ],
     "monitor_type": [
       "explicit",
-      "set",
+      "set", 
+      "hash",
       "map"
     ],
     "num_proc": [
