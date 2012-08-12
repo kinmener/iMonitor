@@ -27,6 +27,7 @@
       "explicit",
       "naive",
       "set",
+      "hash",
       "map"
     ],
     "num_proc": [

@@ -86,6 +86,9 @@ public class TestReadersWriters {
             case 'm':
                 monitor = new MapReadersWritersMonitor();
                 break;
+            case 'h':
+                monitor = new HashReadersWritersMonitor();
+                break;
             case 's':
                 monitor = new SetReadersWritersMonitor();
                 break;

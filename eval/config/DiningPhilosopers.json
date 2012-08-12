@@ -14,12 +14,13 @@
   },
   "exp_params": {
     "num_tasks": [ 
-      100
+      51200
     ],
     "monitor_type": [
       "explicit",
       "naive",
       "set",
+      "hash",
       "map"
     ],
     "num_proc": [

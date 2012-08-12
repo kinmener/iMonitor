@@ -22,7 +22,8 @@
     "monitor_type": [
       "explicit",
       "naive",
-      "set", 
+      "set",
+      "hash",
       "map"
     ],
     "num_proc": [

@@ -17,7 +17,7 @@
       128
     ],
     "num_tasks": [ 
-      51200
+      256000
     ],
     "monitor_type": [
       "explicit",
