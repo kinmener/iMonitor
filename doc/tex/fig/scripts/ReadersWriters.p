@@ -7,7 +7,13 @@ set ytic font "Times-New-Roman, 16"
 set xlabel "# readers/writers" font "Times-New-Roman, 16"
 set ylabel "runtime(seconds)" font "Times-New-Roman, 16"
 set key right top
-plot  "ReadersWriters/explicit.dat" using 2:xticlabels(1) title 'explicit' with linespoints, \
-      "ReadersWriters/naive.dat" using 2:xticlabels(1) title 'naive' with linespoints, \
-      "ReadersWriters/set.dat" using 2:xticlabels(1) title 'set' with linespoints, \
-      "ReadersWriters/map.dat" using 2:xticlabels(1) title 'map' with linespoints
+#plot  "ReadersWriters/explicit.dat" using 2:xticlabels(1) title 'explicit' with linespoints, \
+#      "ReadersWriters/naive.dat" using 2:xticlabels(1) title 'naive' with linespoints, \
+#      "ReadersWriters/set.dat" using 2:xticlabels(1) title 'set' with linespoints, \
+#      "ReadersWriters/hash.dat" using 2:xticlabels(1) title 'hash' with linespoints, \
+#      "ReadersWriters/map.dat" using 2:xticlabels(1) title 'map' with linespoints
+plot  "ReadersWriters/explicit.dat" using 1:2 title 'explicit' with linespoints, \
+      "ReadersWriters/naive.dat" using 1:2 title 'naive' with linespoints, \
+      "ReadersWriters/set.dat" using 1:2 title 'set' with linespoints, \
+      "ReadersWriters/hash.dat" using 1:2 title 'hash' with linespoints, \
+      "ReadersWriters/map.dat" using 1:2 title 'map' with linespoints
