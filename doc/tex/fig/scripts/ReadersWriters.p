@@ -14,6 +14,5 @@ set key right top
 #      "ReadersWriters/map.dat" using 2:xticlabels(1) title 'map' with linespoints
 plot  "ReadersWriters/explicit.dat" using 1:2 title 'explicit' with linespoints, \
       "ReadersWriters/naive.dat" using 1:2 title 'naive' with linespoints, \
-      "ReadersWriters/set.dat" using 1:2 title 'set' with linespoints, \
       "ReadersWriters/hash.dat" using 1:2 title 'hash' with linespoints, \
       "ReadersWriters/map.dat" using 1:2 title 'map' with linespoints

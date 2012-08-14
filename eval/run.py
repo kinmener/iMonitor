@@ -119,7 +119,7 @@ if __name__ == "__main__":
       raw_file.write(str(max) + ", " + str(min) + ", " + str(avg) + "\n")
       raw_file.flush()
 
-      stat_file.write(str(params_list[group_by_idx][params_idx[group_by_idx]]) + " " + str(round(avg)) + "\n")
+      stat_file.write(str(params_list[group_by_idx][params_idx[group_by_idx]]) + " " + str(round(avg/2, 1)) + "\n")
 
      
       # maintain the params idx

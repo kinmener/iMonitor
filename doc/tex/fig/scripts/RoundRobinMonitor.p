@@ -10,6 +10,5 @@ set ylabel "runtime(seconds)" font "Times-New-Roman, 16"
 set key left top
 set xr [2:128]
 plot  "RoundRobinMonitor/explicit.dat" using 1:2 title 'explicit' with linespoints, \
-      "RoundRobinMonitor/set.dat" using 1:2 title 'set' with linespoints, \
       "RoundRobinMonitor/hash.dat" using 1:2 title 'hash' with linespoints, \
       "RoundRobinMonitor/map.dat" using 1:2 title 'map' with linespoints

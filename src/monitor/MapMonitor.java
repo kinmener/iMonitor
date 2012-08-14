@@ -22,7 +22,9 @@ public class MapMonitor extends AbstractImplicitMonitor  {
             //condition_.signalAll();
             for(Entry<String, MapCondition> entry 
                     : mapCondition.entrySet()) {
-                entry.getValue().conditionalSignal();
+                if (entry.getValue().conditionalSignal()) {
+                    break;
+                }
             }
         }
         mutex.unlock();

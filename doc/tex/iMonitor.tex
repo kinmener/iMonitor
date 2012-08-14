@@ -460,6 +460,8 @@ only provide the explicit-signal monitor but not implicit-signal. This research
 focuses on developing a framework supporting implicit-signal monitor without
 sacrificing efficiency in the modern programming language - Java. 
 
+our contribution
+
 This paper is organized as follows. Section \ref{sec:pre} gives the
 preliminaries. 
 Our framework is presented in Section \ref{sec:fw} and the practical 
@@ -470,6 +472,16 @@ Section \ref{sec:conclu} gives the concluding remarks.
 % (should never be an issue)
 
 \section{Preliminaries} \label{sec:pre}
+\subsection{Predicate}
+A predicate which depends on some variables is a statement that is either true
+or false. For example, $x > 0$ is a predicate where x is an integer variable. 
+Predicates are commonly used to describe the properties of conditions. 
+Predicates can be divided into two categories based on their variables.
+\subsubsection{Global predicate} A predicate contains only shared variables of a
+    monitor. 
+\subsubsection{Local predicate} If both shared variables and local variables of a
+    member function are in the predicate, which is called local predicate. 
+
 \subsection{Monitor}
 Monitor is an abstract object or module containing shared data to be used safely
 by multiple member functions and threads in concurrent programming. Monitor can
@@ -508,17 +520,6 @@ The implicit-signal monitor is still useful in prototyping and verification.
 Nevertheless, most of modern programming languages do not provide the 
 implicit-signal monitor mechanism.
 
-\subsection{Predicate}
-A predicate which depends on some variables is a statement that is either true
-or false. For example, $x > 0$ is a predicate where x is an integer variable. 
-Predicates are commonly used to describe the properties of conditions. 
-Therefore, predicates can be used in concurrent programming to describe 
-conditions for synchronization. Predicates can be divided into two categories
-based on their variables.
-\subsubsection{Global predicate} A predicate contains only shared variables of a
-    monitor. 
-\subsubsection{Local predicate} If both shared variables and local variables of a
-    member function are in the predicate, which is called local predicate. 
 
 
 
@@ -537,57 +538,53 @@ trying to obtain access to the shared resources. Producers try to put items
 into the buffer and consumers try to take items out from the buffer. Every 
 operation should be mutual exclusion. In addition, a producer cannot put any 
 item when the buffer is full and a consumer cannot take any item when the 
-buffer is empty. Fig.~\ref{subfig:bb_exp_exp} is written by the original Java
+buffer is empty. Fig.~\ref{subfig:bb_exam_exp} is written by the original Java
 program language. A lock variable and conditional variables are
 needed to maintain mutual exclusion and synchronization. A thread needs to
 acquire the lock before entering member functions. In addition, programmers need
 to explicitly associate the assertions with conditional variables and call
-signal/await statement manually. Fig.~\ref{subfig:bb_exp_imp} shows a Java-alike
+signal/await statement manually. Fig.~\ref{subfig:bb_exam_imp} shows a Java-alike
 program for the producer-consumer problem. The key word $monitor$ for $class$
 indicates that every member function of the class can only be executed at most
 one thread at any time. In addition, the $waituntil$ statement indicates that if
 the predicate of the waituntil is not true, the executing thread must wait and
 release the monitor temporarily. After the predicate becomes true, the thread
-then can awake automatically. As can be seen, Fig.~\ref{subfig:bb_exp_imp} is
-more straightforward and simpler than Fig.~\ref{subfig:bb_exp_exp}. This research
+then can awake automatically. As can be seen, Fig.~\ref{subfig:bb_exam_imp} is
+more straightforward and simpler than Fig.~\ref{subfig:bb_exam_exp}. This research
 focuses on developing a framework supporting such java-alike language without 
 sacrificing efficiency.
 
 
 \begin{SaveVerbatim}{OriginBoundedBuffer}
 class BoundedBuffer {
-  int[] items;  
+  Object[] items;  
   lock mutex;
-  condition not_full, not_empty;
-  int putptr, takeptr, count;
-  public BoundedBuffer(int n) {
-    putptr = takeptr = count = 0;
-    items = new int[n];
-  } 
-  public void put(int x) {
+  condition notFull, notEmpty;
+  int putPtr, takePtr, count;
+  public void put(Object x) {
     mutex.lock();
     if(count == items.length) {
-      not_full.await();
+      notFull.await();
     }
-    int x = items[putptr] = x;
-    if(++putptr == items.length) {
-      putptr = 0;
+    items[putPtr] = x;
+    if(++putPtr == items.length) {
+      putPtr = 0;
     }
     ++count;
-    not_empty.signal();
+    notEmpty.signal();
     mutex.unlock();
   }
-  public int take() {
+  public Object take() {
     mutex.lock();
     if(count == 0) {
-      not_empty.await();
+      notEmpty.await();
     }
-    int x = items[takeptr];
-    if(++takeptr == items.length) {
-      takeptr = 0;
+    int x = items[takePtr];
+    if(++takePtr == items.length) {
+      takePtr = 0;
     }
     --count;
-    not_full.signal();
+    notFull.signal();
     mutex.unlock();
     return x;
   }
@@ -596,25 +593,21 @@ class BoundedBuffer {
 
 \begin{SaveVerbatim}{iMonitorBoundedBuffer}
 monitor class BoundedBuffer { 
-  int[] items; 
-  int putptr, takeptr, count; 
-  public BoundedBuffer(int n) { 
-    putptr = takeptr = count = 0; 
-    items = new int[n]; 
-  } 
-  public void put(int x) { 
+  Object[] items; 
+  int putPtr, takePtr, count; 
+  public void put(Object x) { 
     waituntil(count < items.length); 
-    int x = items[putptr] = x; 
-    if(++putptr == items.length) { 
-      putptr = 0; 
+    items[putPtr] = x; 
+    if(++putPtr == items.length) { 
+      putPtr = 0; 
     } 
     ++count; 
   } 
-  public int take() { 
+  public Object take() { 
     waituntil(count > 0); 
-    int x = items[takeptr]; 
-    if(++takeptr == items.length) { 
-      takeptr = 0; 
+    Object x = items[takePtr]; 
+    if(++takePtr == items.length) { 
+      takePtr = 0; 
     }
     --count;
     return x;
@@ -628,14 +621,14 @@ monitor class BoundedBuffer {
     \fbox{
       \BUseVerbatim[fontsize=\footnotesize]{OriginBoundedBuffer}
     }
-    \label{subfig:bb_exp_exp}
+    \label{subfig:bb_exam_exp}
   }
   \\
   \subfloat[Implicit-Signal] {
     \fbox{
       \BUseVerbatim[fontsize=\footnotesize]{iMonitorBoundedBuffer}
     }
-    \label{subfig:bb_exp_imp}
+    \label{subfig:bb_exam_imp}
   }
   \caption{Bounded-buffer example}
   \label{fig:bb_exp}
@@ -662,7 +655,13 @@ The flexibility is provided without any additional cost.
   \label{fig:framework}
 \end{figure}
 
+\section{Desirable Properties}
+\subsection{Every thread can check predicates}
+\subsection{Less predicates need to be checked}
+\subsection{Reduce the number of content switch}
+
 \section{Enabling Techniques}
+
 \subsection{Globalization}
 An operation called globalization is defined as replacing all local variables of
 a predicate by its values at the time. The globalization converts a local 
@@ -677,9 +676,9 @@ Therefore, all other threads can check the globalized predicate safely.
 
 \subsection{Equivalence Predicate Reduction}
 
-\subsection{Local Predicate pairs Reuse and Elimination}
+\subsection{Remove Local Predicate pairs as soon as possible}
 
-\subsection{SignalAll Elimination}
+\subsection{Only one executable thread is signaled}
 reduce the number of content switch and the number of predicate checking 
 
 
@@ -773,8 +772,9 @@ foreach global predicate P
 Lock L
 Map<Predicate, Condition> MAP
 foreach global predicate P
-  create a pair <P, C>
-  add <P, C> to MAP 
+  if P is not in MAP
+    create a pair <P, C>
+    add <P, C> to MAP 
 \end{SaveVerbatim}
 
 \begin{SaveVerbatim}{MapConditionWaituntilImp}
@@ -787,19 +787,24 @@ if P is a local predicate
  
 if P is false 
   foreach <PI, CI> in MAP
-    if PI is true
+    if PI is true and CI has waiter
       signal CI
+      break
   do 
     wait C
   while P is false
+
+if P is local predicate 
+    and C has no waiter
+  remove <PE, C> from MAP
 \end{SaveVerbatim}
 
 \begin{SaveVerbatim}{MapConditionExitImp}
 
-foreach <PE, C> in MAP
-  if PE is true
+foreach <P, C> in MAP
+  if P is true and C has waiter
     signal C
-
+    break
 unlock L
 \end{SaveVerbatim}
 
@@ -984,7 +989,7 @@ variables has been reduced.
 \end{table}
 
 \section{Evaluations} \label{sec:eval}
-\subsection{Saturation}
+%\subsection{Saturation}
 Four kinds of experiments were performed to evaluate the performances of the
 explicit-signal monitor with original Java and the implicit-signal monitor with
 iMonitor framework. All of the experiments were conducted on a machine with 16 
@@ -1016,19 +1021,115 @@ monitor approach.
   \label{fig:pc_eval}
 \end{figure}
 
-Fig.~\ref{fig:rw_eval} shows the results of reader-writer problem. The
-x-axis indicates the number of readers and writers; the y-axis indicates the
-runtime in seconds. Total 1280 read/write operations were executed by all
-readers and writers. Since readers can read with each other at the same time.
-The runtime decreases as number of readers increases. Need to figure out why 
-explicit-signal approach is so slow in 1/5. Maybe the implementation? 
+\begin{SaveVerbatim}{OriginRandomBoundedBuffer}
+class BoundedBuffer {
+  Object[] items;  
+  lock mutex;
+  condition noSufficientSpace;
+  condition noSufficientItem;
+  int putPtr, takePtr, count;
+  public void put(int n) {
+    mutex.lock();
+    while(n + count > items.length) {
+      noSufficientSpace.await();
+    }
+    for(int i = 0; i < n; ++i) {
+      items[putPtr++] = new Object();
+      if(putPtr == items.length) {
+        putPtr = 0;
+      }
+    }
+    count += n;
+    noSufficientItem.signalAll();
+    mutex.unlock();
+  }
+  public Object[] take(int n) {
+    mutex.lock();
+    while(count < n) {
+      noSufficientItem.await();
+    }
+    Object[] ret = new Object[n];
+    for(int i = 0; i < n; ++i) {
+      ret[i] = items[takePtr++];
+      if(takePtr == items.length) {
+        takePtr = 0;
+      }
+    }
+    count -= n;
+    noSufficientSpace.signalAll();
+    mutex.unlock();
+    return ret;
+  }
+}
+\end{SaveVerbatim}
 
+\begin{SaveVerbatim}{iMonitorRandomBoundedBuffer}
+monitor class BoundedBuffer { 
+  Object[] items; 
+  int putPtr, takePtr, count; 
+  public void put(int n) { 
+    waituntil(count + n <= items.length); 
+    for(int i = 0; i < n; ++i) {
+      items[putPtr++] = new Object(); 
+      if(putPtr == items.length) { 
+        putPtr = 0; 
+      } 
+    }
+    count += n; 
+  } 
+  public Object[] take(int n) { 
+    waituntil(count >= n);
+    Object[] ret = new Object[n];
+    for(int i = 0; i < n; ++i) {
+      ret[i] = items[takePtr++]; 
+      if(takePtr == items.length) { 
+        takePtr = 0; 
+      }
+    }
+    count -= n;
+    return ret;
+  }
+}
+\end{SaveVerbatim}
+
+\begin{figure}
+  \centering
+  \subfloat[Explicit-Signal] {
+    \fbox{
+      \BUseVerbatim[fontsize=\footnotesize]{OriginRandomBoundedBuffer}
+    }
+    \label{subfig:rbb_exam_exp}
+  }
+  \\
+  \subfloat[Implicit-Signal] {
+    \fbox{
+      \BUseVerbatim[fontsize=\footnotesize]{iMonitorRandomBoundedBuffer}
+    }
+    \label{subfig:rbb_exam_imp}
+  }
+  \caption{Random Bounded-buffer example}
+  \label{fig:rbb_exp}
+\end{figure}
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=80mm]{fig/rw.eps}
-  \caption{The results of reader-writer problem}
-  \label{fig:rw_eval}
+  \includegraphics[width=80mm]{fig/rpc.eps}
+  \caption{The results of random producer-consumer problem}
+  \label{fig:rpc_eval}
 \end{figure}
+
+%Fig.~\ref{fig:rw_eval} shows the results of reader-writer problem. The
+%x-axis indicates the number of readers and writers; the y-axis indicates the
+%runtime in seconds. Total 1280 read/write operations were executed by all
+%readers and writers. Since readers can read with each other at the same time.
+%The runtime decreases as number of readers increases. Need to figure out why 
+%explicit-signal approach is so slow in 1/5. Maybe the implementation? 
+%
+%\begin{figure}[ht!]
+%  \centering
+%  \includegraphics[width=80mm]{fig/rw.eps}
+%  \caption{The results of reader-writer problem}
+%  \label{fig:rw_eval}
+%\end{figure}
 
 
 %The dining philosophers problem is often used in computer science to describe 
@@ -1065,36 +1166,171 @@ worse than the explicit-signal approach with a steady difference.
   \caption{The results of round-robin access pattern}
   \label{fig:rr_eval}
 \end{figure}
+\begin{SaveVerbatim}{ExplicitRoundRobinMonitor}
+public class RoundRobinMonitor{
+  final Lock mutex = new ReentrantLock();
+  Condition[] conds;
+  private int numProc;
+  private int pid;
 
-\subsection{Practical}
-Fig.~\ref{fig:dp_eval} shows the results of dining philosophers problem. The
-x-axis indicates the number of philosophers; the y-axis indicates the
-runtime in seconds. Every philosopher performed 100 eat operations with a
-randomly thinking time between 1 to 20 
-milliseconds. Fig.~\ref{fig:dp_eval} does not show the results of N-Condition 
-implementations since the results are much worse than other implementations. It
-takes around 10 minutes for 128 philosophers. The reason is that many waituntil
-statements with local predicate are used in this problem. Therefore, many
-conditional variables are created and removed at runtime. As can be seen, the
-other three approaches have the similar results. This phenomenon can be
-explained as follows. The thinking time is much larger than the synchronization 
-time in the monitor. Therefore, the runtime is dominated by the thinking time.
-%These results suggest that if applications do not have many operations to access
-%a monitor, the performance will not have much difference in implicit-signal and
-%explicit-signal monitor.
+  public void access(int myId) {
+    mutex.lock();
+    while(pid != myId) {
+      conds[pid].signal();
+      conds[myId].await();
+    }
+    pid = (pid + 1) % numProc;
+    conds[pid].signal();
+    mutex.unlock();
+  }
+}
+\end{SaveVerbatim}
+\begin{SaveVerbatim}{RoundRobinMonitor}
+public monitor class RoundRobinMonitor{
+  private int numProc;
+  private int numAccess;
 
-
-\begin{figure}[ht!]
+  public void access(int myId) {
+    await(pid == myId);
+    pid = (pid + 1) % numProc;
+  }
+}
+\end{SaveVerbatim}
+\begin{figure}
   \centering
-  \includegraphics[width=80mm]{fig/dp.eps}
-  \caption{The results of dining philosophers problem}
-  \label{fig:dp_eval}
+  \subfloat[Explicit-Signal] {
+    \fbox{
+      \BUseVerbatim[fontsize=\footnotesize]{ExplicitRoundRobinMonitor}
+    }
+    \label{subfig:rr_exam_exp}
+  }
+  \\
+  \subfloat[Implicit-Signal] {
+    \fbox{
+      \BUseVerbatim[fontsize=\footnotesize]{RoundRobinMonitor}
+    }
+    \label{subfig:rr_exam_imp}
+  }
+  \caption{Round-Robin example}
+  \label{fig:rbb_exp}
 \end{figure}
 
+%\subsection{Practical}
+%Fig.~\ref{fig:dp_eval} shows the results of dining philosophers problem. The
+%x-axis indicates the number of philosophers; the y-axis indicates the
+%runtime in seconds. Every philosopher performed 100 eat operations with a
+%randomly thinking time between 1 to 20 
+%milliseconds. Fig.~\ref{fig:dp_eval} does not show the results of N-Condition 
+%implementations since the results are much worse than other implementations. It
+%takes around 10 minutes for 128 philosophers. The reason is that many waituntil
+%statements with local predicate are used in this problem. Therefore, many
+%conditional variables are created and removed at runtime. As can be seen, the
+%other three approaches have the similar results. This phenomenon can be
+%explained as follows. The thinking time is much larger than the synchronization 
+%time in the monitor. Therefore, the runtime is dominated by the thinking time.
+%%These results suggest that if applications do not have many operations to access
+%%a monitor, the performance will not have much difference in implicit-signal and
+%%explicit-signal monitor.
+%
+%
+%\begin{figure}[ht!]
+%  \centering
+%  \includegraphics[width=80mm]{fig/dp.eps}
+%  \caption{The results of dining philosophers problem}
+%  \label{fig:dp_eval}
+%\end{figure}
+
+\begin{SaveVerbatim}{ExplicitTicketReadersWriters}
+public class ReadersWritersMonitor {
+  int rcnt;
+  int tickets, serving;
+  Lock mutex;
+  Map<Integer, Condition> mapCondition;
+  public void startRead() {
+    mutex.lock();
+    int ticket = tickets;
+    tickets++;
+    Condition cond = new Condition();
+    mapCondition.put(ticket, cond);
+    while(ticket != serving) {
+      cond.await();
+    }
+    mapCondition.remove(ticket);
+    rcnt++;
+    serving++;
+    mutex.unlock();
+  }
+  public void endRead() {
+    mutex.lock();
+    rcnt--;
+    mutex.unlock();
+  }
+  public void startWrite() {
+    mutex.lock();
+    int ticket = tickets;
+    tickets++;
+    Condition cond = new Condition();
+    mapCondition.put(ticket, cond);
+    while(ticket != serving || rcnt != 0) {
+      cond.await();
+    }
+    mapCondition.remove(ticket);
+    mutex.unlock();
+  }
+  public void endWrite() {
+    mutex.lock();
+    serving++;
+    mutex.unlock();
+  }
+}
+\end{SaveVerbatim}
+\begin{SaveVerbatim}{TicketReadersWriters}
+public monitor class ReadersWritersMonitor {
+  int rcnt;
+  int tickets, serving;
+  public void startRead() {
+    int ticket = tickets;
+    tickets++;
+    await(ticket == serving);
+    rcnt++;
+    serving++;
+  }
+  public void endRead() {
+    rcnt--;
+  }
+  public void startWrite() {
+    int ticket = tickets;
+    tickets++;
+    await(ticket == serving && rcnt == 0);
+  }
+  public void endWrite() {
+    serving++;
+  }
+}
+\end{SaveVerbatim}
+
+\begin{figure}
+  \centering
+  \subfloat[Explicit-Signal] {
+    \fbox{
+      \BUseVerbatim[fontsize=\footnotesize]{ExplicitTicketReadersWriters}
+    }
+    \label{subfig:rw_exam_exp}
+  }
+  \\
+  \subfloat[Implicit-Signal] {
+    \fbox{
+      \BUseVerbatim[fontsize=\footnotesize]{TicketReadersWriters}
+    }
+    \label{subfig:rw_exam_imp}
+  }
+  \caption{Random Bounded-buffer example}
+  \label{fig:rbb_exp}
+\end{figure}
 %\section{Discussions}
 %\subsection{Comparison between different implementations}
 %\subsection{Practical Issues} Need a big project to demonstrate 
-\section{Practical Case Study} Need a big project to demonstrate 
+%\section{Practical Case Study} Need a big project to demonstrate 
 
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.

@@ -23,8 +23,10 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
     public void put(Object x) throws InterruptedException {
         mutex.lock();
         try {
-            while (count == items.length) 
+            while (count == items.length) {
+                notEmpty.signal();
                 notFull.await();
+            }
             items[putPtr] = x; 
             if (++putPtr == items.length) putPtr = 0;
             ++count;
@@ -38,8 +40,10 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
     public Object take() throws InterruptedException {
         mutex.lock();
         try {
-            while (count == 0) 
+            while (count == 0) {
+                notFull.signal();
                 notEmpty.await();
+            }
 
             Object x = items[takePtr]; 
             if (++takePtr == items.length) takePtr = 0;
@@ -55,8 +59,10 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
     public void put(final int n) throws InterruptedException {
         mutex.lock();
         try {
-            while ((n + count) > items.length) 
+            while ((n + count) > items.length) {
+                notEmpty.signal();
                 notFull.await();
+            }
             for (int i = 0; i < n; i++) {
                 items[putPtr++] = new Object(); 
                 if (putPtr == items.length) putPtr = 0;
@@ -72,8 +78,10 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
     public Object[] take(final int n) throws InterruptedException {
         mutex.lock();
         try {
-            while (count < n) 
+            while (count < n) {
+                notFull.signal();
                 notEmpty.await();
+            }
 
             Object[] ret = new Object[n];
 

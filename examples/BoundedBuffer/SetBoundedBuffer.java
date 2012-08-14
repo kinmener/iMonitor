@@ -1,11 +1,14 @@
 
 package examples.BoundedBuffer;
-import monitor.*;	//auto-gen iMonitor
+import monitor.AbstractCondition;
+import monitor.Assertion;
+import monitor.SetMonitor;
+import monitor.RunnableWithResult;
 
 import examples.util.Common;
 
 public class SetBoundedBuffer extends ObjectBoundedBuffer {
-    private AbstractImplicitMonitor monitor = new SetMonitor(); //auto-gen
+    private SetMonitor monitor = new SetMonitor(); //auto-gen
     private AbstractCondition cond_1 = monitor.makeCondition( //auto-gen
             new  Assertion() {
                 public boolean isTrue() { return count > 0; } 

@@ -32,7 +32,9 @@ public class MapCondition extends AbstractCondition {
         if(!self.assertionIsTrue()) {
             // condition.signalAll();
             for(Entry<String, MapCondition> entry : mapCondition.entrySet()) {
-                entry.getValue().conditionalSignal();
+                if (entry.getValue().conditionalSignal()) {
+                    break;
+                }
             }
             do {
                 try {

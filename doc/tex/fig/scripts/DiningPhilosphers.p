@@ -11,6 +11,5 @@ set key left top
 set xr [2:128]
 plot  "DiningPhilosphers/explicit.dat" using 1:2 title 'explicit' with linespoints, \
       "DiningPhilosphers/naive.dat" using 1:2 title 'naive' with linespoints, \
-      "DiningPhilosphers/set.dat" using 1:2 title 'set' with linespoints, \
       "DiningPhilosphers/hash.dat" using 1:2 title 'hash' with linespoints, \
       "DiningPhilosphers/map.dat" using 1:2 title 'map' with linespoints

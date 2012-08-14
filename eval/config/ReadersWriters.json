@@ -26,7 +26,6 @@
     "monitor_type": [
       "explicit",
       "naive",
-      "set",
       "hash",
       "map"
     ],
