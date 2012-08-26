@@ -6,7 +6,7 @@
  * Copyright notice
  */
 
-package examples.util;
+package util;
 
 public class Symbols { 
     public static final boolean isDebug = false;

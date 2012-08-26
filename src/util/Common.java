@@ -5,7 +5,7 @@
  *
  * Copyright notice
  */
-package examples.util;
+package util;
 
 public class Common {
     public static void println(String str) {

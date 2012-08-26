@@ -1,20 +1,27 @@
 {
   "exp_info": {
-    "name": "RoundRobinMonitor",
-    "main_class": "examples.RoundRobinMonitor.Test",
+    "name": "TicketReadersWriters",
+    "main_class": "examples.TicketReadersWriters.TestTicketReadersWriters",
     "main_dir": "../build",
     "result_base_dir": "results",
     "num_times": 10,
     "params_order": [
-      "num_proc", "num_tasks", "monitor_type"
+      "monitor_type", "num_proc", "total_tasks",
+      "max_read_time", "max_write_time"
     ],
     "group_by": "num_proc",
     "stat_by": "monitor_type",
     "fig_dir": "../doc/tex/fig"
   },
   "exp_params": {
-    "num_tasks": [ 
-      512000
+    "total_tasks": [ 
+      128000
+    ],
+    "max_read_time": [
+      0 
+    ],
+    "max_write_time": [
+      0
     ],
     "monitor_type": [
       "explicit",
@@ -23,7 +30,7 @@
       "iMonitor"
     ],
     "num_proc": [
-      2, 4, 8, 16, 32, 64, 128
+      1, 2, 4, 8, 16, 32
     ]
   }
 }

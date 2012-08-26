@@ -16,7 +16,7 @@ class TestThread extends Thread {
         }
     }
 }
-    
+
 public class Test{
     public static void main (String [] args)
     {
@@ -26,40 +26,30 @@ public class Test{
         try {
             numProc = Integer.parseInt(args[0]); 
             totalNumAccess = Integer.parseInt(args[1]); 
-            switch(args[2].charAt(0)) {
-                case 'n':
-                    monitor = new NaiveRoundRobinMonitor(numProc);
-                    break;
-                case 's':
-                    monitor = new SetRoundRobinMonitor(numProc);
-                    break;
-                case 'm':
-                    monitor = new MapRoundRobinMonitor(numProc);
-                    break;
-                case 'h':
-                    monitor = new HashRoundRobinMonitor(numProc);
-                    break;
-                default:
-                    monitor = new ExplicitRoundRobinMonitor(numProc);
-
+            
+            if (args[2].charAt(0) == 'e') {
+                monitor = new ExplicitRoundRobinMonitor(numProc);
+            } else {
+                monitor = 
+                    new iMonitorRoundRobin(numProc, args[2].charAt(0));
             }
         } catch(Exception e) {
             if(monitor == null) {
-                    monitor = new ExplicitRoundRobinMonitor(numProc);
+                monitor = new ExplicitRoundRobinMonitor(numProc);
             }
         }
 
         long startTime = System.currentTimeMillis();
         TestThread[] testThreads = new TestThread[numProc];
-        for(int i = 0; i < numProc; ++i) {
+        for (int i = 0; i < numProc; ++i) {
             testThreads[i] = new TestThread(monitor, totalNumAccess/numProc, i);
             testThreads[i].start();
         }
         float totalCpuTime = 0.0f;
-        for(int i = 0; i < numProc; ++i) {
+        for (int i = 0; i < numProc; ++i) {
             try {
                 testThreads[i].join();
-            } catch(InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }

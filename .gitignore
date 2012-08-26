@@ -8,3 +8,4 @@ doc/tex/fig/*.pdf
 !doc/tex/iMonitor.tex
 .classpath
 .project
+*.swp

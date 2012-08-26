@@ -9,7 +9,7 @@
  */
 
 /** Test a bounded buffer with multiple producers and consumers.
- */
+*/
 
 package examples.BoundedBuffer;
 
@@ -27,21 +27,13 @@ public class TestRandomBoundedBuffer {
         try {
             bufSize = Integer.parseInt(args[0]);
             switch(args[1].charAt(0)) {
-            case 'n':
-                rw_controller = new NaiveBoundedBuffer(bufSize);
-                break;
-            case 's':
-                rw_controller = new SetBoundedBuffer(bufSize);
-                break;
-            case 'm':
-                rw_controller = new MapBoundedBuffer(bufSize);
-                break;
-            case 'h':
-                rw_controller = new HashBoundedBuffer(bufSize);
-                break;
-            default:
-                rw_controller = new ExplicitBoundedBuffer(bufSize);
-
+                case 'e':
+                    rw_controller = new ExplicitBoundedBuffer(bufSize);
+                    break;
+                default:
+                    rw_controller = 
+                        new iMonitorBoundedBuffer(bufSize, args[1].charAt(0));
+                    break;
             }
             CONSUMERS = Integer.parseInt(args[2]);
             totalNumActions = Integer.parseInt(args[3]);
@@ -65,14 +57,14 @@ public class TestRandomBoundedBuffer {
             TestThread w = new RandomObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS ) ;
             threads[k] = w;
             w.start(); }
-        for( int k=0 ; k < PRODUCERS ; ++k ) {
-            TestThread r = new RandomObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS) ;
-            threads[k + CONSUMERS] = r;
-            r.start(); }
-        doneCounter.waitForDone() ;
-        long execTime = System.currentTimeMillis() - startTime;
-        
-        System.out.println( execTime );
+            for( int k=0 ; k < PRODUCERS ; ++k ) {
+                TestThread r = new RandomObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS) ;
+                threads[k + CONSUMERS] = r;
+                r.start(); }
+                doneCounter.waitForDone() ;
+                long execTime = System.currentTimeMillis() - startTime;
+
+                System.out.println( execTime );
     }
 }
 
@@ -90,7 +82,7 @@ class RandomObjectProducer extends TestThread {
             //delay(5);
 
             try {
-                boundedBuffer.put( new Object() ) ; }
+                boundedBuffer.put(1) ; }
             catch(InterruptedException e ) { }
         }
         doneCounter.increment() ;
@@ -107,14 +99,14 @@ class RandomObjectConsumer extends TestThread {
         boundedBuffer = bb ; doneCounter = d ; numActions = n; }
 
     public void run() {
-       
+
         while (numActions > 0) {
             int n = 1;
             if (boundedBuffer.size() > numActions) {
                 n += numActions/2;
                 n += Math.random() * (numActions / 2); 
             } else {
-               n += boundedBuffer.size()/2;
+                n += boundedBuffer.size()/2;
                 n += Math.random() * (boundedBuffer.size() / 2); 
             }
 
