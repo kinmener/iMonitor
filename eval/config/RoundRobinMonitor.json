@@ -19,8 +19,8 @@
     "monitor_type": [
       "explicit",
       "naive",
-      "hash",
-      "map"
+      "map",
+      "iMonitor"
     ],
     "num_proc": [
       2, 4, 8, 16, 32, 64, 128

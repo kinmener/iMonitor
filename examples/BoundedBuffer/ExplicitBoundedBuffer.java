@@ -5,7 +5,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import examples.util.Common;
+import util.Common;
 
 
 class ExplicitBoundedBuffer extends ObjectBoundedBuffer{

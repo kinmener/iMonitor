@@ -230,14 +230,14 @@ public monitor class RoundRobinMonitor {
 \begin{SaveVerbatim}{ExplicitTicketReadersWriters}
 public class ReadersWritersMonitor {
   int rcnt;
-  int tickets, serving;
+  int ticket, serving;
   Lock mutex;
   Map<Integer, Condition> mapCondition;
   public void startRead() {
     mutex.lock();
-    int myTicket = tickets;
-    tickets++;
-    Condition cond = new Condition();
+    int myTicket = ticket;
+    ticket++;
+    Condition cond = mutex.newCondition();
     mapCondition.put(myTicket, cond);
     while(myTicket != serving) {
       if(mapCondition.containsKey(serving)) {
@@ -257,9 +257,9 @@ public class ReadersWritersMonitor {
   }
   public void startWrite() {
     mutex.lock();
-    int myTicket = tickets;
-    tickets++;
-    Condition cond = new Condition();
+    int myTicket = ticket;
+    ticket++;
+    Condition cond = mutex.newCondition();
     mapCondition.put(myTicket, cond);
     while(myTicket != serving || rcnt != 0) {
       if(myTicket != serving &&
@@ -282,10 +282,10 @@ public class ReadersWritersMonitor {
 \begin{SaveVerbatim}{iMonitorTicketReadersWriters}
 public monitor class ReadersWritersMonitor {
   int rcnt;
-  int tickets, serving;
+  int ticket, serving;
   public void startRead() {
-    int myTicket = tickets;
-    tickets++;
+    int myTicket = ticket;
+    ticket++;
     waituntil(myTicket == serving);
     rcnt++;
     serving++;
@@ -294,8 +294,8 @@ public monitor class ReadersWritersMonitor {
     rcnt--;
   }
   public void startWrite() {
-    int myTicket = tickets;
-    tickets++; 
+    int myTicket = ticket;
+    ticket++; 
     waituntil(myTicket == serving && rcnt == 0);
   }
   public void endWrite() {

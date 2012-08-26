@@ -4,7 +4,7 @@ package examples.ReadersWriters;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import examples.util.Common;
+import util.Common;
 
 public class ExplicitReadersWritersMonitor extends ReadersWritersMonitor {
     final ReentrantLock mutex = new ReentrantLock();

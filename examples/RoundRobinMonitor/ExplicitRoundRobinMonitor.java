@@ -4,7 +4,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import examples.util.Common;
+import util.Common;
 
 public class ExplicitRoundRobinMonitor extends RoundRobinMonitor {
     final Lock mutex = new ReentrantLock();
@@ -24,16 +24,17 @@ public class ExplicitRoundRobinMonitor extends RoundRobinMonitor {
     }
     public void access(int myId) {
         mutex.lock();
-        while((numAccess % numProc) != myId) {
+        while((numAccess) != myId) {
             try {
-                conds[numAccess % numProc].signal();
+                conds[numAccess].signal();
                 conds[myId].await();
             } catch(InterruptedException e) {
             }
         }
         Common.println("myId: " + myId + " numAccess: " + numAccess);
         ++numAccess;
-        conds[numAccess % numProc].signal();
+        numAccess %= numProc;
+        conds[numAccess].signal();
         mutex.unlock();
     }
 }

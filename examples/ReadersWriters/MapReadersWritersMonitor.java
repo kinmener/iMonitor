@@ -3,7 +3,7 @@
 package examples.ReadersWriters;
 import monitor.*;	//auto-gen iMonitor
 
-import examples.util.Common;
+import util.Common;
 
 public class MapReadersWritersMonitor extends ReadersWritersMonitor {
     int rcnt;
