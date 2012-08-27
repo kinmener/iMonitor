@@ -1,5 +1,5 @@
 set term post eps
-set output 'rw.eps'
+set output 'trw.eps'
 set size 0.5, 0.5
 unset label                            # remove any previous labels
 set xtic font "Times-New-Roman, 16"
