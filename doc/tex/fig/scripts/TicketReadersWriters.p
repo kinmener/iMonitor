@@ -12,7 +12,7 @@ set key right top
 #      "ReadersWriters/set.dat" using 2:xticlabels(1) title 'set' with linespoints, \
 #      "ReadersWriters/hash.dat" using 2:xticlabels(1) title 'hash' with linespoints, \
 #      "ReadersWriters/map.dat" using 2:xticlabels(1) title 'map' with linespoints
+#      "TicketReadersWriters/naive.dat" using 1:2 title 'naive' with linespoints, \
 plot  "TicketReadersWriters/explicit.dat" using 1:2 title 'explicit' with linespoints, \
-      "TicketReadersWriters/naive.dat" using 1:2 title 'naive' with linespoints, \
       "TicketReadersWriters/map.dat" using 1:2 title 'map' with linespoints, \
       "TicketReadersWriters/iMonitor.dat" using 1:2 title 'new' with linespoints

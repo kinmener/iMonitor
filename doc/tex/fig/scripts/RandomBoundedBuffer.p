@@ -9,7 +9,7 @@ set xlabel "# producers/consumers" font "Times-New-Roman, 16"
 set ylabel "runtime(seconds)" font "Times-New-Roman, 16"
 set key left top
 set xr [2:128]
+#      "RandomBoundedBuffer/naive.dat" using 1:2 title 'naive' with linespoints, \
 plot  "RandomBoundedBuffer/explicit.dat" using 1:2 title 'explicit' with linespoints, \
-      "RandomBoundedBuffer/naive.dat" using 1:2 title 'naive' with linespoints, \
       "RandomBoundedBuffer/map.dat" using 1:2 title 'map' with linespoints, \
       "RandomBoundedBuffer/iMonitor.dat" using 1:2 title 'new' with linespoints
