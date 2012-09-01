@@ -26,41 +26,19 @@ public class iMonitor extends AbstractImplicitMonitor {
         return null;
     }
 
-    public ComplexCondition makeCondition(Assertion assertion, String key, 
+    public iMonitorCondition makeCondition(String key, Assertion assertion,
             boolean isGlobal) {
-        return mger.makeComplexCondition(key, assertion, isGlobal);
+        return mger.makeCondition(key, assertion, isGlobal);
     }
 
-    public SimpleCondition makeCondition(String varName, int val, 
-            SimpleCondition.OperationType type, boolean isGlobal) {
-        String key = varName;
-
-        switch (type) {
-            case EQ:
-                key += "=";
-                break;
-            case NEQ:
-                key += "!=";
-                break;
-            case GT:
-                key += ">";
-                break;
-            case GTE:
-                key += ">=";
-                break;
-            case LT:
-                key += "<";
-                break;
-            case LTE:
-                key += "<=";
-                break;
-        }
-        key += val;
-        return mger.makeSimpleCondition(key, varName, val, type, isGlobal);
+        
+    public iMonitorCondition makeCondition(String key, String varName, int val, 
+            iMonitorCondition.OperationType type, Assertion assertion, 
+            boolean isGlobal) {
+        return mger.makeCondition(key, varName, val, type, assertion, isGlobal);
     }
 
     @Override
     public void removeCondition(AbstractCondition condition) {
     }
-
 }

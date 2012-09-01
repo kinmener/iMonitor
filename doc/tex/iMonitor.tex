@@ -309,25 +309,24 @@ Developing efficient and robust concurrent programs within a limited time is
 critical than ever. On the one hand, the multi-core processor, which allows 
 multiple threads to be executed at the same time, has become the mainstream of 
 computers; however, the power of multi-core processors is limited due to the 
-lack of concurrent applications. On the other hand, to compete with other rivals
-and to satisfy consumer demands in software industry, an application needs to be
-developed quickly. The concurrent programming is 
+lack of concurrent applications. In order to compete with other rivals
+and to satisfy consumers' demands in the software industry, applications need to be
+developed in a shot period. The concurrent programming is 
 different from the traditional sequential programming. Multiple threads may 
-interact with each other and try to access the same source. Therefore, providing
-correctness of current programs is more difficult than sequential programs. In 
-addition, the debugging process is panic in concurrent programs due to the 
+interact with each other and try to access the same source. Form the programers' perspective, 
+it is much more difficult to correctly develop concurrent programs than sequential programs. 
+In addition, the debugging process is panic in concurrent programs due to the 
 thread scheduling. 
 
-The monitor \cite{hoa74} is commonly used in concurrent programming for 
+The monitor \cite{hoa74} is commonly used in the concurrent programming for 
 maintaining the mutual exclusion of shared resources and providing the 
-synchronization mechanism between threads. Buhr and Harji \cite{bh05} divide 
+synchronization mechanism between threads. Buhr and Harji \cite{bh05} divided 
 monitors into two categories, the explicit-signal monitor and the 
-implicit-signal monitor. Buhr and Harji use the explicit-signal monitor to 
-simulate the implicit-signal monitor and point out that the implicit-signal 
+implicit-signal monitor. Buhr and Harji used the explicit-signal monitor to 
+simulate the implicit-signal monitor and pointed out that the implicit-signal 
 monitor is not as efficient as the explicit-signal monitor. However, the 
 implicit-signal is easy to be used and useful in concurrent programming,
 especially for prototyping. 
-
 
 Most programming languages, including the popular object-oriented language Java,
 only provide the explicit-signal monitor but not implicit-signal. This research 
@@ -737,6 +736,13 @@ monitor approach.
   \label{fig:rpc_eval}
 \end{figure}
 
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/rpch.eps}
+  \caption{The results of random producer-consumer problem with comparing heap}
+  \label{fig:rpc_eval}
+\end{figure}
+
 %Fig.~\ref{fig:rw_eval} shows the results of reader-writer problem. The
 %x-axis indicates the number of readers and writers; the y-axis indicates the
 %runtime in seconds. Total 1280 read/write operations were executed by all
@@ -744,12 +750,12 @@ monitor approach.
 %The runtime decreases as number of readers increases. Need to figure out why 
 %explicit-signal approach is so slow in 1/5. Maybe the implementation? 
 %
-%\begin{figure}[ht!]
-%  \centering
-%  \includegraphics[width=80mm]{fig/rw.eps}
-%  \caption{The results of reader-writer problem}
-%  \label{fig:rw_eval}
-%\end{figure}
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/trw.eps}
+  \caption{The results of ticket reader-writer problem}
+  \label{fig:rw_eval}
+\end{figure}
 
 
 %The dining philosophers problem is often used in computer science to describe 

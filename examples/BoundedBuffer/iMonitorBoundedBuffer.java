@@ -4,7 +4,7 @@ import monitor.AbstractCondition;
 import monitor.AbstractImplicitMonitor;
 import monitor.Assertion;
 import monitor.GlobalVariable;
-import monitor.SimpleCondition;
+import monitor.iMonitorCondition;
 import monitor.iMonitor;
 import monitor.MapMonitor;
 import monitor.NaiveImplicitMonitor;
@@ -67,16 +67,18 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                     } 
                     ); 
                 notEmpty = ((iMonitor) monitor).makeCondition( //auto-gen
+                        "count > 0",
                         new  Assertion() {
                             public boolean isTrue() { return count > 0; }
                         }, 
-                        "count > 0", true);
+                        true);
 
                 notFull = ((iMonitor) monitor).makeCondition( //auto-gen
+                        "count < items.length", 
                         new  Assertion() {
                             public boolean isTrue() { return count < items.length; }
                         }, 
-                        "count < items.length", true);
+                        true);
 
         }
     }
@@ -107,31 +109,43 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
     public void put(final int n) {
         monitor.DoWithin( new Runnable() {
             public void run() {
-                AbstractCondition cond;
-                switch (type) {
-                    case 'n':
-                        cond = monitor.makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() { return (n + count) <= items.length; } 
-                            } 
-                            ) ;
-                        break;
-                    case 'm':
-                        cond = ((MapMonitor) monitor).makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() { return (n + count) <= items.length; } 
-                            }, 
-                            "(n + count) <= items.length" + "_" + n
-                            ) ;
-                        break;
-                    default:
-                        cond = ((iMonitor) monitor).makeCondition("count", 
-                            items.length - n, 
-                            SimpleCondition.OperationType.LTE, false);
-                        break;
-                }
-                cond.await();
+                if (n + count > items.length) {
 
+                    AbstractCondition cond;
+                    switch (type) {
+                        case 'n':
+                            cond = monitor.makeCondition( //auto-gen
+                                new Assertion() {
+                                    public boolean isTrue() { return (n + count) <= items.length; } 
+                                } 
+                                ) ;
+                            break;
+                        case 'm':
+                            cond = ((MapMonitor) monitor).makeCondition( //auto-gen
+                                new Assertion() {
+                                    public boolean isTrue() { return (n + count) <= items.length; } 
+                                }, 
+                                "(n + count) <= items.length" + "_" + n
+                                ) ;
+                            break;
+                        default:
+                            cond = ((iMonitor) monitor).makeCondition(
+                                    "(n + count) <= items.length" + "_" + n,
+                                    "count", items.length - n, 
+                                    iMonitorCondition.OperationType.LTE, 
+                                    new Assertion() {
+                                        public boolean isTrue() { return (n + count) <= items.length; } 
+                                    }, 
+                                    false);
+                            break;
+                    }
+                    cond.await();
+                    /*
+                     *if (type == 'm') {
+                     *    monitor.removeCondition(cond); 
+                     *}
+                     */
+                }
                 for (int i = 0; i < n; i++) {
                     items[putPtr++] = new Object();
                     if (putPtr == items.length) putPtr = 0;
@@ -144,29 +158,43 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
     public Object[] take(final int n) {
         return monitor.DoWithin( new RunnableWithResult<Object[]>() {
             public Object[] run() {
-                AbstractCondition cond;
-                switch (type) {
-                    case 'n':
-                        cond = monitor.makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() { return n <= count; } 
-                            } 
-                            ) ;
-                        break;
-                    case 'm':
-                        cond = ((MapMonitor) monitor).makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() { return n <= count; } 
-                            } ,
-                            "(n + count) <= items.length" + "_" + n
-                            ) ;
-                        break;
-                    default:
-                        cond = ((iMonitor) monitor).makeCondition("count", 
-                            n, SimpleCondition.OperationType.GTE, false);
-                        break;
+                if (n > count) {
+
+                    AbstractCondition cond;
+                    switch (type) {
+                        case 'n':
+                            cond = monitor.makeCondition( //auto-gen
+                                new Assertion() {
+                                    public boolean isTrue() { return n <= count; } 
+                                } 
+                                ) ;
+                            break;
+                        case 'm':
+                            cond = ((MapMonitor) monitor).makeCondition( //auto-gen
+                                new Assertion() {
+                                    public boolean isTrue() { return n <= count; } 
+                                } ,
+                                "(n + count) <= items.length" + "_" + n
+                                ) ;
+                            break;
+                        default:
+                            cond = ((iMonitor) monitor).makeCondition(
+                                    "(n + count) <= items.length" + "_" + n,
+                                    "count", n, 
+                                    iMonitorCondition.OperationType.GTE, 
+                                    new Assertion() {
+                                        public boolean isTrue() { return n <= count; } 
+                                    },
+                                    false);
+                            break;
+                    }
+                    cond.await();
+                    /*
+                     *if (type == 'm') {
+                     *    monitor.removeCondition(cond); 
+                     *}
+                     */
                 }
-                cond.await();
                 Object[] ret = new Object[n];
                 for (int i = 0; i < n; i++) {
                     ret[i] = items[takePtr++];

@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
@@ -17,28 +18,31 @@ public class ConditionManager {
     private final HashMap<String, GlobalVariable> mapGlobalVar 
         = new HashMap<String, GlobalVariable>();
 
+    // predicate collection
+    private final HashMap<String, iMonitorCondition> mapSP
+        = new HashMap<String, iMonitorCondition>();
 
-    // complex predicate collection
-    private final HashMap<String, ComplexCondition> mapCP 
-        = new HashMap<String, ComplexCondition>();
-
-    // simple predicate collection
-    private final HashMap<String, SimpleCondition> mapSP
-        = new HashMap<String, SimpleCondition>();
+    private final HashMap<String, iMonitorCondition> mapCP
+        = new HashMap<String, iMonitorCondition>();
 
     // equivalence predicate 
-    private final HashMap<String, HashMap<Integer, SimpleCondition>> mapEP 
-        = new HashMap<String, HashMap<Integer, SimpleCondition>>();
+    private final HashMap<String, HashMap<Integer, iMonitorCondition>> mapEP 
+        = new HashMap<String, HashMap<Integer, iMonitorCondition>>();
 
-    private final Comparator<SimpleCondition> gteCmp 
-        = new SimpleCondition.GTEComparator();
-    private final Comparator<SimpleCondition> lteCmp 
-        = new SimpleCondition.LTEComparator();
+    // equivalence complex predicate
+    private final HashMap<String, HashMap<Integer, HashSet<iMonitorCondition>>> mapECP
+        = new HashMap<String, HashMap<Integer, HashSet<iMonitorCondition>>>();
 
-    private final HashMap<String, PriorityQueue<SimpleCondition>> mapGTEP
-        = new  HashMap<String, PriorityQueue<SimpleCondition>>();
-    private final HashMap<String, PriorityQueue<SimpleCondition>> mapLTEP 
-        = new HashMap<String, PriorityQueue<SimpleCondition>>();
+    // ordering predicate
+    private final Comparator<iMonitorCondition> gteCmp 
+        = new iMonitorCondition.GTEComparator();
+    private final Comparator<iMonitorCondition> lteCmp 
+        = new iMonitorCondition.LTEComparator();
+
+    private final HashMap<String, PriorityQueue<iMonitorCondition>> mapGTEP
+        = new  HashMap<String, PriorityQueue<iMonitorCondition>>();
+    private final HashMap<String, PriorityQueue<iMonitorCondition>> mapLTEP 
+        = new HashMap<String, PriorityQueue<iMonitorCondition>>();
 
     // maintain number of threads in waiting queue
     private final HashMap<String, Integer> mapWaiters 
@@ -53,9 +57,9 @@ public class ConditionManager {
     public void signalOneAvailable() {
 
         // equivalence
-        for (Entry<String, HashMap<Integer, SimpleCondition>> entry : 
+        for (Entry<String, HashMap<Integer, iMonitorCondition>> entry : 
                 mapEP.entrySet()) {
-            SimpleCondition cond = entry.getValue().get(
+            iMonitorCondition cond = entry.getValue().get(
                     mapGlobalVar.get(entry.getKey()).getValue());
 
             if (cond != null) {
@@ -65,10 +69,25 @@ public class ConditionManager {
             }
         }
 
+        // equivalence complex
+        for (Entry<String, HashMap<Integer, HashSet<iMonitorCondition>>> entry 
+                : mapECP.entrySet()) {
+            HashSet<iMonitorCondition> setCond = entry.getValue().get(
+                    mapGlobalVar.get(entry.getKey()).getValue());
 
-        for (Entry<String, PriorityQueue<SimpleCondition>> entry : 
+            if (setCond != null) {
+                for (iMonitorCondition cond : setCond) {
+                    if (cond.conditionalSignal()) {
+                        return;
+                    }
+
+                }
+            }
+        }
+
+        for (Entry<String, PriorityQueue<iMonitorCondition>> entry : 
                 mapLTEP.entrySet()) {
-            SimpleCondition cond = entry.getValue().peek(); 
+            iMonitorCondition cond = entry.getValue().peek(); 
 
             if (cond != null) {
                 if (cond.conditionalSignal()) {
@@ -77,9 +96,9 @@ public class ConditionManager {
             }
         }
 
-        for (Entry<String, PriorityQueue<SimpleCondition>> entry : 
+        for (Entry<String, PriorityQueue<iMonitorCondition>> entry : 
                 mapGTEP.entrySet()) {
-            SimpleCondition cond = entry.getValue().peek(); 
+            iMonitorCondition cond = entry.getValue().peek(); 
 
             if (cond != null) {
                 if (cond.conditionalSignal()) {
@@ -89,7 +108,7 @@ public class ConditionManager {
         }
 
         // complex 
-        for (Entry<String, ComplexCondition> entry : mapCP.entrySet()) {
+        for (Entry<String, iMonitorCondition> entry : mapCP.entrySet()) {
             if (entry.getValue().conditionalSignal()) {
                 return;
             }
@@ -100,8 +119,11 @@ public class ConditionManager {
         mapGlobalVar.put(var.name, var);
     }
 
-    public SimpleCondition makeSimpleCondition(String key, String varName, 
-            int val, SimpleCondition.OperationType type, boolean isGlobal) {
+
+    public iMonitorCondition makeCondition(String key, String varName, 
+            int val, iMonitorCondition.OperationType type, Assertion assertion,
+            boolean isGlobal) {
+
         if (mapSP.containsKey(key)) {
             mapWaiters.put(key, mapWaiters.get(key) + 1);
             return mapSP.get(key);
@@ -109,15 +131,16 @@ public class ConditionManager {
 
         mapWaiters.put(key, 1);
 
-        SimpleCondition ret = new SimpleCondition(key,
-                mapGlobalVar.get(varName), val, type, mutex, isGlobal, this);
+        iMonitorCondition ret = new iMonitorCondition(key,
+                varName, val, type, assertion, mutex.newCondition(), 
+                isGlobal, this);
         mapSP.put(key, ret);
 
         switch (type) {
             case EQ:
                 if (!mapEP.containsKey(varName)) {
                     mapEP.put(varName, 
-                            new HashMap<Integer, SimpleCondition>());
+                            new HashMap<Integer, iMonitorCondition>());
                 }   
                 mapEP.get(varName).put(val, ret);
                 break;
@@ -127,13 +150,13 @@ public class ConditionManager {
             case GTE:
                 if (!mapGTEP.containsKey(varName)) {
                     mapGTEP.put(varName, 
-                            new PriorityQueue<SimpleCondition>(10, gteCmp));
+                            new PriorityQueue<iMonitorCondition>(10, gteCmp));
                 }
                 mapGTEP.get(varName).add(ret);
 
                 /*
                  *Common.println("print gtep ======================");
-                 *for (SimpleCondition cond : mapGTEP.get(varName)) {
+                 *for (iMonitorCondition cond : mapGTEP.get(varName)) {
                  *    cond.printKey();
                  *}
                  *Common.println("=================================");
@@ -143,39 +166,55 @@ public class ConditionManager {
             case LTE:
                 if (!mapLTEP.containsKey(varName)) {
                     mapLTEP.put(varName, 
-                            new PriorityQueue<SimpleCondition>(10, lteCmp));
+                            new PriorityQueue<iMonitorCondition>(10, lteCmp));
                 }
                 mapLTEP.get(varName).add(ret);
 
                 /*
                  *Common.println("print ltep ======================");
-                 *for (SimpleCondition cond : mapLTEP.get(varName)) {
+                 *for (iMonitorCondition cond : mapLTEP.get(varName)) {
                  *    cond.printKey();
                  *}
                  *Common.println("=================================");
                  */
                 break;
+            case EC:
+                if (!mapECP.containsKey(varName)) {
+                    mapECP.put(varName, 
+                            new HashMap<Integer, HashSet<iMonitorCondition>>());
+                }  
+
+                if (!mapECP.get(varName).containsKey(val)) {
+                    mapECP.get(varName).put(val, 
+                            new HashSet<iMonitorCondition>());    
+                }
+
+                mapECP.get(varName).get(val).add(ret);
+
         }
         return ret;
     }
 
+
+
     // the original one
-    public ComplexCondition makeComplexCondition(
+    public iMonitorCondition makeCondition(
             String key, Assertion assertion, boolean isGlobal) {
         if (mapCP.containsKey(key)) {
             mapWaiters.put(key, mapWaiters.get(key) + 1);
             return mapCP.get(key); 
         }
-        
+
         mapWaiters.put(key, 1);
 
-        ComplexCondition ret 
-            = new ComplexCondition(key, mutex, assertion, isGlobal, this);
+        iMonitorCondition ret 
+            = new iMonitorCondition(key, assertion, mutex.newCondition(), 
+                    isGlobal, this);
         mapCP.put(key, ret);
         return ret;
     }
 
-    public void removeComplexCondition(String key) {
+    public void removeCondition(String key) {
         if (mapWaiters.get(key) == 1) {
             mapWaiters.remove(key); 
             mapCP.remove(key);
@@ -184,31 +223,31 @@ public class ConditionManager {
         }
     }
 
-    public void removeSimpleCondition(String key) {
+    public void removeCondition(String key, iMonitorCondition cond) {
         if (mapWaiters.get(key) > 1) {
             mapWaiters.put(key, mapWaiters.get(key) - 1); 
             return;
         }
 
         mapWaiters.remove(key);
-        SimpleCondition cond = mapSP.get(key);
-
         mapSP.remove(key);
-        
+
         switch (cond.getType()) {
             case EQ:
-                mapEP.get(cond.getVar().name).remove(cond.getVal());
+                mapEP.get(cond.getVarName()).remove(cond.getVal());
                 break;
             case NEQ:
                 break;
             case GT:
             case GTE:
-                mapGTEP.get(cond.getVar().name).remove(cond);
+                mapGTEP.get(cond.getVarName()).remove(cond);
                 break;
             case LT:
             case LTE:
-                mapLTEP.get(cond.getVar().name).remove(cond);
+                mapLTEP.get(cond.getVarName()).remove(cond);
                 break;
+            case EC:
+                mapECP.get(cond.getVarName()).get(cond.getVal()).remove(cond);
         }
     }
 }

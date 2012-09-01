@@ -45,35 +45,46 @@ public class iMonitorReadersWriters extends ReadersWritersMonitor {
             public void run() {
                 final int myTicket = ticket;
                 ticket++;
-                AbstractCondition cond;
-                switch (type) {
-                    case 'n':
-                        cond = monitor.makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() { 
-                                    return serving == myTicket; } 
-                            } 
-                            ) ;
-                        break;
-                    case 'm':
-                        cond = ((MapMonitor) monitor).makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() { 
-                                    return serving == myTicket; } 
-                            },
-                            "serving == myTicket" + "_" + myTicket) ;
-                        break;
-                    default:
-                        cond = ((iMonitor) monitor).makeCondition("serving", 
-                            myTicket, SimpleCondition.OperationType.EQ, false);
-                        break;
-                }
+                if (myTicket != serving) {
 
-                cond.await();
-                if (type == 'm') {
-                    monitor.removeCondition(cond); 
+                    AbstractCondition cond;
+                    switch (type) {
+                        case 'n':
+                            cond = monitor.makeCondition( //auto-gen
+                                new Assertion() {
+                                    public boolean isTrue() { 
+                                        return serving == myTicket; } 
+                                } 
+                                ) ;
+                            break;
+                        case 'm':
+                            cond = ((MapMonitor) monitor).makeCondition( 
+                                new Assertion() {
+                                    public boolean isTrue() { 
+                                        return serving == myTicket; } 
+                                },
+                                "serving == myTicket" + "_" + myTicket) ;
+                            break;
+                        default:
+                            cond = ((iMonitor) monitor).makeCondition(
+                                    "serving == myTicket" + "_" + myTicket,
+                                    "serving", myTicket, 
+                                    iMonitorCondition.OperationType.EQ,
+                                         new Assertion() {
+                                            public boolean isTrue() { 
+                                                return serving == myTicket; } 
+                                            },
+                                    false);
+                            break;
+                    }
+
+                    cond.await();
+                    if (type == 'm') {
+                        monitor.removeCondition(cond); 
+                    }
                 }
-                Common.println("Reader: " + Thread.currentThread() + " starts to read");
+                Common.println("Reader: " + Thread.currentThread() 
+                        + " starts to read");
                 Common.println("serving: " + serving + " rcnt: " + (rcnt + 1));
                 rcnt++;
                 serving++;
@@ -84,50 +95,63 @@ public class iMonitorReadersWriters extends ReadersWritersMonitor {
         monitor.DoWithin( new Runnable() {
             public void run() {
                 rcnt--;
-                Common.println("Reader " + Thread.currentThread() + "ends reading");
+                Common.println("Reader " + Thread.currentThread() 
+                    + "ends reading");
             }} ) ;
     }
 
     public void startWrite() {
         monitor.DoWithin( new Runnable() {
             public void run() {
-                
+
                 final int myTicket = ticket;
                 ticket++;
-                AbstractCondition cond;
-                switch (type) {
-                    case 'n':
-                        cond = monitor.makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() {
-                                    return ((serving == myTicket) && (rcnt == 0)); } 
-                            } 
-                            ) ;
-                        break;
-                    case 'm':
-                        cond = ((MapMonitor) monitor).makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() { 
-                                    return serving == myTicket && rcnt == 0; } 
-                            },
-                            "serving == myTicket && rcnt == 0" + "_" + myTicket) ;
-                        break;
-                    default:
-                        // make complex condition
-                        cond = ((iMonitor) monitor).makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() { 
-                                    return serving == myTicket && rcnt == 0; } 
-                            },
-                            "serving == myTicket && rcnt == 0" + "_" + myTicket,
-                            false) ;
-                        break;
+
+                if (serving != myTicket || rcnt != 0) {
+
+                    AbstractCondition cond;
+                    switch (type) {
+                        case 'n':
+                            cond = monitor.makeCondition( //auto-gen
+                                new Assertion() {
+                                    public boolean isTrue() {
+                                        return ((serving == myTicket) 
+                                            && (rcnt == 0)); } 
+                                } 
+                                ) ;
+                            break;
+                        case 'm':
+                            cond = ((MapMonitor) monitor).makeCondition( 
+                                new Assertion() {
+                                    public boolean isTrue() { 
+                                        return serving == myTicket 
+                                                && rcnt == 0; } 
+                                },
+                                "serving == myTicket && rcnt == 0" + "_" 
+                                + myTicket) ;
+                            break;
+                        default:
+                            // make complex condition
+                            cond = ((iMonitor) monitor).makeCondition( 
+                                    "serving == myTicket && rcnt == 0" + "_"
+                                            + myTicket,
+                                    "serving", myTicket, 
+                                    iMonitorCondition.OperationType.EC,
+                                    new Assertion() {
+                                        public boolean isTrue() { 
+                                            return serving == myTicket 
+                                                    && rcnt == 0; } 
+                                    },
+                                    false) ;
+                            break;
+                    }
+                    cond.await();
+                    if (type == 'm') {
+                        monitor.removeCondition(cond); 
+                    }
                 }
-                cond.await();
-                if (type == 'm') {
-                    monitor.removeCondition(cond); 
-                }
-                Common.println("Writer " + Thread.currentThread() + " starts to write");
+                Common.println("Writer " + Thread.currentThread() 
+                        + " starts to write");
                 Common.println("serving: " + serving + " rcnt: " + rcnt);
             }} ) ;
     }

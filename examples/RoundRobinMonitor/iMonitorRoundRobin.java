@@ -5,7 +5,7 @@ import monitor.AbstractImplicitMonitor;
 import monitor.MapMonitor;
 import monitor.NaiveImplicitMonitor;
 import monitor.iMonitor;
-import monitor.SimpleCondition;
+import monitor.iMonitorCondition;
 import monitor.Assertion;
 import monitor.GlobalVariable;
 import monitor.HashMonitor;
@@ -47,31 +47,43 @@ public class iMonitorRoundRobin extends RoundRobinMonitor {
         final int myId_dummy = myId;
         monitor.DoWithin( new Runnable() {
             public void run() {
-                AbstractCondition cond;
-                switch (type) {
-                    case 'n':
-                        cond = monitor.makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() { 
-                                    return numAccess == myId_dummy; } 
-                            } 
+
+                if (numAccess != myId_dummy) {
+                    AbstractCondition cond;
+                    switch (type) {
+                        case 'n':
+                            cond = monitor.makeCondition( 
+                                new Assertion() {
+                                    public boolean isTrue() { 
+                                        return numAccess == myId_dummy; } 
+                                } 
                             ) ;
-                        break;
-                    case 'm':
-                        cond = ((MapMonitor) monitor).makeCondition( //auto-gen
-                            new Assertion() {
-                                public boolean isTrue() { 
-                                    return numAccess == myId_dummy; } 
-                            },
-                            "numAccess == myId_dummy" + "_" + myId_dummy) ;
-                        break;
-                    default:
-                        cond = ((iMonitor) monitor).makeCondition("numAccess", 
-                            myId_dummy, SimpleCondition.OperationType.EQ, false);
-                        break;
+                            break;
+                        case 'm':
+                            cond = ((MapMonitor) monitor).makeCondition( 
+                                new Assertion() {
+                                    public boolean isTrue() { 
+                                        return numAccess == myId_dummy; } 
+                                },
+                                "numAccess == myId_dummy" + "_" + myId_dummy);
+                            break;
+                        default:
+                            cond = ((iMonitor) monitor).makeCondition(
+                                    "numAccess == myId_dummy" + "_" + myId_dummy,
+                                    "numAccess", myId_dummy, 
+                                    iMonitorCondition.OperationType.EQ, 
+                                    new Assertion() {
+                                        public boolean isTrue() { 
+                                            return numAccess == myId_dummy; } 
+                                    },
+                                    false);
+                            break;
+                    }
+                    cond.await();
                 }
-                cond.await();
-                Common.println("myId: " + myId_dummy + " numAccess: " + numAccess);
+
+                Common.println("myId: " + myId_dummy + 
+                        " numAccess: " + numAccess);
                 ++numAccess;
                 numAccess %= numProc;
             }

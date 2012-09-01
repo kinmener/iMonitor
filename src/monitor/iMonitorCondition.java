@@ -8,14 +8,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import util.Common;
 
-public class SimpleCondition extends AbstractCondition {
+public class iMonitorCondition extends AbstractCondition {
 
     public enum OperationType {
-        EQ, NEQ, GT, GTE, LT, LTE
+        EQ, NEQ, GT, GTE, LT, LTE, C, EC
     }
 
-    public static class GTEComparator implements Comparator<SimpleCondition> {
-        @Override public int compare(SimpleCondition a, SimpleCondition b) {
+    public static class GTEComparator implements Comparator<iMonitorCondition> {
+        @Override public int compare(iMonitorCondition a, iMonitorCondition b) {
             if (a.getVal() > b.getVal()) {
                 return 1;
             } else if (a.getVal() < b.getVal()) {
@@ -30,8 +30,8 @@ public class SimpleCondition extends AbstractCondition {
         }
     }
 
-    public static class LTEComparator implements Comparator<SimpleCondition> {
-        @Override public int compare(SimpleCondition a, SimpleCondition b) {
+    public static class LTEComparator implements Comparator<iMonitorCondition> {
+        @Override public int compare(iMonitorCondition a, iMonitorCondition b) {
             if (a.getVal() > b.getVal()) {
                 return -1;
             } else if (a.getVal() < b.getVal()) {
@@ -48,33 +48,37 @@ public class SimpleCondition extends AbstractCondition {
 
     private final String key;
     private final ConditionManager mger;
+    private final String varName;
     private final int val;
-    private final GlobalVariable var;
     private final OperationType type;
-    private final ReentrantLock mutex;
     private final Condition cond;
     private final boolean isGlobal;
+    private final Assertion assertion;
 
-    public SimpleCondition(String key, GlobalVariable var, int val, 
-            OperationType type, ReentrantLock mutex, boolean isGlobal, 
-            ConditionManager mger) {
+    private iMonitorCondition prev;
+    private iMonitorCondition next;
+
+    public iMonitorCondition(String key, Assertion assertion, Condition cond, 
+            boolean isGlobal, ConditionManager mger) {
+        this(key, "", 0, OperationType.C, assertion, cond, isGlobal, mger); 
+    }
+
+    public iMonitorCondition(String key, String varName, int val,
+            OperationType type, Assertion assertion, Condition cond, 
+            boolean isGlobal, ConditionManager mger) {
 
         this.key = key;
-        this.var = var;
+        this.varName = varName;
         this.val = val;
         this.type = type;
         this.mger = mger;
-        this.mutex = mutex;
+        this.cond = cond;
+        this.assertion = assertion;
         this.isGlobal = isGlobal;
-        cond = mutex.newCondition();
     }
 
     public int getVal() {
         return val;
-    }
-
-    public GlobalVariable getVar() {
-        return var;
     }
 
     public OperationType getType() {
@@ -86,21 +90,7 @@ public class SimpleCondition extends AbstractCondition {
     }
 
     private boolean isTrue() {
-        switch (type) {
-            case EQ:
-                return var.getValue() == val;
-            case NEQ:
-                return var.getValue() != val;
-            case GT:
-                return var.getValue() > val;
-            case GTE:
-                return var.getValue() >= val;
-            case LT:
-                return var.getValue() < val;
-            case LTE:
-                return var.getValue() <= val;
-        }
-        return false;
+        return assertion.isTrue();
     }
 
     public boolean conditionalSignal() {
@@ -109,6 +99,10 @@ public class SimpleCondition extends AbstractCondition {
             return true;
         }
         return false;
+    }
+
+    public String getVarName() {
+        return varName;
     }
 
     @Override public void await() {
@@ -126,7 +120,11 @@ public class SimpleCondition extends AbstractCondition {
         }
         // check and remove this from condition manager
         if (!isGlobal) {
-            mger.removeSimpleCondition(key);
+            if (type == OperationType.C) {
+                mger.removeCondition(key);
+            } else {
+                mger.removeCondition(key, this);
+            }
         }
     }
 }
