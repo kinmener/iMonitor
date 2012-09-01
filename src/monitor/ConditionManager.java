@@ -50,8 +50,14 @@ public class ConditionManager {
 
     //HashMap<String, LinkedList<NEPredicate>> mapNEP;
 
+    private final iMonitorCondition head = new iMonitorCondition("__head__", 
+            null, null, true, this);
+    private final iMonitorCondition tail = new iMonitorCondition("__tail__", 
+            null, null, true, this);
+
     public ConditionManager(ReentrantLock mutex) {
         this.mutex = mutex;
+        head.addNext(tail);
     }
 
     public void signalOneAvailable() {
@@ -125,8 +131,14 @@ public class ConditionManager {
             boolean isGlobal) {
 
         if (mapSP.containsKey(key)) {
-            mapWaiters.put(key, mapWaiters.get(key) + 1);
-            return mapSP.get(key);
+            iMonitorCondition ret = mapSP.get(key);
+            if (ret.isNotUsed()) {
+                ret.reactivate(); 
+                mapWaiters.put(key, 1);
+            } else {
+                mapWaiters.put(key, mapWaiters.get(key) + 1);
+            }
+            return ret;
         } 
 
         mapWaiters.put(key, 1);
@@ -154,13 +166,6 @@ public class ConditionManager {
                 }
                 mapGTEP.get(varName).add(ret);
 
-                /*
-                 *Common.println("print gtep ======================");
-                 *for (iMonitorCondition cond : mapGTEP.get(varName)) {
-                 *    cond.printKey();
-                 *}
-                 *Common.println("=================================");
-                 */
                 break;
             case LT:
             case LTE:
@@ -170,13 +175,6 @@ public class ConditionManager {
                 }
                 mapLTEP.get(varName).add(ret);
 
-                /*
-                 *Common.println("print ltep ======================");
-                 *for (iMonitorCondition cond : mapLTEP.get(varName)) {
-                 *    cond.printKey();
-                 *}
-                 *Common.println("=================================");
-                 */
                 break;
             case EC:
                 if (!mapECP.containsKey(varName)) {
@@ -234,7 +232,8 @@ public class ConditionManager {
 
         switch (cond.getType()) {
             case EQ:
-                mapEP.get(cond.getVarName()).remove(cond.getVal());
+                //mapEP.get(cond.getVarName()).remove(cond.getVal());
+                tail.addPrev(cond);
                 break;
             case NEQ:
                 break;
@@ -247,7 +246,9 @@ public class ConditionManager {
                 mapLTEP.get(cond.getVarName()).remove(cond);
                 break;
             case EC:
-                mapECP.get(cond.getVarName()).get(cond.getVal()).remove(cond);
+                //mapECP.get(cond.getVarName()).get(cond.getVal()).remove(cond);
+                tail.addPrev(cond);
+                break;
         }
     }
 }

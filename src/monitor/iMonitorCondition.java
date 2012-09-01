@@ -75,6 +75,40 @@ public class iMonitorCondition extends AbstractCondition {
         this.cond = cond;
         this.assertion = assertion;
         this.isGlobal = isGlobal;
+
+        prev = null;
+        next = null;
+    }
+
+    public void addNext(iMonitorCondition other) {
+        if (other != null) {
+            other.prev = this;
+            other.next = next;
+        }
+        next = other;
+    }
+
+    public void addPrev(iMonitorCondition other) {
+        if (other != null) {
+            other.prev = prev;
+            other.next = this;    
+        }
+        prev = other;
+    }
+
+    public boolean isNotUsed() {
+        if (next != null && prev != null) {
+            return true;
+        }
+        return false;
+    }
+
+    public void reactivate() {
+        Common.isBug(next == null || prev == null);
+        prev.next = next;
+        next.prev = prev;
+        next = null;
+        prev = null;
     }
 
     public int getVal() {
