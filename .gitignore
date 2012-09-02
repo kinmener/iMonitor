@@ -9,3 +9,4 @@ doc/tex/fig/*.pdf
 .classpath
 .project
 *.swp
+.DS_Store

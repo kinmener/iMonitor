@@ -26,12 +26,17 @@ public class Test{
         try {
             numProc = Integer.parseInt(args[0]); 
             totalNumAccess = Integer.parseInt(args[1]); 
-            
-            if (args[2].charAt(0) == 'e') {
-                monitor = new ExplicitRoundRobinMonitor(numProc);
-            } else {
-                monitor = 
-                    new iMonitorRoundRobin(numProc, args[2].charAt(0));
+
+            switch (args[2].charAt(0)) {
+                case 'e':
+                    monitor = new ExplicitRoundRobinMonitor(numProc);
+                    break;
+                case 'h':
+                    monitor = new MapExplicitRoundRobinMonitor(numProc);
+                    break;
+                default: 
+                    monitor = 
+                        new iMonitorRoundRobin(numProc, args[2].charAt(0));
             }
         } catch(Exception e) {
             if(monitor == null) {
