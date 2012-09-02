@@ -50,14 +50,16 @@ public class ConditionManager {
 
     //HashMap<String, LinkedList<NEPredicate>> mapNEP;
 
-    private final iMonitorCondition head = new iMonitorCondition("__head__", 
-            null, null, true, this);
-    private final iMonitorCondition tail = new iMonitorCondition("__tail__", 
-            null, null, true, this);
+    /*
+     *private final iMonitorCondition head = new iMonitorCondition("__head__", 
+     *        null, null, true, this);
+     *private final iMonitorCondition tail = new iMonitorCondition("__tail__", 
+     *        null, null, true, this);
+     */
 
     public ConditionManager(ReentrantLock mutex) {
         this.mutex = mutex;
-        head.addNext(tail);
+        //head.addNext(tail);
     }
 
     public void signalOneAvailable() {
@@ -132,12 +134,13 @@ public class ConditionManager {
 
         if (mapSP.containsKey(key)) {
             iMonitorCondition ret = mapSP.get(key);
-            if (ret.isNotUsed()) {
-                ret.reactivate(); 
-                mapWaiters.put(key, 1);
-            } else {
-                mapWaiters.put(key, mapWaiters.get(key) + 1);
-            }
+            //if (ret.isNotUsed()) {
+            //    ret.reactivate(); 
+            //    mapWaiters.put(key, 1);
+            //} else {
+            //    mapWaiters.put(key, mapWaiters.get(key) + 1);
+            //}
+            mapWaiters.put(key, mapWaiters.get(key) + 1);
             return ret;
         } 
 
@@ -233,7 +236,8 @@ public class ConditionManager {
         switch (cond.getType()) {
             case EQ:
                 //mapEP.get(cond.getVarName()).remove(cond.getVal());
-                tail.addPrev(cond);
+                //tail.addPrev(cond);
+                mapWaiters.put(key, 0); 
                 break;
             case NEQ:
                 break;
@@ -247,7 +251,8 @@ public class ConditionManager {
                 break;
             case EC:
                 //mapECP.get(cond.getVarName()).get(cond.getVal()).remove(cond);
-                tail.addPrev(cond);
+                //tail.addPrev(cond);
+                mapWaiters.put(key, 0); 
                 break;
         }
     }
