@@ -21,7 +21,6 @@
     ],
     "monitor_type": [
       "explicit",
-      "naive",
       "map",
       "iMonitor"
     ],
