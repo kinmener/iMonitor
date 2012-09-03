@@ -132,8 +132,8 @@ public class ConditionManager {
             int val, iMonitorCondition.OperationType type, Assertion assertion,
             boolean isGlobal) {
 
-        if (mapSP.containsKey(key)) {
-            iMonitorCondition ret = mapSP.get(key);
+        iMonitorCondition ret = mapSP.get(key);
+        if (ret != null) {
             //if (ret.isNotUsed()) {
             //    ret.reactivate(); 
             //    mapWaiters.put(key, 1);
@@ -146,7 +146,7 @@ public class ConditionManager {
 
         //mapWaiters.put(key, 1);
 
-        iMonitorCondition ret = new iMonitorCondition(key,
+        ret = new iMonitorCondition(key,
                 varName, val, type, assertion, mutex.newCondition(), 
                 isGlobal, this);
         mapSP.put(key, ret);
@@ -201,15 +201,15 @@ public class ConditionManager {
     // the original one
     public iMonitorCondition makeCondition(
             String key, Assertion assertion, boolean isGlobal) {
-        if (mapCP.containsKey(key)) {
+        iMonitorCondition ret = mapCP.get(key);
+        if (ret != null) {
             //mapWaiters.put(key, mapWaiters.get(key) + 1);
             return mapCP.get(key); 
         }
 
         //mapWaiters.put(key, 1);
 
-        iMonitorCondition ret 
-            = new iMonitorCondition(key, assertion, mutex.newCondition(), 
+        ret = new iMonitorCondition(key, assertion, mutex.newCondition(), 
                     isGlobal, this);
         mapCP.put(key, ret);
         return ret;
