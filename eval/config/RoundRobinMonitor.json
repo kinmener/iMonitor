@@ -18,7 +18,6 @@
     ],
     "monitor_type": [
       "explicit",
-      "hash",
       "map",
       "iMonitor"
     ],

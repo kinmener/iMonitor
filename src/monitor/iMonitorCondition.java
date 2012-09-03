@@ -58,6 +58,8 @@ public class iMonitorCondition extends AbstractCondition {
     private iMonitorCondition prev;
     private iMonitorCondition next;
 
+    private int numWaiters;
+
     public iMonitorCondition(String key, Assertion assertion, Condition cond, 
             boolean isGlobal, ConditionManager mger) {
         this(key, "", 0, OperationType.C, assertion, cond, isGlobal, mger); 
@@ -78,8 +80,13 @@ public class iMonitorCondition extends AbstractCondition {
 
         prev = null;
         next = null;
+
+        numWaiters = 1;
     }
 
+    public void addNumWaiters() {
+       numWaiters++;
+    }
     public void addNext(iMonitorCondition other) {
         if (other != null) {
             other.prev = this;
@@ -153,7 +160,9 @@ public class iMonitorCondition extends AbstractCondition {
             } while (!isTrue()); 
         }
         // check and remove this from condition manager
-        if (!isGlobal) {
+        numWaiters--;
+
+        if (!isGlobal && numWaiters == 0) {
             if (type == OperationType.C) {
                 mger.removeCondition(key);
             } else {
