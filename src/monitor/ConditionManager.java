@@ -45,8 +45,8 @@ public class ConditionManager {
         = new HashMap<String, PriorityQueue<iMonitorCondition>>();
 
     // maintain number of threads in waiting queue
-    private final HashMap<String, Integer> mapWaiters 
-        = new HashMap<String, Integer>();
+    //private final HashMap<String, Integer> mapWaiters 
+    //    = new HashMap<String, Integer>();
 
     //HashMap<String, LinkedList<NEPredicate>> mapNEP;
 
@@ -140,11 +140,11 @@ public class ConditionManager {
             //} else {
             //    mapWaiters.put(key, mapWaiters.get(key) + 1);
             //}
-            mapWaiters.put(key, mapWaiters.get(key) + 1);
+            //mapWaiters.put(key, mapWaiters.get(key) + 1);
             return ret;
         } 
 
-        mapWaiters.put(key, 1);
+        //mapWaiters.put(key, 1);
 
         iMonitorCondition ret = new iMonitorCondition(key,
                 varName, val, type, assertion, mutex.newCondition(), 
@@ -202,11 +202,11 @@ public class ConditionManager {
     public iMonitorCondition makeCondition(
             String key, Assertion assertion, boolean isGlobal) {
         if (mapCP.containsKey(key)) {
-            mapWaiters.put(key, mapWaiters.get(key) + 1);
+            //mapWaiters.put(key, mapWaiters.get(key) + 1);
             return mapCP.get(key); 
         }
 
-        mapWaiters.put(key, 1);
+        //mapWaiters.put(key, 1);
 
         iMonitorCondition ret 
             = new iMonitorCondition(key, assertion, mutex.newCondition(), 
@@ -216,44 +216,44 @@ public class ConditionManager {
     }
 
     public void removeCondition(String key) {
-        if (mapWaiters.get(key) == 1) {
-            mapWaiters.remove(key); 
-            mapCP.remove(key);
-        } else {
-            mapWaiters.put(key, mapWaiters.get(key) - 1);
-        }
+        //if (mapWaiters.get(key) == 1) {
+        //    mapWaiters.remove(key); 
+        //    mapCP.remove(key);
+        //} else {
+        //    mapWaiters.put(key, mapWaiters.get(key) - 1);
+        //}
     }
 
     public void removeCondition(String key, iMonitorCondition cond) {
-        if (mapWaiters.get(key) > 1) {
-            mapWaiters.put(key, mapWaiters.get(key) - 1); 
-            return;
-        }
+        //if (mapWaiters.get(key) > 1) {
+        //    mapWaiters.put(key, mapWaiters.get(key) - 1); 
+        //    return;
+        //}
 
-        mapWaiters.remove(key);
-        mapSP.remove(key);
+        //mapWaiters.remove(key);
+        //mapSP.remove(key);
 
-        switch (cond.getType()) {
-            case EQ:
-                //mapEP.get(cond.getVarName()).remove(cond.getVal());
-                //tail.addPrev(cond);
-                mapWaiters.put(key, 0); 
-                break;
-            case NEQ:
-                break;
-            case GT:
-            case GTE:
-                mapGTEP.get(cond.getVarName()).remove(cond);
-                break;
-            case LT:
-            case LTE:
-                mapLTEP.get(cond.getVarName()).remove(cond);
-                break;
-            case EC:
-                //mapECP.get(cond.getVarName()).get(cond.getVal()).remove(cond);
-                //tail.addPrev(cond);
-                mapWaiters.put(key, 0); 
-                break;
-        }
+        //switch (cond.getType()) {
+        //    case EQ:
+        //        //mapEP.get(cond.getVarName()).remove(cond.getVal());
+        //        //tail.addPrev(cond);
+        //        mapWaiters.put(key, 0); 
+        //        break;
+        //    case NEQ:
+        //        break;
+        //    case GT:
+        //    case GTE:
+        //        mapGTEP.get(cond.getVarName()).remove(cond);
+        //        break;
+        //    case LT:
+        //    case LTE:
+        //        mapLTEP.get(cond.getVarName()).remove(cond);
+        //        break;
+        //    case EC:
+        //        //mapECP.get(cond.getVarName()).get(cond.getVal()).remove(cond);
+        //        //tail.addPrev(cond);
+        //        mapWaiters.put(key, 0); 
+        //        break;
+        //}
     }
 }
