@@ -26,8 +26,10 @@ public class ConditionManager {
         = new HashMap<String, iMonitorCondition>();
 
     // equivalence predicate 
-    private final HashMap<String, HashMap<Integer, iMonitorCondition>> mapEP 
-        = new HashMap<String, HashMap<Integer, iMonitorCondition>>();
+    //private final HashMap<String, HashMap<Integer, iMonitorCondition>> mapEP 
+    //    = new HashMap<String, HashMap<Integer, iMonitorCondition>>();
+    private final HashMap<Integer, iMonitorCondition> mapEP 
+        = new HashMap<Integer, iMonitorCondition>();
 
     // equivalence complex predicate
     private final HashMap<String, HashMap<Integer, HashSet<iMonitorCondition>>> mapECP
@@ -65,17 +67,16 @@ public class ConditionManager {
     public void signalOneAvailable() {
 
         // equivalence
-        for (Entry<String, HashMap<Integer, iMonitorCondition>> entry : 
-                mapEP.entrySet()) {
-            iMonitorCondition cond = entry.getValue().get(
-                    mapGlobalVar.get(entry.getKey()).getValue());
+       {
+            iMonitorCondition cond = mapEP.get(
+                    mapGlobalVar.get("numAccess").getValue());
 
             if (cond != null) {
                 if (cond.conditionalSignal()) {
                     return;
                 }
             }
-        }
+       }
 
         // equivalence complex
         for (Entry<String, HashMap<Integer, HashSet<iMonitorCondition>>> entry 
@@ -153,11 +154,11 @@ public class ConditionManager {
 
         switch (type) {
             case EQ:
-                if (!mapEP.containsKey(varName)) {
-                    mapEP.put(varName, 
-                            new HashMap<Integer, iMonitorCondition>());
-                }   
-                mapEP.get(varName).put(val, ret);
+                //if (!mapEP.containsKey(varName)) {
+                //    mapEP.put(varName, 
+                //            new HashMap<Integer, iMonitorCondition>());
+                //}   
+                mapEP.put(val, ret);
                 break;
             case NEQ:
                 break;
@@ -191,7 +192,6 @@ public class ConditionManager {
                 }
 
                 mapECP.get(varName).get(val).add(ret);
-
         }
         return ret;
     }
@@ -204,7 +204,7 @@ public class ConditionManager {
         iMonitorCondition ret = mapCP.get(key);
         if (ret != null) {
             //mapWaiters.put(key, mapWaiters.get(key) + 1);
-            return mapCP.get(key); 
+            return ret;
         }
 
         //mapWaiters.put(key, 1);
