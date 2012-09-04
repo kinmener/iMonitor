@@ -165,7 +165,7 @@ public class iMonitorCondition extends AbstractCondition {
         if (!isGlobal && numWaiters == 0) {
             if (type == OperationType.C) {
                 mger.removeCondition(key);
-            } else {
+            } else if (type != OperationType.EQ && type != OperationType.EC){
                 mger.removeCondition(key, this);
             }
         }
