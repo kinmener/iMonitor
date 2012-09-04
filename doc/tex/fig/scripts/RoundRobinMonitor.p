@@ -8,7 +8,7 @@ set ytic font "Times-New-Roman, 16"
 set xlabel "# threads" font "Times-New-Roman, 16"
 set ylabel "runtime(seconds)" font "Times-New-Roman, 16"
 set key left top
-set xr [2:128]
+set xr [2:256]
 plot  "RoundRobinMonitor/explicit.dat" using 1:2 title 'explicit' with linespoints, \
       "RoundRobinMonitor/map.dat" using 1:2 title 'map' with linespoints, \
       "RoundRobinMonitor/iMonitor.dat" using 1:2 title 'new' with linespoints
