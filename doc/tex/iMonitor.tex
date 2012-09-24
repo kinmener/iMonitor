@@ -28,27 +28,39 @@
 % 11pt          To set in 11-point type instead of 9-point.
 % authoryear    To obtain author/year citation style instead of numeric.
 
+\usepackage{amsfonts}
 \usepackage{amsmath}
+\usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{subfig}
 \usepackage{epstopdf}
 \usepackage{fancyvrb}
+\usepackage{multicol}
+
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+
+\def\QED{\mbox{\rule[0pt]{1.5ex}{1.5ex}}}
+
+\def\endproof{\hspace*{\fill}~\QED\par\endtrivlist}
+
 
 \begin{document}
 
-\conferenceinfo{PLDI '13}{16 June 2013 -- 21 June 2013, Seattle, Washington, USA.} 
+\conferenceinfo{PLDI '13}{June 16 -- 21, 2013, Seattle, Washington, USA.} 
 \copyrightyear{2013} 
 \copyrightdata{[to be supplied]} 
 
 \titlebanner{banner above paper title}        % These are ignored unless
 \preprintfooter{short description of paper}   % 'preprint' option specified.
 
-\title{iMonitor: An Implicit-Signal Monitor}
+\title{iMonitor: An Implicit-Signal Monitor Based on Predicate-Awareness 
+Signaling}
 \subtitle{}
 
 \authorinfo{Wei-Lun Hung\and Vijay K. Garg}
            {The University of Texas at Austin}
-           {wlhung@utexas.edu/garg@ece.utexas.edu}
+           {wlhung@utexas.edu, garg@ece.utexas.edu}
 
 \maketitle
 
@@ -65,295 +77,309 @@ term1, term2
 keyword1, keyword2
 
 % code examples
-\begin{SaveVerbatim}{ExplicitBoundedBuffer}
-class BoundedBuffer {
-  Object[] items;  
-  lock mutex;
-  condition notFull, notEmpty;
-  int putPtr, takePtr, count;
-  public void put(Object x) {
-    mutex.lock();
-    while(count == items.length) {
-      notEmpty.signal();
-      notFull.await();
-    }
-    items[putPtr++] = x;
-    if(putPtr == items.length) {
-      putPtr = 0;
-    }
-    ++count;
-    notEmpty.signal();
-    mutex.unlock();
-  }
-  public Object take() {
-    mutex.lock();
-    while(count == 0) {
-      notFull.signal();
-      notEmpty.await();
-    }
-    int x = items[takePtr];
-    if(takePtr == items.length) {
-      takePtr = 0;
-    }
-    --count;
-    notFull.signal();
-    mutex.unlock();
-    return x;
-  }
-}
-\end{SaveVerbatim}
 
-\begin{SaveVerbatim}{iMonitorBoundedBuffer}
-monitor class BoundedBuffer { 
-  Object[] items; 
-  int putPtr, takePtr, count; 
-  public void put(Object x) { 
-    waituntil(count < items.length); 
-    items[putPtr++] = x; 
-    if(putPtr == items.length) { 
-      putPtr = 0; 
-    } 
-    ++count; 
-  } 
-  public Object take() { 
-    waituntil(count > 0); 
-    Object x = items[takePtr++]; 
-    if(takePtr == items.length) { 
-      takePtr = 0; 
-    }
-    --count;
-    return x;
-  }
-}
-\end{SaveVerbatim}
 
-\begin{SaveVerbatim}{ImplicitNBoundedBuffer}
-class BoundedBuffer {
-  Object[] items;  
-  lock mutex;
-  condition noSufficientSpace;
-  condition noSufficientItem;
-  int putPtr, takePtr, count;
-  public void put(int n) {
-    mutex.lock();
-    while(n + count > items.length) {
-      noSufficientSpace.await();
-    }
-    for(int i = 0; i < n; ++i) {
-      items[putPtr++] = new Object();
-      if(putPtr == items.length) {
-        putPtr = 0;
-      }
-    }
-    count += n;
-    noSufficientItem.signalAll();
-    mutex.unlock();
-  }
-  public Object[] take(int n) {
-    mutex.lock();
-    while(count < n) {
-      noSufficientItem.await();
-    }
-    Object[] ret = new Object[n];
-    for(int i = 0; i < n; ++i) {
-      ret[i] = items[takePtr++];
-      if(takePtr == items.length) {
-        takePtr = 0;
-      }
-    }
-    count -= n;
-    noSufficientSpace.signalAll();
-    mutex.unlock();
-    return ret;
-  }
-}
-\end{SaveVerbatim}
 
-\begin{SaveVerbatim}{iMonitorNBoundedBuffer}
-monitor class BoundedBuffer { 
-  Object[] items; 
-  int putPtr, takePtr, count; 
-  public void put(int n) { 
-    waituntil(count + n <= items.length); 
-    for(int i = 0; i < n; ++i) {
-      items[putPtr++] = new Object(); 
-      if(putPtr == items.length) { 
-        putPtr = 0; 
-      } 
-    }
-    count += n; 
-  } 
-  public Object[] take(int n) { 
-    waituntil(count >= n);
-    Object[] ret = new Object[n];
-    for(int i = 0; i < n; ++i) {
-      ret[i] = items[takePtr++]; 
-      if(takePtr == items.length) { 
-        takePtr = 0; 
-      }
-    }
-    count -= n;
-    return ret;
-  }
-}
-\end{SaveVerbatim}
-\begin{SaveVerbatim}{ExplicitRoundRobinMonitor}
-public class RoundRobinMonitor{
-  Lock mutex = new ReentrantLock();
-  Condition[] conds;
-  int numProc;
-  int pid;
-  public void access(int myId) {
-    mutex.lock();
-    while(pid != myId) {
-      conds[pid].signal();
-      conds[myId].await();
-    }
-    pid = (pid + 1) % numProc;
-    conds[pid].signal();
-    mutex.unlock();
-  }
-}
-\end{SaveVerbatim}
 
-\begin{SaveVerbatim}{iMonitorRoundRobinMonitor}
-public monitor class RoundRobinMonitor {
-  int numProc;
-  int numAccess;
-  public void access(int myId) {
-    waituntil(pid == myId);
-    pid = (pid + 1) % numProc;
-  }
-}
-\end{SaveVerbatim}
 
-\begin{SaveVerbatim}{ExplicitTicketReadersWriters}
-public class ReadersWritersMonitor {
-  int rcnt;
-  int ticket, serving;
-  Lock mutex;
-  Map<Integer, Condition> mapCondition;
-  public void startRead() {
-    mutex.lock();
-    int myTicket = ticket;
-    ticket++;
-    Condition cond = mutex.newCondition();
-    mapCondition.put(myTicket, cond);
-    while(myTicket != serving) {
-      if(mapCondition.containsKey(serving)) {
-         mapCondition.get(serving).signal();
-      }
-      cond.await();
-    }
-    mapCondition.remove(myTicket);
-    rcnt++;
-    serving++;
-    mutex.unlock();
-  }
-  public void endRead() {
-    mutex.lock();
-    rcnt--;
-    mutex.unlock();
-  }
-  public void startWrite() {
-    mutex.lock();
-    int myTicket = ticket;
-    ticket++;
-    Condition cond = mutex.newCondition();
-    mapCondition.put(myTicket, cond);
-    while(myTicket != serving || rcnt != 0) {
-      if(myTicket != serving &&
-           mapCondition.containsKey(serving)) {
-         mapCondition.get(serving).signal();
-      }
-      cond.await();
-    }
-    mapCondition.remove(myTicket);
-    mutex.unlock();
-  }
-  public void endWrite() {
-    mutex.lock();
-    serving++;
-    mutex.unlock();
-  }
-}
-\end{SaveVerbatim}
 
-\begin{SaveVerbatim}{iMonitorTicketReadersWriters}
-public monitor class ReadersWritersMonitor {
-  int rcnt;
-  int ticket, serving;
-  public void startRead() {
-    int myTicket = ticket;
-    ticket++;
-    waituntil(myTicket == serving);
-    rcnt++;
-    serving++;
-  }
-  public void endRead() {
-    rcnt--;
-  }
-  public void startWrite() {
-    int myTicket = ticket;
-    ticket++; 
-    waituntil(myTicket == serving && rcnt == 0);
-  }
-  public void endWrite() {
-    serving++;
-  }
-}
-\end{SaveVerbatim}
 
 \section{Introduction} \label{sec:intro}
-Developing efficient and robust concurrent programs within a limited time is 
-critical than ever. On the one hand, the multi-core processor, which allows 
-multiple threads to be executed at the same time, has become the mainstream of 
-computers; however, the power of multi-core processors is limited due to the 
-lack of concurrent applications. In order to compete with other rivals
-and to satisfy consumers' demands in the software industry, applications need to be
-developed in a shot period. The concurrent programming is 
-different from the traditional sequential programming. Multiple threads may 
-interact with each other and try to access the same source. Form the programers' perspective, 
-it is much more difficult to correctly develop concurrent programs than sequential programs. 
-In addition, the debugging process is panic in concurrent programs due to the 
-thread scheduling. 
+%Developing efficient and robust concurrent programs within a limited time is 
+%critical than ever. On the one hand, the multi-core processor, which allows 
+%multiple threads to be executed at the same time, has become the mainstream of 
+%computers; however, the power of multi-core processors is limited due to the 
+%lack of concurrent applications. In order to compete with other rivals
+%and to satisfy consumers' demands in the software industry, applications need to be
+%developed in a shot period. The concurrent programming is 
+%different from the traditional sequential programming. Multiple threads may 
+%interact with each other and try to access the same source. Form the programers' perspective, 
+%it is much more difficult to correctly develop concurrent programs than sequential programs. 
+%In addition, the debugging process is panic in concurrent programs due to the 
+%thread scheduling. 
 
-The monitor \cite{hoa74} is commonly used in the concurrent programming for 
-maintaining the mutual exclusion of shared resources and providing the 
-synchronization mechanism between threads. Buhr and Harji \cite{bh05} divided 
-monitors into two categories, the explicit-signal monitor and the 
-implicit-signal monitor. Buhr and Harji used the explicit-signal monitor to 
-simulate the implicit-signal monitor and pointed out that the implicit-signal 
-monitor is not as efficient as the explicit-signal monitor. However, the 
-implicit-signal is easy to be used and useful in concurrent programming,
-especially for prototyping. 
+%The monitor \cite{hoa74, han75} is commonly used in the concurrent programming for 
+%maintaining the mutual exclusion of shared resources and providing the 
+%synchronization mechanism between threads. Buhr and Harji \cite{bh05} divided 
+%monitors into two categories, the explicit-signal monitor and the 
+%implicit-signal monitor. Buhr and Harji used the explicit-signal monitor to 
+%simulate the implicit-signal monitor and pointed out that the implicit-signal 
+%monitor is not as efficient as the explicit-signal monitor. However, the 
+%implicit-signal is easy to be used and useful in concurrent programming,
+%especially for prototyping. 
 
-Most programming languages, including the popular object-oriented language Java,
-only provide the explicit-signal monitor but not implicit-signal. This research 
-focuses on developing a framework supporting implicit-signal monitor without
-sacrificing efficiency in the modern programming language - Java. 
+%Most programming languages, including the popular object-oriented language Java,
+%only provide the explicit-signal monitor but not implicit-signal. This research 
+%focuses on developing a framework supporting implicit-signal monitor without
+%sacrificing efficiency in the modern programming language - Java. 
 
-our contribution
+%our contribution
 
+
+The multicore hardware is now ubiquitous. Even the cell phones have
+multicore processors. Programming these multicore processors is
+still a challenging task due to
+bugs that are introduced due to concurrency and synchronization.
+Although there is widespread acknowledgement of difficulties 
+in programming these systems, it is almost hard to believe that 
+by and large the most prevalent methods of dealing with synchronization are
+based on ideas that were developed in early 70's \cite{hoa74, han75}. For 
+example, the most widely used threads package in C++, pthreads, and
+the most widely used package in Java, java.util.concurrent, are based
+on the notion of monitors (or semaphores) developed in 60's and 70's.
+In this research, we are developing new method called iMonitor 
+that allows gains in productivity of the programmer as well as gain in
+performance of the system.
+
+\subsection{Why Is Implicit-Signal Monitor Needed?}
+Both pthreads and Java require programmers to explicitly
+signal threads that may be waiting on certain condition. The programmer
+has to explicitly declare condition variables and then signal one
+or all of the threads when the associated condition may have become true.
+Using the wrong notification (signal versus signalAll) is a frequent
+source of bugs. In iMonitor there is no notion of condition variables
+and it is the responsibility of the system to signal appropriate threads.
+This feature in iMonitor reduces the program size and complexity.
+Note that the idea of automatic signaling was proposed 
+in the original paper by Hoare as an alternative to implicit
+signaling \cite{hoa74}. However, it is generally believed that implicit 
+signaling is extremely inefficient compared to explicit signaling. 
+For example, Buhu and Harji say that implicit monitors are 10-50 times
+slower than explicit signals \cite{bfc95}. The reason for the slowdown is that
+previous implementations of implicit monitor are based on 
+evaluation of all conditions whenever monitor is available. 
+Nevertheless, implicit signaling is still necessary for the following reasons:
+\begin{enumerate}
+    \item Less work for programmers, which implies fewer bugs in programs.
+    \item Potentially gaining performance through optimizing system based on
+        architecture information and avoiding signal all calls.
+    \item Rapid prototyping for speedup in developing process and accelerating
+        products time to market.
+    \item Mitigating the debugging of explicit-signal programs. 
+\end{enumerate}
+%garbage collection v.s. programers manually free memory
+
+\subsection{iMonitir Syntax}
+In iMonitor, the programmer has to deal with fewer concepts 
+and constructs than the traditional monitor based methods.
+iMonitor supports the monitor class and the waituntil statement.
+A monitor class is defined as that every member function of the class can be 
+executed by only one thread at any time. Namely, a monitor class is mutual 
+exclusion by nature. The monitor is reserved as modifier to indicate a monitor 
+class in iMonitor. A waituntil statement, appearing in only member 
+functions of a monitor class, has a predicate as its parameter. When a thread 
+is executing a waituntil statement, it checks whether or not the predicate is 
+true. If the predicate is not true, the executing tread must wait and release 
+the privilege of the monitor control temporarily. After the predicate become 
+true, the thread then be signaled automatically and continue to execute. 
+
+\subsection{iMonitor Example}
+%The concurrent programs are more difficult to be written and debugged than the 
+%sequential programs. Although explicit-signal monitor already provides an 
+%elegant mechanism for programmers to maintain mutual exclusion and synchronization 
+%in concurrent programs; implicit-signal is more straightforward in both code
+%reasoning and syntax. 
+
+Fig.~\ref{fig:bb_exp} shows an example to
+demonstrate the difference between implicit-signal monitor and explicit-signal 
+monitor. The problem is producer-consumer problem, also known as bounded-buffer
+problem. There are two kinds of threads, producers and consumers, which are 
+trying to obtain access to the shared resources. Producers try to put items 
+into the buffer and consumers try to take items out from the buffer. Every 
+operation should be mutual exclusion. In addition, a producer cannot put any 
+item when the buffer is full and a consumer cannot take any item when the 
+buffer is empty. The explicit-signal bounded buffer is written in the original 
+Java program language. A lock variable and condition variables are
+needed to maintain mutual exclusion and synchronization. A thread needs to
+acquire the lock before entering member functions. In addition, programmers need
+to explicitly associate the assertions with condition variables and call
+signal/await statement manually. The implicit-signal bounded buffer is written
+in our iMonitor framework. As can be seen, the implicit-signal monitor is
+more straightforward and simpler than the explicit-signal monitor for
+programmers. 
+\begin{figure*}[ht!]
+\begin{multicols}{2}
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+            framesep=5mm,numbers=left,numbersep=2pt,
+            label=\fbox{\small\emph{Explicit-Signal Bounded Buffer}}]
+        class BoundedBuffer {
+          Object[] items;  
+          int putPtr, takePtr, count;
+          Lock mutex = new ReentrantLock();
+          Condition notFull = mutex.newCondition();
+          Condition notEmpty = mutex.newCondition();
+          public BoundedBuffer(int n) {
+            items = new Object[n];
+            putPtr = takePtr = count = 0;
+          }
+          public void put(Object x) {
+            mutex.lock();
+            while (count == items.length) {
+              notEmpty.signal();
+              notFull.await();
+            }
+            items[putPtr++] = x;
+            if (putPtr == items.length) {
+              putPtr = 0;
+            }
+            ++count;
+            notEmpty.signal();
+            mutex.unlock();
+          }
+          public Object take() {
+            mutex.lock();
+            while (count == 0) {
+              notFull.signal();
+              notEmpty.await();
+            }
+            int x = items[takePtr];
+            if (takePtr == items.length) {
+              takePtr = 0;
+            }
+            --count;
+            notFull.signal();
+            mutex.unlock();
+            return x;
+          }
+        }
+    \end{Verbatim}
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+            numbers=left,numbersep=2pt,
+            label=\fbox{\small\emph{Implicit-Signal Bounded Buffer}}]
+        monitor class BoundedBuffer { 
+          Object[] items; 
+          int putPtr, takePtr, count; 
+          public BoundedBuffer(int n) {
+            items = new Object[n];
+            putPtr = takePtr = count = 0;
+          }
+          public void put(Object x) { 
+            waituntil(count < items.length); 
+            items[putPtr++] = x; 
+            if (putPtr == items.length) { 
+              putPtr = 0; 
+            } 
+            ++count; 
+          } 
+          public Object take() { 
+            waituntil(count > 0); 
+            Object x = items[takePtr++]; 
+            if (takePtr == items.length) { 
+              takePtr = 0; 
+            }
+            --count;
+            return x;
+          }
+        }
+    \end{Verbatim}
+\end{multicols}
+  \caption{Producer-Consumer example}
+  \label{fig:bb_exp}
+\end{figure*}
+
+\subsection{Contributions}
+In this research, we develop new techniques that
+use the structure of the condition to minimize the number of 
+times conditions are evaluated.
+%In our initial implementation, 
+%implicit signaling is generally as fast as explicit and even
+%x times faster for many examples. In Section \ref{sec:tech},
+%we give reasons for the efficiency in implict signaling.
+%In short, the explicit signaling has to resort to signalAll
+%in many examples; however, implicit signaling never uses signalAll.
+%In this project, we hope to design and build iMonitor that
+%is almost always as fast as explicit and considerably faster 
+%for synchronzation problems with signalAll.
+Our main contributions are as follows.
+\begin{enumerate}
+    \item Presents the design and implementation of the iMonitor framework,
+        which provides support for concurrent programs with
+        implicit-signal mechanism.
+    \item Experimental evaluation of the iMonitor that shows significant
+        improvements in performance and scalability with predicate-awareness 
+        signaling and relay guarantee. 
+    \item Experimental evidence that indicates that iMonitor's implicit-signal
+        mechanism is almost as efficient as and sometimes even more efficient
+        than explicit-signal mechanism with simpler code complexity.
+\end{enumerate}
+%In this project, we are developing multiple such features.
+%Our second goal for SuperSynch is that the performance of the system
+%with SuperSynch is at least as good as that for traditional systems.
+%Continuing with the previous example of signaling threads,
+%it is easy to develop automatic signaling mechanisms if performance
+%is not an issue. For example, one could evaluate conditions for all
+%threads. However, such a system would be significantly slower
+%than explicit signaling systems for most programs. In this project
+%we are developing techniques that usually result in programs
+%with automatic signaling that are faster than the programs
+%with explicit signaling. Thus, we get simpler programs with 
+%faster performance. 
+
+%Another aspect we are investigating in SuperSunch is the 
+%idea of abortable monitor methods. The abortable methods 
+%will support two widely used and familiar methods of programming
+%(but not supported either by pthreads or Java). The 
+%first notion is that of abortable transactions used in databases
+%for decades. Although the concept has now entered in concurrent programming world 
+%via transactional memories
+
+
+
+
+
+
+
+
+%Organization
+%% NEERAJ
+\subsection{Organization}
 This paper is organized as follows. Section \ref{sec:pre} gives the
-preliminaries. 
-Our framework is presented in Section \ref{sec:fw} and the practical 
-implementation details are discussed in Section \ref{sec:imp}. The proposed 
-methods are then evaluated with experiments in Section \ref{sec:eval}. 
-Section \ref{sec:conclu} gives the concluding remarks.
-% You must have at least 2 lines in the paragraph with the drop letter
-% (should never be an issue)
+preliminaries. Section \ref{sec:fw} describes the design of iMonitor
+framework. The invented techniques are presented in Section \ref{sec:tech}
+and the practical implementation details are discussed in Section 
+\ref{sec:imp}. The proposed methods are then evaluated with experiments in 
+Section \ref{sec:eval}. Section \ref{sec:related} provides a brief overview of
+related work, and Section \ref{sec:conclu} gives the concluding remarks.
 
+%% NEERAJ: \section{Prior NSF Results} 
 \section{Preliminaries} \label{sec:pre}
 \subsection{Predicate}
-A predicate which depends on some variables is a statement that is either true
-or false. For example, $x > 0$ is a predicate where x is an integer variable. 
+A predicate $P(\vec{x}): X \rightarrow \mathbb{B}$ is a statement that is 
+either true or false, where $X$ is the space spanned by the depending variables 
+$\vec{x}=(x_1, \dots, x_n)$. There are two kinds of
+variables, shared variables and local variables. The set of shared variables, 
+denoted as $S$, is accessible by every member function. The set of local 
+variables, denoted as $L$, is only accessible by the function in which the
+variables are declared. 
+Predicates can be divided into two categories based on the types of their 
+depending variables.
+\begin{definition}
+    Consider a predicate $P(\vec{x}): X \rightarrow \mathbb{B}$. If $X 
+    \subseteq S$, $P$ 
+    is a restricted predicate. Otherwise, if $X \subseteq S \cup L$, $P$ 
+    is a general predicate. 
+\end{definition}
+
+Based on the semantics of predicates, three particular types of predicates have 
+been identified. 
+\begin{definition}
+    A predicate $P: (v = c)$ is an equivalence predicate, where $v$ is the
+    pivot variable and $v \in S$, and either $c \in L$ or $c$ is a constant 
+    value.
+\end{definition}
+\begin{definition}
+    A predicate $P: (v \neq c)$ is a non-equivalence predicate, where $v$ is the
+    pivot variable and $v \in S$, and either $c \in L$ or $c$ is a constant 
+    value.
+\end{definition}
+\begin{definition}
+    A predicate $P: (v \diamond c)$ is a threshold predicate, where $\diamond 
+    \in \{<,\ \le,\ >,\ \ge\}$, $v$ is the pivot variable and $v \in S$, and 
+    either $c \in L$ or $c$ is a constant value.
+\end{definition}
+
+These three types of predicates are XX\%. 
 Predicates are commonly used to describe the properties of conditions. 
-Predicates can be divided into two categories based on their variables.
-\subsubsection{Global predicate} A predicate contains only shared variables of a
-    monitor. 
-\subsubsection{Local predicate} If both shared variables and local variables of a
-    member function are in the predicate, which is called local predicate. 
 
 \subsection{Monitor}
 Monitor is an abstract object or module containing shared data to be used safely
@@ -368,21 +394,23 @@ condition has met, threads then re-acquire mutual exclusion and continue to
 execute.
 According to Buhr and Harji \cite{bh05}, monitors can be divided into two 
 categories based on the difference implementations of synchronization. 
-  \subsubsection{Explicit-signal monitor} In this type of monitor, conditional
-    variables
-    and signal/await statement are used for synchronization. Programmers need to
-    associate assertions with conditional variables manually. The mechanism of
-    synchronization is achieved by two threads. One tread checks if some
-    assertion is met or not and then explicit await if the assertion is not
+\begin{description}
+    \item{\bf Explicit-signal monitor} In this type of monitor, condition
+    variables and signal/await statement are used for synchronization. 
+    Programmers need to
+    associate assertions with condition variables manually. The mechanism of
+    synchronization involves two threads. One tread checks if some
+    assertion is met or not and then explicit waits if the assertion is not
     met. When another thread detects the state has changed and the assertion is
     met, and then explicitly signals appropriate threads in the monitor.
-  \subsubsection{Implicit-signal monitor} This kind of monitor uses waituntil
-    statements instead of conditional variables for
+    \item{\bf Implicit-signal monitor} This kind of monitor uses waituntil
+    statements instead of condition variables for
     synchronization. Programmers do not need to associate assertions with
     variables but use waituntil statements and logical predicate directly. In
     this kind of monitor, a thread will wait if the predicate of a waitutil
     statement is false, and execute the remaining tasks after the predicate
     has become true automatically.
+\end{description}
 
 Explicit-signal and implicit-signal monitors have different pros and cons. The 
 explicit-signal has more complex syntax than the implicit-signal monitor. In 
@@ -396,196 +424,225 @@ implicit-signal monitor mechanism.
 
 
 
-\subsection{Motivations for Implicit-Signal Monitor}
-The concurrent programs are more difficult to be written and debugged than the 
-sequential programs. Although explicit-signal monitor already provides an 
-elegant mechanism for programmers to maintain mutual exclusion and synchronization 
-in concurrent programs; implicit-signal is more straightforward in both code
-reasoning and syntax. 
 
-Fig.~\ref{fig:bb_exp} shows an example to
-demonstrate the difference between implicit-signal monitor and explicit-signal 
-monitor. The problem is producer-consumer problem, also known as bounded-buffer
-problem. There are two kinds of threads, producers and consumers, which are 
-trying to obtain access to the shared resources. Producers try to put items 
-into the buffer and consumers try to take items out from the buffer. Every 
-operation should be mutual exclusion. In addition, a producer cannot put any 
-item when the buffer is full and a consumer cannot take any item when the 
-buffer is empty. Fig.~\ref{subfig:bb_exam_exp} is written by the original Java
-program language. A lock variable and conditional variables are
-needed to maintain mutual exclusion and synchronization. A thread needs to
-acquire the lock before entering member functions. In addition, programmers need
-to explicitly associate the assertions with conditional variables and call
-signal/await statement manually. Fig.~\ref{subfig:bb_exam_imp} shows a Java-alike
-program for the producer-consumer problem. The key word $monitor$ for $class$
-indicates that every member function of the class can only be executed at most
-one thread at any time. In addition, the $waituntil$ statement indicates that if
-the predicate of the waituntil is not true, the executing thread must wait and
-release the monitor temporarily. After the predicate becomes true, the thread
-then can awake automatically. As can be seen, Fig.~\ref{subfig:bb_exam_imp} is
-more straightforward and simpler than Fig.~\ref{subfig:bb_exam_exp}. This research
-focuses on developing a framework supporting such java-alike language without 
-sacrificing efficiency.
-
-
-
-
-\begin{figure}
-  \centering
-  \subfloat[Explicit-Signal] {
-    \fbox{
-      \BUseVerbatim[fontsize=\footnotesize]{ExplicitBoundedBuffer}
-    }
-    \label{subfig:bb_exam_exp}
-  }
-  \\
-  \subfloat[Implicit-Signal] {
-    \fbox{
-      \BUseVerbatim[fontsize=\footnotesize]{iMonitorBoundedBuffer}
-    }
-    \label{subfig:bb_exam_imp}
-  }
-  \caption{Bounded-buffer example}
-  \label{fig:bb_exp}
-\end{figure}
-
-
-\section{Framework of iMonitor} \label{sec:fw}
-To make the implicit-signal available in the modern high-level language, Java, 
-the iMonitor framework is proposed. Fig.~\ref{fig:framework} illustrates the 
-framework of the iMonitor. The iMonitor takes a Java-extension program providing
-the implicit-signal mechanism through supporting monitor class and waituntil 
-statement. The iMonitor preprocessor transfers the iMonitor code into the 
-tradition Java code which can be compiled with iMonitor library. The iMonitor 
-Java library implements different kinds of implicit-signal monitor mechanisms. 
-Programmers may choose one mechanism which is the most efficient for their 
-requirements by providing some parameters to the preprocessor. Rewriting 
-programs is unnecessary for different approaches of implicit-signal monitors. 
-The flexibility is provided without any additional cost. 
+\section{Design of iMonitor} \label{sec:fw}
+Fig.~\ref{fig:fw} illustrates the framework of iMonitor, which makes 
+the implicit-signal available with the modern high-level language, Java. 
+The iMonitor takes a Java-extension program providing the implicit-signal 
+mechanism through supporting the monitor class and the waituntil statement. The 
+iMonitor preprocessor transfers an iMonitor code into the tradition Java code 
+that can be compiled with iMonitor library. The iMonitor 
+Java library implements our implicit-signal monitor mechanism.  
 
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/flow.eps}
   \caption{The framework of iMonitor}
-  \label{fig:framework}
+  \label{fig:fw}
 \end{figure}
 
-\section{Desirable Properties}
-In this section, we discuss the properties which make the implicit-signal 
-monitor available and efficient.
 
-\subsection{Every thread can check predicates}
-a distinguished thread v.s. a thread owns the monitor right to check the predicates.
-
-\subsection{Less predicates need to be checked}
-every time need to find a thread to run check less predicate 
-
-\subsection{Reduce the number of content switch}
-when signaling a thread, the thread continue to run
-
-\section{Enabling Techniques}
-
-\subsection{Globalization}
-An operation called globalization is defined as replacing all local variables of
-a predicate by its values at the time. The globalization converts a local 
-predicate into a global predicate since all the local variables have been 
-replaced. The globalization has an important characteristic that allows a
-local predicate to be evaluated by any other thread safely after the original
-thread waits. Since no other thread can access to local variables of a member 
-function in which a particular thread is executing, values of local variables 
-cannot be changed by other threads after the particular thread is waiting. 
-Therefore, all other threads can check the globalized predicate safely. 
+%\begin{figure}
+%  \centering
+%  \subfloat[Explicit-Signal] {
+%    \fbox{
+%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitBoundedBuffer}
+%    }
+%    \label{subfig:bb_exam_exp}
+%  }
+%  \\
+%  \subfloat[Implicit-Signal] {
+%    \fbox{
+%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorBoundedBuffer}
+%    }
+%    \label{subfig:bb_exam_imp}
+%  }
+%  \caption{Bounded-buffer example}
+%  \label{fig:bb_exp}
+%\end{figure}
 
 
-\subsection{Equivalence Predicate Reduction}
+%\subsection{Design Principles}
+The design principles underlying iMonitor are as follows.
 
-\subsection{Remove Local Predicate pairs as soon as possible}
+\begin{description}
+    \item{\bf Check predicates in any thread.} Any thread that can access a
+        monitor can check all predicates of waituntil statements in the 
+        monitor. Therefore, a thread can decide
+        to signal another thread with a true predicate before the thread waits
+        or exits the monitor. 
+    \item{\bf Reduce context switches.} Context switch requires a certain 
+        amount of time to save and load registers and update various tables and
+        lists. Reducing unnecessary context switches boosts the performance. 
+    \item {\bf Check less predicates, if possible.} In the implicit-signal
+        mechanism, automatically signaling a thread is the responsibility of our
+        system. Checking less predicates to signal an appropriate thread is
+        desired. 
+\end{description}
 
-\subsection{Only one executable thread is signaled}
-reduce the number of content switch and the number of predicate checking 
+\section{Technical Inventions} \label{sec:tech}
 
 
+\subsection{General Predicate Evaluation}
+%In order to allow any thread that can access a monitor to evaluation all
+%predicates of waiting threads, an operation called globalization is defined as 
+%replacing all local variables of
+%a predicate by its values at the time. The globalization converts a local 
+%predicate into a global predicate since all the local variables have been 
+%replaced. The globalization has an important characteristic that allows a
+%local predicate to be evaluated by any other thread safely after the original
+%thread waits. The reason is that no other thread can access to the local variables of a member 
+%function in which a particular thread is executing; therefore values of local variables 
+%cannot be changed by other threads after a particular thread is waiting. 
+%All other threads can check the globalized predicate safely. 
+Evaluating a general predicate in all threads is unattainable 
+because the accessibility of the local variables in the predicate is limited 
+to the thread declaring them. To evaluate a general predicate in all 
+threads, we treat local variables as constant values at runtime and define 
+globalization as follows. 
+\begin{definition}
+    Given a general predicate $P(\vec{x}, \vec{y}): X \times Y \rightarrow 
+    \mathbb{B}$, where $X \subseteq S$ and $Y \subseteq L$. The globalization 
+    of $P$ at runtime $t$ is the new restricted predicate
+    \[
+    G_t(\vec{x}) = P(\vec{x}, \vec{y_t}),
+    \]
+    where $\vec{y_t}$ the values of $\vec{y}$ at runtime $t$.
+\end{definition}
+\begin{proposition} \label{pro:glob}
+    Consider a general predicate $P(\vec{x}, \vec{y})$ in a waituntil 
+    statement. $P(\vec{x}, \vec{y})$ and its globlization 
+    $P(\vec{x}, \vec{y_t})$ are semantic equivalent during the waituntil 
+    period, where $t$ is the runtime immediately before invoking the 
+    waituntil statement.  
+\end{proposition}
+\begin{proof}
+    Only the thread invoking the waituntil statement is able to access the
+    local variables of the predicate; all other threads are unable to change
+    the values of those local variables. Therefore, $\vec{y}$ is constant 
+    during the waituntil period. Since $\vec{y_t}$ is the value of $\vec{y}$
+    immediately before invoking the waituntil predicate, $P(\vec{x}, \vec{y})$
+    and $P(\vec{x}, \vec{y_t})$ are semantic equivalent during the waituntil
+    statement. 
+\end{proof}
+
+Proposition \ref{pro:glob} enables the general predicate evaluation of
+waituntil statement in all threads. 
+Given a general predicate in a waituntil statement, in the sequel we substitute
+all the local variables with their values immediately before invoking the
+statement. The predicate can be evaluated in all other threads during the
+waituntil period. 
+
+\subsection{Relay Guarantee}
+As mentioned earlier, reducing context switches increases throughput of
+concurrent programs. However, unnecessary signal or signalAll calls introduce
+redundant context switches. In addition, signalAll calls never increase 
+parallelism but needless context switches. The reason is that threads are 
+forbidden to access a monitor simultaneously. Although multiple threads are
+signaled, only one thread is able to acquire the monitor. Many other threads
+may go back to waiting state since other thread may change the status of the 
+monitor. Sometimes signalAll calls are inevitable in explicit-signal 
+mechanism because programs never know which thread should be signaled. In
+iMonitor, signalAll calls are avoided by providing the following guarantee. 
+%should be reduced. Before a waiting thread is signaled, the 
+%predicate of the waiting thread is ensured to be true. In addition, at most 
+%one waiting thread is signaled at any time. The reason is that threads are 
+%forbidden to access a monitor simultaneously. Signaling multiple threads does 
+%not increase parallelism but redundant context switches. 
+
+\begin{definition}{Relay guarantee:}
+    before a thread exits a monitor or goes into waiting state, it
+    signals one thread with true predicate if any.
+\end{definition}
+\begin{proposition} \label{pro:one}
+    Relay guarantee never introduces deadlock. That is,
+    some waiting thread with true predicates will be signaled. 
+\end{proposition}
+\begin{proof}
+    Suppose not. All waiting threads with true predicates are blocked and 
+    no other thread can signal them. Since a thread will signal one thread with
+    true predicate before leaving the monitor or going into waiting state, no 
+    thread is active in the monitor.  However, since a thread goes into waiting 
+    state with a false predicate, must some thread enters the monitor and
+    changes the status of the monitor. Suppose thread $T$ is the last thread 
+    being active in the monitor. It must signal one thread before leaving or 
+    going into waiting state since there are some threads with true predicate. 
+    A contraction. 
+\end{proof}
+
+Proposition \ref{pro:one} lays the theoretical foundation that signalAll calls
+are avoidable by providing relay guarantee. Every time a
+thread exits a monitor or goes into waiting state, checking whether or not a
+waiting thread has true predicate. The remaining problem is how to find such
+thread efficiently. 
+\subsection{Automatically Predicate-Awareness Signaling}
+
+\subsubsection{Equivalence Predicate Signaling}
+Observing that, an equivalence predicate becomes true when its pivot variable 
+equals the specific value in the predicate. For evaluating distinct
+equivalence predicates related to a same pivot variable, at most one
+predicate can be true at a time because the value of pivot variable is 
+deterministic unique at any time. By observing the value of the pivot variable, 
+the true predicate can be identified if there is any. Based on this 
+observation, for each pivot variable of a equivalence predicate, we create a 
+hash table, where the specific value is used as the key. By using this hash 
+table and the value of the pivot variable, the true predicate can be found in 
+$O(1)$ if it exists.
+
+%Monotonic predicate evaluations can be optimized by the following observation. 
+\subsubsection{Non-Equivalence Predicate Signaling}
+Observing that, the value of a variable is deterministic and unique at any 
+time. Two distinct non-equivalence predicates with a same pivot variable cannot
+be false simultaneously. For example, at least one of $x \ne 8$ and $x \ne 5$
+is true. Non-equivalence predicates with a same pivot variable are stored in
+a linked list. By checking the first two predicates of the 
+linked list, at least one predicate is true. 
+
+\subsubsection{Threshold Predicate Signaling}
+
+To optimize the threshold predicate evaluation, we consider the following
+situation. Suppose there are two predicates, $x > 5$ and $x > 3$, we know 
+that if $x > 3$ is false, and then $x > 5$ is impossible to be true. That is,
+we only need to check the predicate with the smallest threshold value for $>$
+and $\ge$ operations. We only need to check the root of the min-heap. If the 
+predicate is true, then we signal a waiting thread of the root. Otherwise, all 
+the descendant nodes cannot be true either.  Therefore, the data structure 
+min-heap can be used with 
+the threshold value as key for predicates with $>$ and $\ge$ operations. The 
+same, max-heap can be used for predicates with $<$ and $\le$ operations.
+
+%\begin{definition}
+%    A odering $<<$ is defined as follows
+%\[
+%    (c_1, \diamond_1) << (c_2, \diamond_2)
+%\]
+%if and only if $c_1 < c_2$ or $c_1 = c_2$ and $\diamond_1 = \ge$ and
+%$\diamond_2 = >$ or $\diamond_1 = <$ and $\diamond_2 = \le$.
+%
+%\end{definition}
+%\begin{proposition}
+%\end{proposition}
+\subsubsection{Conjunction and Disjunction}
+By De Morgan's law and distributive law, any predicate can be transformed to
+disjunctive normal form (DNF). By pushing negation inside, we can also assume 
+that there is no negation operator. For a predicate $P = \Sigma_{1}^{n}c_i$, 
+for each clause $c_i$ can be considered as a predicate, but all of the clauses 
+map to a same condition variable. If $c_i$ is a equivalence predicate, 
+non-equivalence predicate, or threshold predicate, then the above optimizations
+can be used. Otherwise, $c_i$ is stored in a linkedlist. 
 \section{Practical Implementation} \label{sec:imp}
 
-\begin{SaveVerbatim}{NaiveConstructorImp}
-
-Lock L;
-Condition C;
-\end{SaveVerbatim}
-
-\begin{SaveVerbatim}{NaiveEntryImp}
-
-lock L 
-\end{SaveVerbatim}
-
-\begin{SaveVerbatim}{NaiveWaituntilImp}
-
-if P is false
-  signal all C
-  do 
-    wait C
-  while P is false
-\end{SaveVerbatim}
-
-\begin{SaveVerbatim}{NaiveExitImp}
-
-signal all C
-unlock L
-\end{SaveVerbatim}
-
-\begin{SaveVerbatim}{NConditionConstructorImp}
-
-Lock L
-List<Predicate, Condition> LIST
-foreach global predicate P
-  create a pair <P, C>
-  add <P, C> to LIST
-\end{SaveVerbatim}
 
 
-\begin{SaveVerbatim}{MapConditionConstructorImp}
-
-Lock L
-Map<Predicate, Condition> MAP
-foreach global predicate P
-  if P is not in MAP
-    create a pair <P, C>
-    add <P, C> to MAP 
-\end{SaveVerbatim}
-
-\begin{SaveVerbatim}{MapConditionWaituntilImp}
-
-if P is a local predicate 
-  PE := Globalization(P)
-  if PE is not in MAP
-    create a pair <PE, C>
-    add <PE, C> to MAP
- 
-if P is false 
-  foreach <PI, CI> in MAP
-    if PI is true and CI has waiter
-      signal CI
-      break
-  do 
-    wait C
-  while P is false
-
-if P is local predicate 
-    and C has no waiter
-  remove <PE, C> from MAP
-\end{SaveVerbatim}
-
-\begin{SaveVerbatim}{MapConditionExitImp}
-
-foreach <P, C> in MAP
-  if P is true and C has waiter
-    signal C
-    break
-unlock L
-\end{SaveVerbatim}
 
 
-The implementation of the implicit-signal monitor in iMonitor involves four 
+
+
+
+
+
+\subsection{Preprocessor}
+The preprocessor of iMonitor performs preprocessing in the following four 
 parts:
 \begin{enumerate}
   \item Monitor-constructor: the constructor of the monitor class, including 
@@ -596,85 +653,126 @@ parts:
     mutual exclusion of monitor. 
   \item Monitor-waituntil statement: including declarations of additional
     variables and signal/await statements to implement the waituntil.
-  \item Monitor-function leave: executed before the return statement of 
+  \item Monitor-function exit: executed before the return statement of 
     each member function, involving code to guarantee mutual exclusion and 
     synchronization of monitor. 
 \end{enumerate}
+\begin{figure}[ht!]
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+            framesep=3mm,label=\fbox{\small\emph{Constructor}}]
+        Lock L
+        ConditionManager condMgr 
+        foreach restricted predicate P
+          condMgr.addRestrictedPredicate(P)
+    \end{Verbatim}
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+            framesep=3mm,label=\fbox{\small\emph{Entry}}]
+        lock L
+    \end{Verbatim}
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+            framesep=3mm,label=\fbox{\small\emph{Waituntil(P)}}]
+        if P is false 
+          if P is a general predicate 
+            P := Globalization(P)
+            if P is not in condMgr
+              condMgr.addGeneralPredicate(P)
+              
+          C = condMgr.getCondition(P)
+        
+          condMgr.signalOneAvailable()
+          do 
+            wait C
+          while P is false
+       
+          if P is general predicate and C has no waiter
+            condMgr.inactive(P) 
+    \end{Verbatim}
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
+            framesep=3mm,label=\fbox{\small\emph{Exit}}]
+        condMgr.signalOneAvailable() 
+        unlock L
+    \end{Verbatim}
+  \caption{Preprocessing of iMonitor}
+  \label{fig:prep}
+\end{figure}  
+
+Fig.~\ref{fig:prep} summarizes the preprocessing of iMonitor. One lock variable,
+$L$, is declared for mutual exclusion, which should be acquired in the 
+beginning of every member function and released before the return statement.
+In addition, a condition manager, $condMgr$, is declared for 
+synchronization. The details of the condition manager will be discussed in next
+section. In general, the condition manager maintains the association between 
+predicates and condition variables created by iMonitor. All restricted
+predicates are identified in the preprocessing and added in the constructor. 
+In the waituntil statement, the predicate expression is checked initially. If 
+the expression is true, then the thread can continue. Otherwise, the type of
+predicate is checked. If the predicate is general, applying globalization to 
+the predicate derives a new predicate. Then we query the condition manager 
+whether or not the derived predicate has been added. If not, we add the 
+predicate to the condition manager. Then the corresponding condition variable
+can be obtained by calling $getCondition$ function of condition manager. The
+$signalOneAvailable$ function provides relay guarantee and signal an
+appropriate thread. Then the thread goes into the waiting state until the
+predicate becomes true. After exiting waiting state, if the predicate is
+general predicate and the corresponding condition has no other waiting thread,
+then the predicate is inactivated by the condition manager.
+
+%\subsection{Map-Condition}
+%The map-condition predicate uses the data structure map to store pairs of 
+%predicate and condition variables. A predicate and a corresponding condition
+%variable are treated as key and value respectively. For every global predicate, 
+%a corresponding condition variable is created and the pair of a predicate and a
+%condition variable is added to the map in the constructor. For every local 
+%predicate, the globalization has been applied to the local 
+%predicate. Every local variable is replaced in the local predicate by its value
+%at this point. The globalization does not affect on the results of 
+%predicate evaluations since other threads cannot change the value of local 
+%variables but only global variables. After applying globalization to
+%the local predicate, a new predicate with only global variable is derived. 
+%If the predicate has not been added to the shared map, then the new 
+%predicated is added to the map with a corresponding condition variable.
+%Otherwise, the corresponding condition variable can be found by searching the
+%predicate in the map. Hence, the number of creating and removing condition
+%variables has been reduced. 
+%
+%
 
 
-\subsection{Naive}
+\subsection{Condition Manager}
+Predicates have the same meaning should be mapped to the same condition
+variable. However, semantic equivalence is unattainable. We adopt syntax 
+equivalent. Two predicates are syntax equivalent means that the two predicates
+are identical after applying globalization. Predicate table, implemented by a
+hash table, records predicates and their associated condition variables. A 
+condition variable then is stored in a data structure according to its type.  
 
-In the implementation of naive implicit-signal monitor, one lock variable, 
-$L$, is declared for mutual exclusion, which should be acquired in 
-the beginning of every member function and released before the return statement.
-In addition, one conditional variable, $C$, is declared for 
-synchronization, on which the implementation of waituntil depends. In the 
-waituntil statement, the predicate expression is checked initially. If the 
-expression is false; then all other threads which are waiting on $C$ are 
-signaled to reevaluate their predicate expression since the monitor state may 
-change. The current thread then is blocked in a loop and reevaluates its 
-predicate expression when it is signaled. On the exit of a member function, 
-all threads waiting on $C$ are signaled to reevaluate their predicate 
-expression since the monitor state may change. Table \ref{tab:imp_naive} 
-summarize the implementation of naive implicit-signal monitor. Although 
-the naive implicit-signal monitor is easy to implement, it is inefficient. 
-When a predicate is evaluated as false or a thread want to leave the monitor, 
-all other threads waiting one the same monitor will be awaked and need to 
-recheck their conditions.
+A predicate may associate with many condition variables. i.e., $P_1 = (x < 8)$
+and $P_2 = (x < 8) \vee (x > 100)$. The $(x < 8)$ should map two condition
+variables $c_1$ and $c_2$, where $c_2$ is shared with $(x > 100)$. 
 
-\begin{table}
-    \center
-    \begin{tabular}{|l|l|} 
-      \hline
-      Constructor & \BUseVerbatim[baselinestretch=1.1]{NaiveConstructorImp}\\
-      \hline
-      Enter & \BUseVerbatim[baselinestretch=1.1]{NaiveEntryImp}\\
-      \hline
-      Waituntil $P$ & \BUseVerbatim[baselinestretch=1.1]{NaiveWaituntilImp}\\
-      \hline
-      Exit & \BUseVerbatim[baselinestretch=1.1]{NaiveExitImp} \\
-      \hline
-    \end{tabular}
-    \caption{The naive implicit-signal monitor implementation}
-    \label{tab:imp_naive}
-\end{table}
+A predicate must be removed form the checking list once no thread waits on 
+it to avoid unnecessary predicate evaluation and ensure correctness. 
+The threshold predicate should be removed if there is no waiting thread. Since 
+we only signal the root of the threshold predicate, a empty root 
+(no waiting thread) will lead to deadlock. Predicates may be reused. Instead of
+removing those predicate with no waiter, moving those predicate to a inactivate
+list. If they are used later, then put it back. Otherwise, when the length of 
+inactivated list exceeds some threshold, remove the oldest.
+
+Signaling order: equivalence predicate, non-equivalence predicate, threshold
+predicate, and then other predicates. Find one and signal then return. 
 
 
-\subsection{Map-Condition}
-The map-condition predicate uses the data structure map to store pairs of 
-predicate and conditional variables. A predicate and a corresponding conditional
-variable are treated as key and value respectively. For every global predicate, 
-a corresponding conditional variable is created and the pair of a predicate and a
-conditional variable is added to the map in the constructor. For every local 
-predicate, the globalization has been applied to the local 
-predicate. Every local variable is replaced in the local predicate by its value
-at this point. The globalization does not affect on the results of 
-predicate evaluations since other threads cannot change the value of local 
-variables but only global variables. After applying globalization to
-the local predicate, a new predicate with only global variable is derived. 
-If the predicate has not been added to the shared map, then the new 
-predicated is added to the map with a corresponding conditional variable.
-Otherwise, the corresponding conditional variable can be found by searching the
-predicate in the map. Hence, the number of creating and removing conditional
-variables has been reduced. 
+Fig.~\ref{fig:mgr} shows an example. 
+\begin{figure*}[ht!]
+  \centering
+  \includegraphics[width=160mm]{fig/manager.eps}
+  \caption{A example of the condition manager in iMonitor}
+  \label{fig:mgr}
+\end{figure*}
 
+\clearpage
 
-\begin{table}
-    \center
-    \begin{tabular}{|l|l|} 
-      \hline
-      Constructor & \BUseVerbatim[baselinestretch=1.1]{MapConditionConstructorImp}\\
-      \hline
-      Enter & \BUseVerbatim[baselinestretch=1.1]{NaiveEntryImp}\\
-      \hline
-      Waituntil $P$ & \BUseVerbatim[baselinestretch=1.1]{MapConditionWaituntilImp}\\
-      \hline
-      Exit & \BUseVerbatim[baselinestretch=1.1]{MapConditionExitImp} \\
-      \hline
-    \end{tabular}
-    \caption{The map-condition implicit-signal monitor implementation}
-    \label{tab:imp_map_cond}
-\end{table}
 
 \section{Evaluations} \label{sec:eval}
 %\subsection{Saturation}
@@ -694,7 +792,7 @@ implicit-signal approaches for the producer-consumer problem is shown in
 Fig.~\ref{fig:bb_exp}. In the implicit-signal approaches, there are only two 
 waituntil statements with global predicates, $count > 0$ and 
 $count < items.length$. In the naive approach, producers and consumers are
-signaled every time when a thread await or want to leave the monitor. Therefore,
+signaled every time when a thread await or want to exit the monitor. Therefore,
 if a consumer waits because $count = 0$, all other consumers are awaken and
 check the predicate $count > 0$. Such kind of operations is redundant and lead
 to the inefficiency of naive implementation. The map
@@ -711,24 +809,24 @@ monitor approach.
 
 
 
-\begin{figure}
-  \centering
-  \subfloat[Explicit-Signal] {
-    \fbox{
-      \BUseVerbatim[fontsize=\footnotesize]{ImplicitNBoundedBuffer}
-    }
-    \label{subfig:rbb_exam_exp}
-  }
-  \\
-  \subfloat[Implicit-Signal] {
-    \fbox{
-      \BUseVerbatim[fontsize=\footnotesize]{iMonitorNBoundedBuffer}
-    }
-    \label{subfig:rbb_exam_imp}
-  }
-  \caption{Random Bounded-buffer example}
-  \label{fig:rbb_exp}
-\end{figure}
+%\begin{figure}
+%  \centering
+%  \subfloat[Explicit-Signal] {
+%    \fbox{
+%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitNBoundedBuffer}
+%    }
+%    \label{subfig:rbb_exam_exp}
+%  }
+%  \\
+%  \subfloat[Implicit-Signal] {
+%    \fbox{
+%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorNBoundedBuffer}
+%    }
+%    \label{subfig:rbb_exam_imp}
+%  }
+%  \caption{Random Bounded-buffer example}
+%  \label{fig:rbb_exp}
+%\end{figure}
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/rpc.eps}
@@ -792,25 +890,33 @@ worse than the explicit-signal approach with a steady difference.
   \caption{The results of round-robin access pattern}
   \label{fig:rr_eval}
 \end{figure}
-\begin{figure}
-  \centering
-  \subfloat[Explicit-Signal] {
-    \fbox{
-      \BUseVerbatim[fontsize=\footnotesize]{ExplicitRoundRobinMonitor}
-    }
-    \label{subfig:rr_exam_exp}
-  }
-  \\
-  \subfloat[Implicit-Signal] {
-    \fbox{
-      \BUseVerbatim[fontsize=\footnotesize]{iMonitorRoundRobinMonitor}
-    }
-    \label{subfig:rr_exam_imp}
-  }
-  \caption{Round-Robin example}
-  \label{fig:rbb_exp}
-\end{figure}
 
+%\begin{figure}
+%  \centering
+%  \subfloat[Explicit-Signal] {
+%    \fbox{
+%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitRoundRobinMonitor}
+%    }
+%    \label{subfig:rr_exam_exp}
+%  }
+%  \\
+%  \subfloat[Implicit-Signal] {
+%    \fbox{
+%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorRoundRobinMonitor}
+%    }
+%    \label{subfig:rr_exam_imp}
+%  }
+%  \caption{Round-Robin example}
+%  \label{fig:rbb_exp}
+%\end{figure}
+
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/rr.eps}
+  \caption{The results of round-robin access pattern dup}
+  \label{fig:rr_eval_dup}
+\end{figure}
 %\subsection{Practical}
 %Fig.~\ref{fig:dp_eval} shows the results of dining philosophers problem. The
 %x-axis indicates the number of philosophers; the y-axis indicates the
@@ -820,7 +926,7 @@ worse than the explicit-signal approach with a steady difference.
 %implementations since the results are much worse than other implementations. It
 %takes around 10 minutes for 128 philosophers. The reason is that many waituntil
 %statements with local predicate are used in this problem. Therefore, many
-%conditional variables are created and removed at runtime. As can be seen, the
+%condition variables are created and removed at runtime. As can be seen, the
 %other three approaches have the similar results. This phenomenon can be
 %explained as follows. The thinking time is much larger than the synchronization 
 %time in the monitor. Therefore, the runtime is dominated by the thinking time.
@@ -836,38 +942,34 @@ worse than the explicit-signal approach with a steady difference.
 %  \label{fig:dp_eval}
 %\end{figure}
 
-
-\begin{figure}
-  \centering
-  \subfloat[Explicit-Signal] {
-    \fbox{
-      \BUseVerbatim[fontsize=\footnotesize]{ExplicitTicketReadersWriters}
-    }
-    \label{subfig:rw_exam_exp}
-  }
-  \\
-  \subfloat[Implicit-Signal] {
-    \fbox{
-      \BUseVerbatim[fontsize=\footnotesize]{iMonitorTicketReadersWriters}
-    }
-    \label{subfig:rw_exam_imp}
-  }
-  \caption{Random Bounded-buffer example}
-  \label{fig:rbb_exp}
-\end{figure}
-
+%\begin{figure}
+%  \centering
+%  \subfloat[Explicit-Signal] {
+%    \fbox{
+%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitTicketReadersWriters}
+%    }
+%    \label{subfig:rw_exam_exp}
+%  }
+%  \\
+%  \subfloat[Implicit-Signal] {
+%    \fbox{
+%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorTicketReadersWriters}
+%    }
+%    \label{subfig:rw_exam_imp}
+%  }
+%  \caption{Random Bounded-buffer example}
+%  \label{fig:rbb_exp}
+%\end{figure}
 
 
+
+\section{Related Work} \label{sec:related}
 \section{Conclusion} \label{sec:conclu}
 The conclusion goes here. this is more of the conclusion
 
 
 
 % use section* for acknowledgement
-\section*{Acknowledgment}
-
-The authors would like to thank...
-more thanks here
 
 
 
@@ -877,9 +979,237 @@ more thanks here
 
 
 \appendix
-\section{Appendix Title}
+\section{Bounded-Buffer Code}
+\begin{figure*}[ht!]
+\begin{multicols}{2}
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+            framesep=5mm,numbers=left,numbersep=2pt,
+            label=\fbox{\small\emph{Explicit-Signal Bounded Buffer with
+            a Parameter}}]
+        class BoundedBuffer {
+          Object[] items;  
+          int putPtr, takePtr, count;
+          Lock mutex = new ReentrantLock();
+          Condition noSufficientSpace = mutex.newCondition();
+          Condition noSufficientItem = mutex.newCondition();
+          public BoundedBuffer(int n) {
+            items = new Object[n];
+            putPtr = takePtr = count = 0;
+          }
+          public void put(int n) {
+            mutex.lock();
+            while (n + count > items.length) {
+              noSufficientItem.signalAll();
+              noSufficientSpace.await();
+            }
+            for (int i = 0; i < n; ++i) {
+              items[putPtr++] = new Object();
+              if (putPtr == items.length) {
+                putPtr = 0;
+              }
+            }
+            count += n;
+            noSufficientItem.signalAll();
+            mutex.unlock();
+          }
+          public Object[] take(int n) {
+            mutex.lock();
+            while (count < n) {
+              noSufficientSpace.signalAll();
+              noSufficientItem.await();
+            }
+            Object[] ret = new Object[n];
+            for (int i = 0; i < n; ++i) {
+              ret[i] = items[takePtr++];
+              if (takePtr == items.length) {
+                takePtr = 0;
+              }
+            }
+            count -= n;
+            noSufficientSpace.signalAll();
+            mutex.unlock();
+            return ret;
+          }
+        }
+    \end{Verbatim}
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+            numbers=left,numbersep=2pt,
+            label=\fbox{\small\emph{Implicit-Signal Bounded Buffer with a
+            Parameter}}]
+        monitor class BoundedBuffer { 
+          Object[] items; 
+          int putPtr, takePtr, count; 
+          public void put(int n) { 
+            waituntil(count + n <= items.length); 
+            for (int i = 0; i < n; ++i) {
+              items[putPtr++] = new Object(); 
+              if (putPtr == items.length) { 
+                putPtr = 0; 
+              } 
+            }
+            count += n; 
+          } 
+          public Object[] take(int n) { 
+            waituntil(count >= n);
+            Object[] ret = new Object[n];
+            for (int i = 0; i < n; ++i) {
+              ret[i] = items[takePtr++]; 
+              if (takePtr == items.length) { 
+                takePtr = 0; 
+              }
+            }
+            count -= n;
+            return ret;
+          }
+        }
+    \end{Verbatim}
+\end{multicols}
+  \caption{Bounded-buffer example}
+  \label{fig:npc_exp}
+\end{figure*}
+\section{Readers/Writers Code}
+\begin{figure*}[ht!]
+\begin{multicols}{2}
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+            framesep=5mm,numbers=left,numbersep=2pt,
+            label=\fbox{\small\emph{Explicit-Signal Readers/Writers}}]
+        public class ReadersWritersMonitor {
+          int rcnt;
+          int ticket, serving;
+          Lock mutex = new ReentrantLock();
+          Map<Integer, Condition> mapCondition 
+              = new HashMap<Integer, Condition>();
+          public ReadersWritersMonitor() {
+            rcnt = ticket = serving = 0;
+          }
+          public void startRead() {
+            mutex.lock();
+            int myTicket = ticket;
+            ticket++;
+            Condition cond = mutex.newCondition();
+            mapCondition.put(myTicket, cond);
+            while (myTicket != serving) {
+              if (mapCondition.containsKey(serving)) {
+                 mapCondition.get(serving).signal();
+              }
+              cond.await();
+            }
+            mapCondition.remove(myTicket);
+            rcnt++;
+            serving++;
+            mutex.unlock();
+          }
+          public void endRead() {
+            mutex.lock();
+            rcnt--;
+            mutex.unlock();
+          }
+          public void startWrite() {
+            mutex.lock();
+            int myTicket = ticket;
+            ticket++;
+            Condition cond = mutex.newCondition();
+            mapCondition.put(myTicket, cond);
+            while (myTicket != serving || rcnt != 0) {
+              if (myTicket != serving &&
+                   mapCondition.containsKey(serving)) {
+                 mapCondition.get(serving).signal();
+              }
+              cond.await();
+            }
+            mapCondition.remove(myTicket);
+            mutex.unlock();
+          }
+          public void endWrite() {
+            mutex.lock();
+            serving++;
+            mutex.unlock();
+          }
+        }
+    \end{Verbatim}
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+            numbers=left,numbersep=2pt,
+            label=\fbox{\small\emph{Implicit-Signal Readers/Writers}}]
+        public monitor class ReadersWritersMonitor {
+          int rcnt;
+          int ticket, serving;
+          public ReadersWritersMonitor() {
+            rcnt = ticket = serving = 0;
+          }
+          public void startRead() {
+            int myTicket = ticket;
+            ticket++;
+            waituntil(myTicket == serving);
+            rcnt++;
+            serving++;
+          }
+          public void endRead() {
+            rcnt--;
+          }
+          public void startWrite() {
+            int myTicket = ticket;
+            ticket++; 
+            waituntil(myTicket == serving && rcnt == 0);
+          }
+          public void endWrite() {
+            serving++;
+          }
+        }
+    \end{Verbatim}
+\end{multicols}
+  \caption{Readers-writers example}
+  \label{fig:trw_exp}
+\end{figure*}
+\section{Round-Robin Monitor Code}
+\begin{figure}[ht!]
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+            framesep=5mm,numbers=left,numbersep=2pt,
+            label=\fbox{\small\emph{Explicit-Signal Bounded Buffer}}]
+        public class RoundRobinMonitor{
+          int numProc;
+          int pid;
+          Lock mutex = new ReentrantLock();
+          Condition[] conds;
+          public RoundRobinMonitor(int n) {
+            numProc = n;
+            pid = 0;
+            Condition = new Condition[n];
+            for (int i = 0; i < n; i++) {
+              conds[i] = mutex.newCondition();
+            }
+          }
+          public void access(int myId) {
+            mutex.lock();
+            while (pid != myId) {
+              conds[pid].signal();
+              conds[myId].await();
+            }
+            pid = (pid + 1) % numProc;
+            conds[pid].signal();
+            mutex.unlock();
+          }
+        }
+    \end{Verbatim}
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+            numbers=left,numbersep=2pt,
+            label=\fbox{\small\emph{Implicit-Signal Bounded Buffer}}]
+        public monitor class RoundRobinMonitor {
+          int numProc;
+          int pid;
+          public RoundRobinMonitor(int n) {
+            numProc = n;
+            pid = 0;
+          }
+          public void access(int myId) {
+            waituntil(pid == myId);
+            pid = (pid + 1) % numProc;
+          }
+        }
+    \end{Verbatim}
+  \caption{Round-Robin example}
+  \label{fig:rr_exp}
+\end{figure}
 
-This is the text of the appendix, if you need one.
 
 \acks
 
@@ -894,14 +1224,24 @@ Acknowledgments, if needed.
 \begin{thebibliography}{}
 \softraggedright
 
+
+\bibitem {bfc95}
+  P. A. Buhr, M. Fortier, and M. H. Coffin, \emph{Monitor Classification}. ACM 
+  Computing Surveys, ACM, 27(1):63--107, 
+  Nov. 2005.
+  
 \bibitem {bh05}
-  P. A. Buhr and A. S. Harji, \emph{Implicit-Signal Monitors}. ACM 
-  Transactions on Programming Languages and Systems ACM, 27(6):1270-1343, 
+  P. A. Buhr and A. S. Harji, \emph{Implicit-signal monitors}. ACM 
+  Transactions on Programming Languages and Systems ACM, 27(6):1270--1343, 
   Nov. 2005.
 
+\bibitem {han75}
+  P. B. Hansen, \emph{The Programming language concurrent Pascal}. IEEE
+  Trans.~Software Engineering, 1(2), 149--207, 1975.
+
 \bibitem {hoa74}
-  C. A. R. Hoare, \emph{Monitors: an operating system structuring concept}, 
-  Commun.~ACM 17, 10(Oct. 1974), 549-557.
+  C. A. R. Hoare, \emph{Monitors: an operating system structuring concept}. 
+  Commun.~ACM 17, 10(Oct. 1974), 549--557.
 
 
 

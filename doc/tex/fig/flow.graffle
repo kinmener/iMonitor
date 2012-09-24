@@ -7,7 +7,7 @@
 	<key>ApplicationVersion</key>
 	<array>
 		<string>com.omnigroup.OmniGrafflePro</string>
-		<string>139.7.0.167456</string>
+		<string>139.16.0.171715</string>
 	</array>
 	<key>AutoAdjust</key>
 	<true/>
@@ -70,8 +70,8 @@
 			<integer>43497</integer>
 			<key>Points</key>
 			<array>
-				<string>{178, 146.0125023387705}</string>
-				<string>{178, 186}</string>
+				<string>{237, 145.5125023387705}</string>
+				<string>{237, 185.5}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -95,7 +95,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{130, 47.5}, {96, 111}}</string>
+			<string>{{189, 47}, {96, 111}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FontInfo</key>
@@ -156,8 +156,8 @@
 			<integer>43495</integer>
 			<key>Points</key>
 			<array>
-				<string>{490, 218}</string>
-				<string>{521, 218}</string>
+				<string>{549, 217.5}</string>
+				<string>{580, 217.5}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -181,7 +181,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{521, 162.5}, {96, 111}}</string>
+			<string>{{580, 162}, {96, 111}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FontInfo</key>
@@ -242,8 +242,8 @@
 			<integer>43493</integer>
 			<key>Points</key>
 			<array>
-				<string>{439.5, 154.99999999999997}</string>
-				<string>{439.5, 186}</string>
+				<string>{498.5, 154.49999999999997}</string>
+				<string>{498.5, 185.5}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -284,8 +284,8 @@
 			<integer>43492</integer>
 			<key>Points</key>
 			<array>
-				<string>{358.5, 218}</string>
-				<string>{389, 218}</string>
+				<string>{417, 217.5}</string>
+				<string>{448, 217.5}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -326,8 +326,8 @@
 			<integer>43491</integer>
 			<key>Points</key>
 			<array>
-				<string>{231, 218}</string>
-				<string>{262, 218}</string>
+				<string>{290, 217.5}</string>
+				<string>{321, 217.5}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -368,8 +368,8 @@
 			<integer>43490</integer>
 			<key>Points</key>
 			<array>
-				<string>{94.500000000000014, 218}</string>
-				<string>{125, 218}</string>
+				<string>{153, 217.5}</string>
+				<string>{184, 217.5}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -393,7 +393,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{389, 186}, {101, 64}}</string>
+			<string>{{448, 185.5}, {101, 64}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FontInfo</key>
@@ -437,7 +437,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{262, 162.5}, {96, 111}}</string>
+			<string>{{321, 162}, {96, 111}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FontInfo</key>
@@ -481,7 +481,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{-17, 156}, {111, 124}}</string>
+			<string>{{42, 155.5}, {111, 124}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FontInfo</key>
@@ -525,7 +525,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{125, 186}, {106, 64}}</string>
+			<string>{{184, 185.5}, {106, 64}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FontInfo</key>
@@ -569,7 +569,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{384, 51}, {111, 104}}</string>
+			<string>{{443, 50.5}, {111, 104}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FontInfo</key>
@@ -660,7 +660,7 @@ Java Library}</string>
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2012-08-02 03:35:13 +0000</string>
+	<string>2012-09-03 15:16:34 +0000</string>
 	<key>Modifier</key>
 	<string>Wei-Lun Hung</string>
 	<key>NotesVisible</key>
@@ -741,7 +741,7 @@ Java Library}</string>
 			</dict>
 		</array>
 		<key>Frame</key>
-		<string>{{231, 4}, {811, 874}}</string>
+		<string>{{137, 6}, {1303, 872}}</string>
 		<key>ListView</key>
 		<true/>
 		<key>OutlineWidth</key>
@@ -755,7 +755,7 @@ Java Library}</string>
 		<key>SidebarWidth</key>
 		<integer>120</integer>
 		<key>VisibleRegion</key>
-		<string>{{-17, -1}, {676, 735}}</string>
+		<string>{{-8, 0}, {1168, 733}}</string>
 		<key>Zoom</key>
 		<real>1</real>
 		<key>ZoomValues</key>
