@@ -774,441 +774,441 @@ Fig.~\ref{fig:mgr} shows an example.
 \clearpage
 
 
-\section{Evaluations} \label{sec:eval}
-%\subsection{Saturation}
-Four kinds of experiments were performed to evaluate the performances of the
-explicit-signal monitor with original Java and the implicit-signal monitor with
-iMonitor framework. All of the experiments were conducted on a machine with 16 
-Intel(R) Xeon(R) X5560 CPUs and 64 GBs memory. 
-
-
-Fig.~\ref{fig:pc_eval} shows the results of producer-consumer problem. The
-x-axis indicates the number of producers and consumers; the y-axis indicates the
-runtime in seconds. Total 512000 $put$ and $take$ operations were executed by
-all producers and consumers. As expected, the naive approach is much slower than
-others. Both N-Condition and map approaches are slightly slower in most cases.
-This phenomenon can be explained as follows. Observe explicit-signal and 
-implicit-signal approaches for the producer-consumer problem is shown in 
-Fig.~\ref{fig:bb_exp}. In the implicit-signal approaches, there are only two 
-waituntil statements with global predicates, $count > 0$ and 
-$count < items.length$. In the naive approach, producers and consumers are
-signaled every time when a thread await or want to exit the monitor. Therefore,
-if a consumer waits because $count = 0$, all other consumers are awaken and
-check the predicate $count > 0$. Such kind of operations is redundant and lead
-to the inefficiency of naive implementation. The map
-implementations only need to check two global predicates in a waituntil
-statement and the exit of monitor. Hence, the N-Condition and map implementation 
-has the similar performance and only slightly slower than the explicit-signal
-monitor approach. 
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/pc.eps}
-  \caption{The results of producer-consumer problem}
-  \label{fig:pc_eval}
-\end{figure}
-
-
-
-%\begin{figure}
-%  \centering
-%  \subfloat[Explicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitNBoundedBuffer}
-%    }
-%    \label{subfig:rbb_exam_exp}
-%  }
-%  \\
-%  \subfloat[Implicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorNBoundedBuffer}
-%    }
-%    \label{subfig:rbb_exam_imp}
-%  }
-%  \caption{Random Bounded-buffer example}
-%  \label{fig:rbb_exp}
-%\end{figure}
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/rpc.eps}
-  \caption{The results of random producer-consumer problem}
-  \label{fig:rpc_eval}
-\end{figure}
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/rpch.eps}
-  \caption{The results of random producer-consumer problem with comparing heap}
-  \label{fig:rpc_eval}
-\end{figure}
-
-%Fig.~\ref{fig:rw_eval} shows the results of reader-writer problem. The
-%x-axis indicates the number of readers and writers; the y-axis indicates the
-%runtime in seconds. Total 1280 read/write operations were executed by all
-%readers and writers. Since readers can read with each other at the same time.
-%The runtime decreases as number of readers increases. Need to figure out why 
-%explicit-signal approach is so slow in 1/5. Maybe the implementation? 
+%\section{Evaluations} \label{sec:eval}
+%%\subsection{Saturation}
+%Four kinds of experiments were performed to evaluate the performances of the
+%explicit-signal monitor with original Java and the implicit-signal monitor with
+%iMonitor framework. All of the experiments were conducted on a machine with 16 
+%Intel(R) Xeon(R) X5560 CPUs and 64 GBs memory. 
 %
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/trw.eps}
-  \caption{The results of ticket reader-writer problem}
-  \label{fig:rw_eval}
-\end{figure}
-
-
-%The dining philosophers problem is often used in computer science to describe 
-%the synchronization issues. There are N philosophers siting around at a table 
-%with a dish in front of them and a chopstick in between each philosopher. A 
-%philosopher only think or eat. A philosopher needs to pick two chopsticks at the
-%same time for eating and he does not put down a chopstick until he finishes 
-%eating. If the chopstick is hold by another philosopher, then the philosopher 
-%who want to eat must wait. In addition, a philosopher cannot eat forever, which
-%means he will put down chopstick eventually. Every philosopher must be able to
-%eat eventually if he is hungry. Figure 3. illustrate the experimental results
-%of the dining philosophers problem. The x-axis depicts the runtime and the 
-%y-axis describes the number of philosophers. As can be seen, three approaches 
-%has the similar results. The implementations of Naive and N-condition are as 
-%efficient as the implementation of explicit signal monitor. 
 %
-Fig.~\ref{fig:rr_eval} shows the results of round-robin access pattern. The
-x-axis indicates the number of threads; the y-axis indicates the
-runtime in seconds. In this set of experiments, threads are allowed to enter a
-monitor in round-robin scheduling. Again, the results of N-Condition approach
-are not shown because their performance is much worse than others. Total 
-128000 operations were performed on the monitor. In this set
-of experiment, the explicit-signal approach has an advantage since it can
-explicitly to signal the next thread to enter the monitor. As can be seen, the
-performance of explicit-signal approach is steady as the number of thread
-increases. In comparison with our implicit-signal approaches, threads can only 
-wait to enter the monitor. The runtime increases much as the number of thread 
-increase in naive implementation. For the map approach, the performance is 
-worse than the explicit-signal approach with a steady difference. 
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/rr.eps}
-  \caption{The results of round-robin access pattern}
-  \label{fig:rr_eval}
-\end{figure}
-
-%\begin{figure}
+%Fig.~\ref{fig:pc_eval} shows the results of producer-consumer problem. The
+%x-axis indicates the number of producers and consumers; the y-axis indicates the
+%runtime in seconds. Total 512000 $put$ and $take$ operations were executed by
+%all producers and consumers. As expected, the naive approach is much slower than
+%others. Both N-Condition and map approaches are slightly slower in most cases.
+%This phenomenon can be explained as follows. Observe explicit-signal and 
+%implicit-signal approaches for the producer-consumer problem is shown in 
+%Fig.~\ref{fig:bb_exp}. In the implicit-signal approaches, there are only two 
+%waituntil statements with global predicates, $count > 0$ and 
+%$count < items.length$. In the naive approach, producers and consumers are
+%signaled every time when a thread await or want to exit the monitor. Therefore,
+%if a consumer waits because $count = 0$, all other consumers are awaken and
+%check the predicate $count > 0$. Such kind of operations is redundant and lead
+%to the inefficiency of naive implementation. The map
+%implementations only need to check two global predicates in a waituntil
+%statement and the exit of monitor. Hence, the N-Condition and map implementation 
+%has the similar performance and only slightly slower than the explicit-signal
+%monitor approach. 
+%\begin{figure}[ht!]
 %  \centering
-%  \subfloat[Explicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitRoundRobinMonitor}
-%    }
-%    \label{subfig:rr_exam_exp}
-%  }
-%  \\
-%  \subfloat[Implicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorRoundRobinMonitor}
-%    }
-%    \label{subfig:rr_exam_imp}
-%  }
-%  \caption{Round-Robin example}
-%  \label{fig:rbb_exp}
+%  \includegraphics[width=80mm]{fig/pc.eps}
+%  \caption{The results of producer-consumer problem}
+%  \label{fig:pc_eval}
 %\end{figure}
-
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/rr.eps}
-  \caption{The results of round-robin access pattern dup}
-  \label{fig:rr_eval_dup}
-\end{figure}
-%\subsection{Practical}
-%Fig.~\ref{fig:dp_eval} shows the results of dining philosophers problem. The
-%x-axis indicates the number of philosophers; the y-axis indicates the
-%runtime in seconds. Every philosopher performed 100 eat operations with a
-%randomly thinking time between 1 to 20 
-%milliseconds. Fig.~\ref{fig:dp_eval} does not show the results of N-Condition 
-%implementations since the results are much worse than other implementations. It
-%takes around 10 minutes for 128 philosophers. The reason is that many waituntil
-%statements with local predicate are used in this problem. Therefore, many
-%condition variables are created and removed at runtime. As can be seen, the
-%other three approaches have the similar results. This phenomenon can be
-%explained as follows. The thinking time is much larger than the synchronization 
-%time in the monitor. Therefore, the runtime is dominated by the thinking time.
-%%These results suggest that if applications do not have many operations to access
-%%a monitor, the performance will not have much difference in implicit-signal and
-%%explicit-signal monitor.
+%
+%
+%
+%%\begin{figure}
+%%  \centering
+%%  \subfloat[Explicit-Signal] {
+%%    \fbox{
+%%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitNBoundedBuffer}
+%%    }
+%%    \label{subfig:rbb_exam_exp}
+%%  }
+%%  \\
+%%  \subfloat[Implicit-Signal] {
+%%    \fbox{
+%%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorNBoundedBuffer}
+%%    }
+%%    \label{subfig:rbb_exam_imp}
+%%  }
+%%  \caption{Random Bounded-buffer example}
+%%  \label{fig:rbb_exp}
+%%\end{figure}
+%\begin{figure}[ht!]
+%  \centering
+%  \includegraphics[width=80mm]{fig/rpc.eps}
+%  \caption{The results of random producer-consumer problem}
+%  \label{fig:rpc_eval}
+%\end{figure}
+%
+%\begin{figure}[ht!]
+%  \centering
+%  \includegraphics[width=80mm]{fig/rpch.eps}
+%  \caption{The results of random producer-consumer problem with comparing heap}
+%  \label{fig:rpc_eval}
+%\end{figure}
+%
+%%Fig.~\ref{fig:rw_eval} shows the results of reader-writer problem. The
+%%x-axis indicates the number of readers and writers; the y-axis indicates the
+%%runtime in seconds. Total 1280 read/write operations were executed by all
+%%readers and writers. Since readers can read with each other at the same time.
+%%The runtime decreases as number of readers increases. Need to figure out why 
+%%explicit-signal approach is so slow in 1/5. Maybe the implementation? 
+%%
+%\begin{figure}[ht!]
+%  \centering
+%  \includegraphics[width=80mm]{fig/trw.eps}
+%  \caption{The results of ticket reader-writer problem}
+%  \label{fig:rw_eval}
+%\end{figure}
+%
+%
+%%The dining philosophers problem is often used in computer science to describe 
+%%the synchronization issues. There are N philosophers siting around at a table 
+%%with a dish in front of them and a chopstick in between each philosopher. A 
+%%philosopher only think or eat. A philosopher needs to pick two chopsticks at the
+%%same time for eating and he does not put down a chopstick until he finishes 
+%%eating. If the chopstick is hold by another philosopher, then the philosopher 
+%%who want to eat must wait. In addition, a philosopher cannot eat forever, which
+%%means he will put down chopstick eventually. Every philosopher must be able to
+%%eat eventually if he is hungry. Figure 3. illustrate the experimental results
+%%of the dining philosophers problem. The x-axis depicts the runtime and the 
+%%y-axis describes the number of philosophers. As can be seen, three approaches 
+%%has the similar results. The implementations of Naive and N-condition are as 
+%%efficient as the implementation of explicit signal monitor. 
+%%
+%Fig.~\ref{fig:rr_eval} shows the results of round-robin access pattern. The
+%x-axis indicates the number of threads; the y-axis indicates the
+%runtime in seconds. In this set of experiments, threads are allowed to enter a
+%monitor in round-robin scheduling. Again, the results of N-Condition approach
+%are not shown because their performance is much worse than others. Total 
+%128000 operations were performed on the monitor. In this set
+%of experiment, the explicit-signal approach has an advantage since it can
+%explicitly to signal the next thread to enter the monitor. As can be seen, the
+%performance of explicit-signal approach is steady as the number of thread
+%increases. In comparison with our implicit-signal approaches, threads can only 
+%wait to enter the monitor. The runtime increases much as the number of thread 
+%increase in naive implementation. For the map approach, the performance is 
+%worse than the explicit-signal approach with a steady difference. 
+%
+%\begin{figure}[ht!]
+%  \centering
+%  \includegraphics[width=80mm]{fig/rr.eps}
+%  \caption{The results of round-robin access pattern}
+%  \label{fig:rr_eval}
+%\end{figure}
+%
+%%\begin{figure}
+%%  \centering
+%%  \subfloat[Explicit-Signal] {
+%%    \fbox{
+%%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitRoundRobinMonitor}
+%%    }
+%%    \label{subfig:rr_exam_exp}
+%%  }
+%%  \\
+%%  \subfloat[Implicit-Signal] {
+%%    \fbox{
+%%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorRoundRobinMonitor}
+%%    }
+%%    \label{subfig:rr_exam_imp}
+%%  }
+%%  \caption{Round-Robin example}
+%%  \label{fig:rbb_exp}
+%%\end{figure}
 %
 %
 %\begin{figure}[ht!]
 %  \centering
-%  \includegraphics[width=80mm]{fig/dp.eps}
-%  \caption{The results of dining philosophers problem}
-%  \label{fig:dp_eval}
+%  \includegraphics[width=80mm]{fig/rr.eps}
+%  \caption{The results of round-robin access pattern dup}
+%  \label{fig:rr_eval_dup}
 %\end{figure}
-
-%\begin{figure}
-%  \centering
-%  \subfloat[Explicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitTicketReadersWriters}
-%    }
-%    \label{subfig:rw_exam_exp}
-%  }
-%  \\
-%  \subfloat[Implicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorTicketReadersWriters}
-%    }
-%    \label{subfig:rw_exam_imp}
-%  }
-%  \caption{Random Bounded-buffer example}
-%  \label{fig:rbb_exp}
+%%\subsection{Practical}
+%%Fig.~\ref{fig:dp_eval} shows the results of dining philosophers problem. The
+%%x-axis indicates the number of philosophers; the y-axis indicates the
+%%runtime in seconds. Every philosopher performed 100 eat operations with a
+%%randomly thinking time between 1 to 20 
+%%milliseconds. Fig.~\ref{fig:dp_eval} does not show the results of N-Condition 
+%%implementations since the results are much worse than other implementations. It
+%%takes around 10 minutes for 128 philosophers. The reason is that many waituntil
+%%statements with local predicate are used in this problem. Therefore, many
+%%condition variables are created and removed at runtime. As can be seen, the
+%%other three approaches have the similar results. This phenomenon can be
+%%explained as follows. The thinking time is much larger than the synchronization 
+%%time in the monitor. Therefore, the runtime is dominated by the thinking time.
+%%%These results suggest that if applications do not have many operations to access
+%%%a monitor, the performance will not have much difference in implicit-signal and
+%%%explicit-signal monitor.
+%%
+%%
+%%\begin{figure}[ht!]
+%%  \centering
+%%  \includegraphics[width=80mm]{fig/dp.eps}
+%%  \caption{The results of dining philosophers problem}
+%%  \label{fig:dp_eval}
+%%\end{figure}
+%
+%%\begin{figure}
+%%  \centering
+%%  \subfloat[Explicit-Signal] {
+%%    \fbox{
+%%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitTicketReadersWriters}
+%%    }
+%%    \label{subfig:rw_exam_exp}
+%%  }
+%%  \\
+%%  \subfloat[Implicit-Signal] {
+%%    \fbox{
+%%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorTicketReadersWriters}
+%%    }
+%%    \label{subfig:rw_exam_imp}
+%%  }
+%%  \caption{Random Bounded-buffer example}
+%%  \label{fig:rbb_exp}
+%%\end{figure}
+%
+%
+%
+%\section{Related Work} \label{sec:related}
+%\section{Conclusion} \label{sec:conclu}
+%The conclusion goes here. this is more of the conclusion
+%
+%
+%
+%% use section* for acknowledgement
+%
+%
+%
+%
+%
+%
+%
+%
+%\appendix
+%\section{Bounded-Buffer Code}
+%\begin{figure*}[ht!]
+%\begin{multicols}{2}
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+%            framesep=5mm,numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Explicit-Signal Bounded Buffer with
+%            a Parameter}}]
+%        class BoundedBuffer {
+%          Object[] items;  
+%          int putPtr, takePtr, count;
+%          Lock mutex = new ReentrantLock();
+%          Condition noSufficientSpace = mutex.newCondition();
+%          Condition noSufficientItem = mutex.newCondition();
+%          public BoundedBuffer(int n) {
+%            items = new Object[n];
+%            putPtr = takePtr = count = 0;
+%          }
+%          public void put(int n) {
+%            mutex.lock();
+%            while (n + count > items.length) {
+%              noSufficientItem.signalAll();
+%              noSufficientSpace.await();
+%            }
+%            for (int i = 0; i < n; ++i) {
+%              items[putPtr++] = new Object();
+%              if (putPtr == items.length) {
+%                putPtr = 0;
+%              }
+%            }
+%            count += n;
+%            noSufficientItem.signalAll();
+%            mutex.unlock();
+%          }
+%          public Object[] take(int n) {
+%            mutex.lock();
+%            while (count < n) {
+%              noSufficientSpace.signalAll();
+%              noSufficientItem.await();
+%            }
+%            Object[] ret = new Object[n];
+%            for (int i = 0; i < n; ++i) {
+%              ret[i] = items[takePtr++];
+%              if (takePtr == items.length) {
+%                takePtr = 0;
+%              }
+%            }
+%            count -= n;
+%            noSufficientSpace.signalAll();
+%            mutex.unlock();
+%            return ret;
+%          }
+%        }
+%    \end{Verbatim}
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+%            numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Implicit-Signal Bounded Buffer with a
+%            Parameter}}]
+%        monitor class BoundedBuffer { 
+%          Object[] items; 
+%          int putPtr, takePtr, count; 
+%          public void put(int n) { 
+%            waituntil(count + n <= items.length); 
+%            for (int i = 0; i < n; ++i) {
+%              items[putPtr++] = new Object(); 
+%              if (putPtr == items.length) { 
+%                putPtr = 0; 
+%              } 
+%            }
+%            count += n; 
+%          } 
+%          public Object[] take(int n) { 
+%            waituntil(count >= n);
+%            Object[] ret = new Object[n];
+%            for (int i = 0; i < n; ++i) {
+%              ret[i] = items[takePtr++]; 
+%              if (takePtr == items.length) { 
+%                takePtr = 0; 
+%              }
+%            }
+%            count -= n;
+%            return ret;
+%          }
+%        }
+%    \end{Verbatim}
+%\end{multicols}
+%  \caption{Bounded-buffer example}
+%  \label{fig:npc_exp}
+%\end{figure*}
+%\section{Readers/Writers Code}
+%\begin{figure*}[ht!]
+%\begin{multicols}{2}
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+%            framesep=5mm,numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Explicit-Signal Readers/Writers}}]
+%        public class ReadersWritersMonitor {
+%          int rcnt;
+%          int ticket, serving;
+%          Lock mutex = new ReentrantLock();
+%          Map<Integer, Condition> mapCondition 
+%              = new HashMap<Integer, Condition>();
+%          public ReadersWritersMonitor() {
+%            rcnt = ticket = serving = 0;
+%          }
+%          public void startRead() {
+%            mutex.lock();
+%            int myTicket = ticket;
+%            ticket++;
+%            Condition cond = mutex.newCondition();
+%            mapCondition.put(myTicket, cond);
+%            while (myTicket != serving) {
+%              if (mapCondition.containsKey(serving)) {
+%                 mapCondition.get(serving).signal();
+%              }
+%              cond.await();
+%            }
+%            mapCondition.remove(myTicket);
+%            rcnt++;
+%            serving++;
+%            mutex.unlock();
+%          }
+%          public void endRead() {
+%            mutex.lock();
+%            rcnt--;
+%            mutex.unlock();
+%          }
+%          public void startWrite() {
+%            mutex.lock();
+%            int myTicket = ticket;
+%            ticket++;
+%            Condition cond = mutex.newCondition();
+%            mapCondition.put(myTicket, cond);
+%            while (myTicket != serving || rcnt != 0) {
+%              if (myTicket != serving &&
+%                   mapCondition.containsKey(serving)) {
+%                 mapCondition.get(serving).signal();
+%              }
+%              cond.await();
+%            }
+%            mapCondition.remove(myTicket);
+%            mutex.unlock();
+%          }
+%          public void endWrite() {
+%            mutex.lock();
+%            serving++;
+%            mutex.unlock();
+%          }
+%        }
+%    \end{Verbatim}
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+%            numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Implicit-Signal Readers/Writers}}]
+%        public monitor class ReadersWritersMonitor {
+%          int rcnt;
+%          int ticket, serving;
+%          public ReadersWritersMonitor() {
+%            rcnt = ticket = serving = 0;
+%          }
+%          public void startRead() {
+%            int myTicket = ticket;
+%            ticket++;
+%            waituntil(myTicket == serving);
+%            rcnt++;
+%            serving++;
+%          }
+%          public void endRead() {
+%            rcnt--;
+%          }
+%          public void startWrite() {
+%            int myTicket = ticket;
+%            ticket++; 
+%            waituntil(myTicket == serving && rcnt == 0);
+%          }
+%          public void endWrite() {
+%            serving++;
+%          }
+%        }
+%    \end{Verbatim}
+%\end{multicols}
+%  \caption{Readers-writers example}
+%  \label{fig:trw_exp}
+%\end{figure*}
+%\section{Round-Robin Monitor Code}
+%\begin{figure}[ht!]
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+%            framesep=5mm,numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Explicit-Signal Bounded Buffer}}]
+%        public class RoundRobinMonitor{
+%          int numProc;
+%          int pid;
+%          Lock mutex = new ReentrantLock();
+%          Condition[] conds;
+%          public RoundRobinMonitor(int n) {
+%            numProc = n;
+%            pid = 0;
+%            Condition = new Condition[n];
+%            for (int i = 0; i < n; i++) {
+%              conds[i] = mutex.newCondition();
+%            }
+%          }
+%          public void access(int myId) {
+%            mutex.lock();
+%            while (pid != myId) {
+%              conds[pid].signal();
+%              conds[myId].await();
+%            }
+%            pid = (pid + 1) % numProc;
+%            conds[pid].signal();
+%            mutex.unlock();
+%          }
+%        }
+%    \end{Verbatim}
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+%            numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Implicit-Signal Bounded Buffer}}]
+%        public monitor class RoundRobinMonitor {
+%          int numProc;
+%          int pid;
+%          public RoundRobinMonitor(int n) {
+%            numProc = n;
+%            pid = 0;
+%          }
+%          public void access(int myId) {
+%            waituntil(pid == myId);
+%            pid = (pid + 1) % numProc;
+%          }
+%        }
+%    \end{Verbatim}
+%  \caption{Round-Robin example}
+%  \label{fig:rr_exp}
 %\end{figure}
-
-
-
-\section{Related Work} \label{sec:related}
-\section{Conclusion} \label{sec:conclu}
-The conclusion goes here. this is more of the conclusion
-
-
-
-% use section* for acknowledgement
-
-
-
-
-
-
-
-
-\appendix
-\section{Bounded-Buffer Code}
-\begin{figure*}[ht!]
-\begin{multicols}{2}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
-            framesep=5mm,numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Explicit-Signal Bounded Buffer with
-            a Parameter}}]
-        class BoundedBuffer {
-          Object[] items;  
-          int putPtr, takePtr, count;
-          Lock mutex = new ReentrantLock();
-          Condition noSufficientSpace = mutex.newCondition();
-          Condition noSufficientItem = mutex.newCondition();
-          public BoundedBuffer(int n) {
-            items = new Object[n];
-            putPtr = takePtr = count = 0;
-          }
-          public void put(int n) {
-            mutex.lock();
-            while (n + count > items.length) {
-              noSufficientItem.signalAll();
-              noSufficientSpace.await();
-            }
-            for (int i = 0; i < n; ++i) {
-              items[putPtr++] = new Object();
-              if (putPtr == items.length) {
-                putPtr = 0;
-              }
-            }
-            count += n;
-            noSufficientItem.signalAll();
-            mutex.unlock();
-          }
-          public Object[] take(int n) {
-            mutex.lock();
-            while (count < n) {
-              noSufficientSpace.signalAll();
-              noSufficientItem.await();
-            }
-            Object[] ret = new Object[n];
-            for (int i = 0; i < n; ++i) {
-              ret[i] = items[takePtr++];
-              if (takePtr == items.length) {
-                takePtr = 0;
-              }
-            }
-            count -= n;
-            noSufficientSpace.signalAll();
-            mutex.unlock();
-            return ret;
-          }
-        }
-    \end{Verbatim}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
-            numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Implicit-Signal Bounded Buffer with a
-            Parameter}}]
-        monitor class BoundedBuffer { 
-          Object[] items; 
-          int putPtr, takePtr, count; 
-          public void put(int n) { 
-            waituntil(count + n <= items.length); 
-            for (int i = 0; i < n; ++i) {
-              items[putPtr++] = new Object(); 
-              if (putPtr == items.length) { 
-                putPtr = 0; 
-              } 
-            }
-            count += n; 
-          } 
-          public Object[] take(int n) { 
-            waituntil(count >= n);
-            Object[] ret = new Object[n];
-            for (int i = 0; i < n; ++i) {
-              ret[i] = items[takePtr++]; 
-              if (takePtr == items.length) { 
-                takePtr = 0; 
-              }
-            }
-            count -= n;
-            return ret;
-          }
-        }
-    \end{Verbatim}
-\end{multicols}
-  \caption{Bounded-buffer example}
-  \label{fig:npc_exp}
-\end{figure*}
-\section{Readers/Writers Code}
-\begin{figure*}[ht!]
-\begin{multicols}{2}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
-            framesep=5mm,numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Explicit-Signal Readers/Writers}}]
-        public class ReadersWritersMonitor {
-          int rcnt;
-          int ticket, serving;
-          Lock mutex = new ReentrantLock();
-          Map<Integer, Condition> mapCondition 
-              = new HashMap<Integer, Condition>();
-          public ReadersWritersMonitor() {
-            rcnt = ticket = serving = 0;
-          }
-          public void startRead() {
-            mutex.lock();
-            int myTicket = ticket;
-            ticket++;
-            Condition cond = mutex.newCondition();
-            mapCondition.put(myTicket, cond);
-            while (myTicket != serving) {
-              if (mapCondition.containsKey(serving)) {
-                 mapCondition.get(serving).signal();
-              }
-              cond.await();
-            }
-            mapCondition.remove(myTicket);
-            rcnt++;
-            serving++;
-            mutex.unlock();
-          }
-          public void endRead() {
-            mutex.lock();
-            rcnt--;
-            mutex.unlock();
-          }
-          public void startWrite() {
-            mutex.lock();
-            int myTicket = ticket;
-            ticket++;
-            Condition cond = mutex.newCondition();
-            mapCondition.put(myTicket, cond);
-            while (myTicket != serving || rcnt != 0) {
-              if (myTicket != serving &&
-                   mapCondition.containsKey(serving)) {
-                 mapCondition.get(serving).signal();
-              }
-              cond.await();
-            }
-            mapCondition.remove(myTicket);
-            mutex.unlock();
-          }
-          public void endWrite() {
-            mutex.lock();
-            serving++;
-            mutex.unlock();
-          }
-        }
-    \end{Verbatim}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
-            numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Implicit-Signal Readers/Writers}}]
-        public monitor class ReadersWritersMonitor {
-          int rcnt;
-          int ticket, serving;
-          public ReadersWritersMonitor() {
-            rcnt = ticket = serving = 0;
-          }
-          public void startRead() {
-            int myTicket = ticket;
-            ticket++;
-            waituntil(myTicket == serving);
-            rcnt++;
-            serving++;
-          }
-          public void endRead() {
-            rcnt--;
-          }
-          public void startWrite() {
-            int myTicket = ticket;
-            ticket++; 
-            waituntil(myTicket == serving && rcnt == 0);
-          }
-          public void endWrite() {
-            serving++;
-          }
-        }
-    \end{Verbatim}
-\end{multicols}
-  \caption{Readers-writers example}
-  \label{fig:trw_exp}
-\end{figure*}
-\section{Round-Robin Monitor Code}
-\begin{figure}[ht!]
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
-            framesep=5mm,numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Explicit-Signal Bounded Buffer}}]
-        public class RoundRobinMonitor{
-          int numProc;
-          int pid;
-          Lock mutex = new ReentrantLock();
-          Condition[] conds;
-          public RoundRobinMonitor(int n) {
-            numProc = n;
-            pid = 0;
-            Condition = new Condition[n];
-            for (int i = 0; i < n; i++) {
-              conds[i] = mutex.newCondition();
-            }
-          }
-          public void access(int myId) {
-            mutex.lock();
-            while (pid != myId) {
-              conds[pid].signal();
-              conds[myId].await();
-            }
-            pid = (pid + 1) % numProc;
-            conds[pid].signal();
-            mutex.unlock();
-          }
-        }
-    \end{Verbatim}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
-            numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Implicit-Signal Bounded Buffer}}]
-        public monitor class RoundRobinMonitor {
-          int numProc;
-          int pid;
-          public RoundRobinMonitor(int n) {
-            numProc = n;
-            pid = 0;
-          }
-          public void access(int myId) {
-            waituntil(pid == myId);
-            pid = (pid + 1) % numProc;
-          }
-        }
-    \end{Verbatim}
-  \caption{Round-Robin example}
-  \label{fig:rr_exp}
-\end{figure}
 
 
 \acks
