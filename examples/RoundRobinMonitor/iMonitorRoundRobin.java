@@ -9,6 +9,8 @@ import monitor.iMonitorCondition;
 import monitor.Assertion;
 import monitor.GlobalVariable;
 import monitor.HashMonitor;
+import monitor.TagMonitor;
+import monitor.PredicateTag;
 
 import util.Common;
 
@@ -29,6 +31,16 @@ public class iMonitorRoundRobin extends RoundRobinMonitor {
                 break;
             case 'm':
                 monitor = new MapMonitor();
+                break;
+            case 't':
+                monitor = new TagMonitor();
+                ((TagMonitor) monitor).registerGlobalVariable(
+                    new GlobalVariable("numAccess") {
+                        public int getValue() {
+                            return numAccess;
+                        }
+                    } 
+                    );
                 break;
             default:
                 monitor = new iMonitor(); //auto-gen
@@ -66,6 +78,30 @@ public class iMonitorRoundRobin extends RoundRobinMonitor {
                                         return numAccess == myId_dummy; } 
                                 },
                                 "numAccess == myId_dummy" + "_" + myId_dummy);
+                            break;
+                        case 't':
+                            PredicateTag[] tags = new PredicateTag[1];
+                            tags[0] = ((TagMonitor) monitor).makeTag(
+                                    "numAccess==myId_dummy" + "_" + myId_dummy,
+                                    "numAccess", myId_dummy, 
+                                    PredicateTag.OperationType.EQ,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return numAccess == myId_dummy;
+                                        }
+                                    }
+                            );
+                            cond = ((TagMonitor) monitor).makeCondition(
+                                    "numAccess==myId_dummy" + "_" + myId_dummy,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return numAccess == myId_dummy;
+                                        }
+                                    },
+                                    false,
+                                    tags
+                            );
+
                             break;
                         default:
                             cond = ((iMonitor) monitor).makeCondition(

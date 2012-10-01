@@ -52,8 +52,8 @@ public class iMonitorCondition extends AbstractCondition {
     private final int val;
     private final OperationType type;
     private final Condition cond;
-    private final boolean isGlobal;
     private final Assertion assertion;
+    private final boolean isGlobal;
 
     private iMonitorCondition prev;
     private iMonitorCondition next;

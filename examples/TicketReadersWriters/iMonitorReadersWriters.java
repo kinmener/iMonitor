@@ -27,6 +27,16 @@ public class iMonitorReadersWriters extends ReadersWritersMonitor {
             case 'm':
                 monitor = new MapMonitor();
                 break;
+            case 't':
+                monitor = new TagMonitor();
+                ((TagMonitor) monitor).registerGlobalVariable(
+                    new GlobalVariable("serving") {
+                        public int getValue() {
+                            return serving;
+                        }
+                    } 
+                    );
+                break;
             default:
                 monitor = new iMonitor();
                 ((iMonitor) monitor).registerGlobalVariable(
@@ -64,6 +74,29 @@ public class iMonitorReadersWriters extends ReadersWritersMonitor {
                                         return serving == myTicket; } 
                                 },
                                 "serving == myTicket" + "_" + myTicket) ;
+                            break;
+                        case 't':
+                            PredicateTag[] tags = new PredicateTag[1];
+                            tags[0] = ((TagMonitor) monitor).makeTag(
+                                    "serving==myTicket" + "_" + myTicket,
+                                    "serving", myTicket, 
+                                    PredicateTag.OperationType.EQ,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return serving == myTicket;
+                                        }
+                                    }
+                            );
+                            cond = ((TagMonitor) monitor).makeCondition(
+                                    "serving==myTicket" + "_" + myTicket,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return serving == myTicket;
+                                        }
+                                    },
+                                    false,
+                                    tags
+                            );
                             break;
                         default:
                             cond = ((iMonitor) monitor).makeCondition(
@@ -130,6 +163,32 @@ public class iMonitorReadersWriters extends ReadersWritersMonitor {
                                 "serving == myTicket && rcnt == 0" + "_" 
                                 + myTicket) ;
                             break;
+                        case 't':
+                            PredicateTag[] tags = new PredicateTag[1];
+                            tags[0] = ((TagMonitor) monitor).makeTag(
+                                    "serving==myTicket" + "_" + myTicket,
+                                    "serving", myTicket, 
+                                    PredicateTag.OperationType.EQ,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return serving == myTicket;
+                                        }
+                                    }
+                            );
+                            cond = ((TagMonitor) monitor).makeCondition(
+                                    "serving==myTicket && rcnt==0" + "_" 
+                                    + myTicket,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return serving == myTicket 
+                                                    && rcnt == 0;
+                                        }
+                                    },
+                                    false,
+                                    tags
+                            );
+                            break;
+
                         default:
                             // make complex condition
                             cond = ((iMonitor) monitor).makeCondition( 

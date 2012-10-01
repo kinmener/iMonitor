@@ -1,14 +1,6 @@
 package examples.BoundedBuffer;
 
-import monitor.AbstractCondition;
-import monitor.AbstractImplicitMonitor;
-import monitor.Assertion;
-import monitor.GlobalVariable;
-import monitor.iMonitorCondition;
-import monitor.iMonitor;
-import monitor.MapMonitor;
-import monitor.NaiveImplicitMonitor;
-import monitor.RunnableWithResult;
+import monitor.*;
 
 import util.Common;
 
@@ -53,9 +45,41 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                         "count > 0") ;
                 notFull = ((MapMonitor) monitor).makeCondition( //auto-gen
                         new  Assertion() {
-                            public boolean isTrue() { return count < items.length; }
+                            public boolean isTrue() { 
+                                return count < items.length; 
+                            }
                         }, 
                         "count < items.length") ;
+                break;
+            case 't':
+                monitor = new TagMonitor();
+                ((TagMonitor) monitor).registerGlobalVariable(
+                    new GlobalVariable("count") {
+                        public int getValue() {
+                            return count;
+                        }
+                    } 
+                );
+                notEmpty = ((TagMonitor) monitor).makeCondition(
+                        "count > 0",
+                        new Assertion() {
+                            public boolean isTrue() {
+                                return count > 0;
+                            }
+                        },
+                        true,
+                        null 
+                );
+                notFull = ((TagMonitor) monitor).makeCondition(
+                        "count < items.length",
+                        new Assertion() {
+                            public boolean isTrue() {
+                                return count < items.length;
+                            }
+                        },
+                        true,
+                        null 
+                );
                 break;
             default:            
                 monitor = new iMonitor(); //auto-gen
@@ -76,7 +100,9 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                 notFull = ((iMonitor) monitor).makeCondition( //auto-gen
                         "count < items.length", 
                         new  Assertion() {
-                            public boolean isTrue() { return count < items.length; }
+                            public boolean isTrue() { 
+                                return count < items.length; 
+                            }
                         }, 
                         true);
 
@@ -90,7 +116,8 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                 items[putPtr] = x; 
                 if (++putPtr == items.length) putPtr = 0;
                 ++count;
-                Common.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
+                Common.println("Producer " + Thread.currentThread() 
+                        + " puts, #obj: " + count) ; 
             }} ) ;
     }
 
@@ -101,7 +128,8 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                 Object x = items[takePtr]; 
                 if (++takePtr == items.length) takePtr = 0;
                 --count;
-                Common.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
+                Common.println("Consumer " + Thread.currentThread() 
+                        + " takes, #obj: " + count) ; 
                 return x;
             }} ) ;
     }
@@ -116,17 +144,44 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                         case 'n':
                             cond = monitor.makeCondition( //auto-gen
                                 new Assertion() {
-                                    public boolean isTrue() { return (n + count) <= items.length; } 
+                                    public boolean isTrue() { 
+                                        return (n + count) <= items.length; 
+                                    } 
                                 } 
                                 ) ;
                             break;
                         case 'm':
-                            cond = ((MapMonitor) monitor).makeCondition( //auto-gen
+                            cond = ((MapMonitor) monitor).makeCondition( 
                                 new Assertion() {
-                                    public boolean isTrue() { return (n + count) <= items.length; } 
+                                    public boolean isTrue() { 
+                                        return (n + count) <= items.length; 
+                                    } 
                                 }, 
                                 "(n + count) <= items.length" + "_" + n
                                 ) ;
+                            break;
+                        case 't':
+                            PredicateTag[] tags = new PredicateTag[1];
+                            tags[0] = ((TagMonitor) monitor).makeTag(
+                                    "(n+count)<=items.length" + "_" + n,
+                                    "count", items.length - n, 
+                                    PredicateTag.OperationType.LTE,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return (n + count) <= items.length;
+                                        }
+                                    }
+                            );
+                            cond = ((TagMonitor) monitor).makeCondition(
+                                    "(n+count)<=items.length" + "_" + n,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return (n + count) <= items.length;
+                                        }
+                                    },
+                                    false,
+                                    tags
+                            );
                             break;
                         default:
                             cond = ((iMonitor) monitor).makeCondition(
@@ -134,7 +189,9 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                                     "count", items.length - n, 
                                     iMonitorCondition.OperationType.LTE, 
                                     new Assertion() {
-                                        public boolean isTrue() { return (n + count) <= items.length; } 
+                                        public boolean isTrue() { 
+                                            return (n + count) <= items.length;
+                                        } 
                                     }, 
                                     false);
                             break;
@@ -151,7 +208,8 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                     if (putPtr == items.length) putPtr = 0;
                 }
                 count += n;
-                Common.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
+                Common.println("Producer " + Thread.currentThread() 
+                        + " puts, #obj: " + count) ; 
             }} ) ;
     }
 
@@ -165,25 +223,55 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                         case 'n':
                             cond = monitor.makeCondition( //auto-gen
                                 new Assertion() {
-                                    public boolean isTrue() { return n <= count; } 
+                                    public boolean isTrue() { 
+                                        return n <= count; 
+                                    } 
                                 } 
                                 ) ;
                             break;
                         case 'm':
-                            cond = ((MapMonitor) monitor).makeCondition( //auto-gen
+                            cond = ((MapMonitor) monitor).makeCondition( 
                                 new Assertion() {
-                                    public boolean isTrue() { return n <= count; } 
+                                    public boolean isTrue() { 
+                                        return n <= count; 
+                                    } 
                                 } ,
-                                "(n + count) <= items.length" + "_" + n
+                                "n <= count" + "_" + n
                                 ) ;
                             break;
+                        case 't':
+                            PredicateTag[] tags = new PredicateTag[1];
+                            tags[0] = ((TagMonitor) monitor).makeTag(
+                                    "n<=count" + "_" + n,
+                                    "count", n, 
+                                    PredicateTag.OperationType.GTE,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return n <= count;
+                                        }
+                                    }
+                            );
+                            cond = ((TagMonitor) monitor).makeCondition(
+                                    "n<=count" + "_" + n,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return n <= count;
+                                        }
+                                    },
+                                    false,
+                                    tags
+                            );
+                            break;
+                     
                         default:
                             cond = ((iMonitor) monitor).makeCondition(
-                                    "(n + count) <= items.length" + "_" + n,
+                                    "n <= count" + "_" + n,
                                     "count", n, 
                                     iMonitorCondition.OperationType.GTE, 
                                     new Assertion() {
-                                        public boolean isTrue() { return n <= count; } 
+                                        public boolean isTrue() { 
+                                            return n <= count; 
+                                        } 
                                     },
                                     false);
                             break;
@@ -201,7 +289,8 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                     if (++takePtr == items.length) takePtr = 0;
                 }
                 count -= n;
-                Common.println("Consumer " + Thread.currentThread() + " takes " + n + " objs, remaining #obj: " + count) ; 
+                Common.println("Consumer " + Thread.currentThread() 
+                        + " takes " + n + " objs, remaining #obj: " + count) ; 
                 return ret;
             }} ) ;
     }
