@@ -17,12 +17,12 @@
       4
     ],
     "num_tasks": [ 
-      512000
+      5120
     ],
     "monitor_type": [
       "explicit",
-      "iMonitor",
-      "tag"
+      "tag",
+      "iMonitor"
     ],
     "num_proc": [
       2, 4, 8, 16, 32, 64, 128

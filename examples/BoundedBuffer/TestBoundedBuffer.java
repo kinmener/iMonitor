@@ -81,7 +81,7 @@ class ObjectProducer extends TestThread {
             //delay(5);
 
             try {
-                boundedBuffer.put(1) ; }
+                boundedBuffer.put(new Object()) ; }
             catch(InterruptedException e ) { }
         }
         doneCounter.increment() ;
