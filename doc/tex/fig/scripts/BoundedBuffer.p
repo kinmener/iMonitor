@@ -10,6 +10,5 @@ set ylabel "runtime(seconds)" font "Times-New-Roman, 16"
 set key left top
 set xr [2:128]
 plot  "BoundedBuffer/explicit.dat" using 1:2 title 'explicit' with linespoints, \
-      "BoundedBuffer/naive.dat" using 1:2 title 'naive' with linespoints, \
-      "BoundedBuffer/hash.dat" using 1:2 title 'hash' with linespoints, \
-      "BoundedBuffer/map.dat" using 1:2 title 'map' with linespoints
+      "BoundedBuffer/iMonitor.dat" using 1:2 title 'old' with linespoints, \
+      "BoundedBuffer/tag.dat" using 1:2 title 'tag' with linespoints

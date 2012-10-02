@@ -25,8 +25,8 @@
     ],
     "monitor_type": [
       "explicit",
-      "map",
-      "iMonitor"
+      "iMonitor",
+      "tag"
     ],
     "num_proc": [
       1, 2, 4, 8, 16, 32

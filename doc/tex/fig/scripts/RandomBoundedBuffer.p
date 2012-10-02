@@ -10,4 +10,5 @@ set ylabel "runtime(milliseconds)" font "Times-New-Roman, 16"
 set key left top
 set xr [2:128]
 plot  "RandomBoundedBuffer/explicit.dat" using 1:2 title 'explicit' with linespoints, \
-      "RandomBoundedBuffer/iMonitor.dat" using 1:2 title 'SuperSynch' with linespoints
+      "RandomBoundedBuffer/iMonitor.dat" using 1:2 title 'old' with linespoints, \
+      "RandomBoundedBuffer/tag.dat" using 1:2 title 'tag' with linespoints
