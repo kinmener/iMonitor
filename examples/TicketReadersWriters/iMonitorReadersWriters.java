@@ -24,6 +24,9 @@ public class iMonitorReadersWriters extends ReadersWritersMonitor {
             case 'n':
                 monitor = new NaiveImplicitMonitor();
                 break;
+            case 's':
+                monitor = new SetMonitor();
+                break;
             case 'm':
                 monitor = new MapMonitor();
                 break;
@@ -60,6 +63,7 @@ public class iMonitorReadersWriters extends ReadersWritersMonitor {
                     AbstractCondition cond;
                     switch (type) {
                         case 'n':
+                        case 's':
                             cond = monitor.makeCondition( //auto-gen
                                 new Assertion() {
                                     public boolean isTrue() { 
@@ -145,6 +149,7 @@ public class iMonitorReadersWriters extends ReadersWritersMonitor {
                     AbstractCondition cond;
                     switch (type) {
                         case 'n':
+                        case 's':
                             cond = monitor.makeCondition( //auto-gen
                                 new Assertion() {
                                     public boolean isTrue() {

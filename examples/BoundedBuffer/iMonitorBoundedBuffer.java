@@ -36,6 +36,21 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                             } 
                         } ) ;
                 break;
+            case 's':
+                monitor = new SetMonitor(); //auto-gen
+                notEmpty = monitor.makeCondition( //auto-gen
+                        new  Assertion() {
+                            public boolean isTrue() { 
+                                return count > 0; 
+                            } 
+                        } ) ;
+                notFull = monitor.makeCondition( //auto-gen
+                        new  Assertion() {
+                            public boolean isTrue() { 
+                                return count < items.length; 
+                            } 
+                        } ) ;
+                break;
             case 'm':
                 monitor = new MapMonitor(); //auto-gen
                 notEmpty = ((MapMonitor) monitor).makeCondition( //auto-gen
@@ -142,6 +157,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                     AbstractCondition cond;
                     switch (type) {
                         case 'n':
+                        case 's':
                             cond = monitor.makeCondition( //auto-gen
                                 new Assertion() {
                                     public boolean isTrue() { 
@@ -221,6 +237,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                     AbstractCondition cond;
                     switch (type) {
                         case 'n':
+                        case 's':
                             cond = monitor.makeCondition( //auto-gen
                                 new Assertion() {
                                     public boolean isTrue() { 

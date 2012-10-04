@@ -27,9 +27,7 @@ public class SetCondition extends AbstractCondition {
         if(!self.assertionIsTrue()) {
             // condition.signalAll();
             for(SetCondition cond : setCondition) {
-                if (cond.conditionalSignal()) {
-                    break;
-                }
+                cond.conditionalSignal();
             }
             do {
                 try {

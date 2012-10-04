@@ -20,9 +20,7 @@ public class SetMonitor extends AbstractImplicitMonitor  {
         if(setCondition != null) {
             //condition_.signalAll();
             for(SetCondition cond: setCondition) {
-                if (cond.conditionalSignal()) {
-                    break;
-                }
+               cond.conditionalSignal(); 
             }
         }
         mutex.unlock();

@@ -1,16 +1,6 @@
 package examples.RoundRobinMonitor;
 
-import monitor.AbstractCondition;
-import monitor.AbstractImplicitMonitor;
-import monitor.MapMonitor;
-import monitor.NaiveImplicitMonitor;
-import monitor.iMonitor;
-import monitor.iMonitorCondition;
-import monitor.Assertion;
-import monitor.GlobalVariable;
-import monitor.HashMonitor;
-import monitor.TagMonitor;
-import monitor.PredicateTag;
+import monitor.*;
 
 import util.Common;
 
@@ -28,6 +18,9 @@ public class iMonitorRoundRobin extends RoundRobinMonitor {
         switch (type) {
             case 'n':
                 monitor = new NaiveImplicitMonitor();
+                break;
+            case 's':
+                monitor = new SetMonitor();
                 break;
             case 'm':
                 monitor = new MapMonitor();
@@ -64,6 +57,7 @@ public class iMonitorRoundRobin extends RoundRobinMonitor {
                     AbstractCondition cond;
                     switch (type) {
                         case 'n':
+                        case 's':
                             cond = monitor.makeCondition( 
                                 new Assertion() {
                                     public boolean isTrue() { 

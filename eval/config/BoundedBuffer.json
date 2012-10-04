@@ -21,8 +21,8 @@
     ],
     "monitor_type": [
       "explicit",
-      "tag",
-      "iMonitor"
+      "set",
+      "tag"
     ],
     "num_proc": [
       2, 4, 8, 16, 32, 64, 128
