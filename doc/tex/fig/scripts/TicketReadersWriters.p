@@ -13,8 +13,8 @@ set key left top
 #      "ReadersWriters/hash.dat" using 2:xticlabels(1) title 'hash' with linespoints, \
 #      "ReadersWriters/map.dat" using 2:xticlabels(1) title 'map' with linespoints
 #plot  "TicketReadersWriters/explicit.dat" using 2:xticlabels(1) title 'explicit' with linespoints, \
-#      "TicketReadersWriters/iMonitor.dat" using 2:xticlabels(1) title 'old' with linespoints, \
+#      "TicketReadersWriters/set.dat" using 2:xticlabels(1) title 'baseline' with linespoints, \
 #      "TicketReadersWriters/tag.dat" using 2:xticlabels(1) title 'tag' with linespoints
 plot  "TicketReadersWriters/explicit.dat" using 1:2 title 'explicit' with linespoints, \
-      "TicketReadersWriters/iMonitor.dat" using 1:2 title 'old' with linespoints, \
+      "TicketReadersWriters/set.dat" using 1:2 title 'baseline' with linespoints, \
       "TicketReadersWriters/tag.dat" using 1:2 title 'tag' with linespoints
