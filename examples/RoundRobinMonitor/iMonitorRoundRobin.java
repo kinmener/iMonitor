@@ -110,6 +110,9 @@ public class iMonitorRoundRobin extends RoundRobinMonitor {
                             break;
                     }
                     cond.await();
+                    if (type == 's') {
+                        monitor.removeCondition(cond); 
+                    }
                 }
 
                 Common.println("myId: " + myId_dummy + 

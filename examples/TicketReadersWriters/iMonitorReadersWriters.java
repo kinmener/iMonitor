@@ -116,7 +116,7 @@ public class iMonitorReadersWriters extends ReadersWritersMonitor {
                     }
 
                     cond.await();
-                    if (type == 'm') {
+                    if (type == 's') {
                         monitor.removeCondition(cond); 
                     }
                 }
@@ -210,7 +210,7 @@ public class iMonitorReadersWriters extends ReadersWritersMonitor {
                             break;
                     }
                     cond.await();
-                    if (type == 'm') {
+                    if (type == 's') {
                         monitor.removeCondition(cond); 
                     }
                 }

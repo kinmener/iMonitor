@@ -213,6 +213,9 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                             break;
                     }
                     cond.await();
+                    if (type == 's') {
+                        monitor.removeCondition(cond); 
+                    }
                     /*
                      *if (type == 'm') {
                      *    monitor.removeCondition(cond); 
@@ -294,6 +297,9 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                             break;
                     }
                     cond.await();
+                    if (type == 's') {
+                        monitor.removeCondition(cond); 
+                    }
                     /*
                      *if (type == 'm') {
                      *    monitor.removeCondition(cond); 
