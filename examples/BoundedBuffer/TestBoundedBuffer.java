@@ -22,6 +22,7 @@ public class TestBoundedBuffer {
         int PRODUCERS = 10;
         int bufSize = 10;
         int totalNumActions = 10; 
+        int delay = 0;
         ObjectBoundedBuffer rw_controller = null;
 
         try {
@@ -36,6 +37,7 @@ public class TestBoundedBuffer {
             }
             CONSUMERS = PRODUCERS = Integer.parseInt(args[2]);
             totalNumActions = Integer.parseInt(args[3]);
+            delay = Integer.parseInt(args[4]);
         } catch (Exception e) { /* use defaults */ 
             e.printStackTrace();
             if(rw_controller == null) {
@@ -53,11 +55,11 @@ public class TestBoundedBuffer {
         long startTime = System.currentTimeMillis();
         //System.out.println("Please wait. This takes a while");
         for( int k=0 ; k < CONSUMERS ; ++k ) {
-            TestThread w = new ObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS ) ;
+            TestThread w = new ObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS, delay) ;
             threads[k] = w;
             w.start(); }
             for( int k=0 ; k < PRODUCERS ; ++k ) {
-                TestThread r = new ObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS) ;
+                TestThread r = new ObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS, delay) ;
                 threads[k + CONSUMERS] = r;
                 r.start(); }
                 doneCounter.waitForDone() ;
@@ -71,14 +73,17 @@ class ObjectProducer extends TestThread {
 
     private ObjectBoundedBuffer boundedBuffer ;
     private DoneCounter doneCounter ;
-    private int numActions = 10;
+    private int numActions;
+    private int delayT;
 
-    ObjectProducer( ObjectBoundedBuffer bb, DoneCounter d, int n) {
-        boundedBuffer = bb ; doneCounter = d ; numActions = n;}
+    ObjectProducer( ObjectBoundedBuffer bb, DoneCounter d, int n, int dt) {
+        boundedBuffer = bb ; doneCounter = d ; numActions = n; delayT = dt;}
 
     public void run() {
         for(int i=0 ; i < numActions ; ++i ) {
-            //delay(5);
+            if (delayT != 0) {
+               delay(delayT);
+            } 
 
             try {
                 boundedBuffer.put(new Object()) ; }
@@ -92,15 +97,18 @@ class ObjectConsumer extends TestThread {
 
     private ObjectBoundedBuffer boundedBuffer ;
     private DoneCounter doneCounter ;
-    private int numActions = 10;
+    private int numActions;
+    private int delayT;
 
-    ObjectConsumer( ObjectBoundedBuffer bb, DoneCounter d, int n) {
-        boundedBuffer = bb ; doneCounter = d ; numActions = n; }
+    ObjectConsumer( ObjectBoundedBuffer bb, DoneCounter d, int n, int dt) {
+        boundedBuffer = bb ; doneCounter = d ; numActions = n; delayT = dt;}
 
     public void run() {
 
         for(int i=0 ; i < numActions ; ++i ) {
-            //delay(5);
+            if (delayT != 0) {
+               delay(delayT);
+            }
 
             try {
                 boundedBuffer.take() ; }

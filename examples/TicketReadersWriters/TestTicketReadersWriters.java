@@ -23,7 +23,8 @@ class Reader extends Thread {
             // read
             try {
                 if (maxReadTime != 0) {
-                    Thread.sleep((long) (Math.random() * maxReadTime) + 1);
+                    //Thread.sleep((long) (Math.random() * maxReadTime) + 1);
+                    Thread.sleep(0, maxReadTime * 1000);
                 }
             }
             catch(InterruptedException e) {
@@ -54,7 +55,8 @@ class Writer extends Thread {
             // write
             try {
                 if (maxWriteTime != 0) {
-                    Thread.sleep((long) (Math.random() * maxWriteTime) + 1);
+                    Thread.sleep(0, maxWriteTime * 1000);
+                    //Thread.sleep(0, (long) (Math.random() * maxWriteTime) + 1);
                 }
             }
             catch(InterruptedException e) {
@@ -89,8 +91,8 @@ public class TestTicketReadersWriters {
             WRITERS = Integer.parseInt(args[1]);
             READERS = 5 * WRITERS;
             totalNumWrite = totalNumRead = Integer.parseInt(args[2]);
-            maxReadTime = Integer.parseInt(args[3]);
-            maxWriteTime = Integer.parseInt(args[4]);
+            maxWriteTime = maxReadTime = Integer.parseInt(args[3]);
+            //maxWriteTime = Integer.parseInt(args[4]);
 
         } catch (Exception e) { /* use defaults */ 
             e.printStackTrace();

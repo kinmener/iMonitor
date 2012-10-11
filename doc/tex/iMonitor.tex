@@ -92,7 +92,7 @@ keyword1, keyword2
 %and to satisfy consumers' demands in the software industry, applications need to be
 %developed in a shot period. The concurrent programming is 
 %different from the traditional sequential programming. Multiple threads may 
-%interact with each other and try to access the same source. Form the programers' perspective, 
+%interact with each other and try to access the same source. Form the programmers' perspective, 
 %it is much more difficult to correctly develop concurrent programs than sequential programs. 
 %In addition, the debugging process is panic in concurrent programs due to the 
 %thread scheduling. 
@@ -118,7 +118,7 @@ keyword1, keyword2
 The multicore hardware is now ubiquitous. Even the cell phones have
 multicore processors. Programming these multicore processors is
 still a challenging task due to
-bugs that are introduced due to concurrency and synchronization.
+bugs resulted form concurrency and synchronization.
 Although there is widespread acknowledgement of difficulties 
 in programming these systems, it is almost hard to believe that 
 by and large the most prevalent methods of dealing with synchronization are
@@ -126,7 +126,7 @@ based on ideas that were developed in early 70's \cite{hoa74, han75}. For
 example, the most widely used threads package in C++, pthreads, and
 the most widely used package in Java, java.util.concurrent, are based
 on the notion of monitors (or semaphores) developed in 60's and 70's.
-In this research, we are developing new method called iMonitor 
+In this research, we developed new method called {\it iMonitor} 
 that allows gains in productivity of the programmer as well as gain in
 performance of the system.
 
@@ -134,19 +134,19 @@ performance of the system.
 Both pthreads and Java require programmers to explicitly
 signal threads that may be waiting on certain condition. The programmer
 has to explicitly declare condition variables and then signal one
-or all of the threads when the associated condition may have become true.
+or all of the threads when the associated condition becomes true.
 Using the wrong notification (signal versus signalAll) is a frequent
 source of bugs. In iMonitor there is no notion of condition variables
 and it is the responsibility of the system to signal appropriate threads.
-This feature in iMonitor reduces the program size and complexity.
-Note that the idea of automatic signaling was proposed 
+This feature in iMonitor significantly reduces the program size and complexity.
+Note that the idea of automatic signaling has been proposed 
 in the original paper by Hoare as an alternative to implicit
 signaling \cite{hoa74}. However, it is generally believed that implicit 
 signaling is extremely inefficient compared to explicit signaling. 
-For example, Buhu and Harji say that implicit monitors are 10-50 times
+For example, Buhu and Harji claim that implicit monitors are 10-50 times
 slower than explicit signals \cite{bfc95}. The reason for the slowdown is that
-previous implementations of implicit monitor are based on 
-evaluation of all conditions whenever monitor is available. 
+previous implementations of implicit monitor are based on the
+evaluation of all conditions, whenever monitor is available. 
 Nevertheless, implicit signaling is still necessary for the following reasons:
 \begin{enumerate}
     \item Less work for programmers, which implies fewer bugs in programs.
@@ -156,21 +156,21 @@ Nevertheless, implicit signaling is still necessary for the following reasons:
         products time to market.
     \item Mitigating the debugging of explicit-signal programs. 
 \end{enumerate}
-%garbage collection v.s. programers manually free memory
+%garbage collection v.s. programmers manually free memory
 
 \subsection{iMonitir Syntax}
 In iMonitor, the programmer has to deal with fewer concepts 
-and constructs than the traditional monitor based methods.
+and constructs than other monitors based on traditional methods.
 iMonitor supports the monitor class and the waituntil statement.
-A monitor class is defined as that every member function of the class can be 
+A monitor class is defined as every member function of the class that can be 
 executed by only one thread at any time. Namely, a monitor class is mutual 
-exclusion by nature. The monitor is reserved as modifier to indicate a monitor 
-class in iMonitor. A waituntil statement, appearing in only member 
+exclusion by nature. The monitor is reserved as a modifier, indicating a
+monitor class in iMonitor. A waituntil statement, appearing in only member 
 functions of a monitor class, has a predicate as its parameter. When a thread 
 is executing a waituntil statement, it checks whether or not the predicate is 
-true. If the predicate is not true, the executing tread must wait and release 
-the privilege of the monitor control temporarily. After the predicate become 
-true, the thread then be signaled automatically and continue to execute. 
+true. If the predicate is false, the executing tread must wait and release 
+the privilege of the monitor control temporarily. After the predicate becomes 
+true, the thread can then continue to execute. 
 
 \subsection{iMonitor Example}
 %The concurrent programs are more difficult to be written and debugged than the 
@@ -179,10 +179,10 @@ true, the thread then be signaled automatically and continue to execute.
 %in concurrent programs; implicit-signal is more straightforward in both code
 %reasoning and syntax. 
 
-Fig.~\ref{fig:bb_exp} shows an example to
-demonstrate the difference between implicit-signal monitor and explicit-signal 
-monitor. The problem is producer-consumer problem, also known as bounded-buffer
-problem. There are two kinds of threads, producers and consumers, which are 
+Fig.~\ref{fig:bb_exp} shows an example demonstrating the difference between 
+implicit-signal monitor and explicit-signal monitor. This is the 
+producer-consumer problem, also known as the bounded-buffer problem. 
+There are two kinds of threads, producers and consumers, which are 
 trying to obtain access to the shared resources. Producers try to put items 
 into the buffer and consumers try to take items out from the buffer. Every 
 operation should be mutual exclusion. In addition, a producer cannot put any 
@@ -193,7 +193,7 @@ needed to maintain mutual exclusion and synchronization. A thread needs to
 acquire the lock before entering member functions. In addition, programmers need
 to explicitly associate the assertions with condition variables and call
 signal/await statement manually. The implicit-signal bounded buffer is written
-in our iMonitor framework. As can be seen, the implicit-signal monitor is
+in our iMonitor framework. As can be expected, the implicit-signal monitor is
 more straightforward and simpler than the explicit-signal monitor for
 programmers. 
 \begin{figure*}[ht!]
@@ -277,29 +277,27 @@ programmers.
 \end{figure*}
 
 \subsection{Contributions}
-In this research, we develop new techniques that
-use the structure of the condition to minimize the number of 
-times conditions are evaluated.
+In this research, we develop new techniques that use tags to classify 
+predicates to minimize the number of times conditions are evaluated.
 %In our initial implementation, 
 %implicit signaling is generally as fast as explicit and even
 %x times faster for many examples. In Section \ref{sec:tech},
-%we give reasons for the efficiency in implict signaling.
+%we give reasons for the efficiency in implicit signaling.
 %In short, the explicit signaling has to resort to signalAll
 %in many examples; however, implicit signaling never uses signalAll.
 %In this project, we hope to design and build iMonitor that
 %is almost always as fast as explicit and considerably faster 
-%for synchronzation problems with signalAll.
+%for synchronization problems with signalAll.
 Our main contributions are as follows.
 \begin{enumerate}
     \item Presents the design and implementation of the iMonitor framework,
-        which provides support for concurrent programs with
-        implicit-signal mechanism.
-    \item Experimental evaluation of the iMonitor that shows significant
-        improvements in performance and scalability with predicate-awareness 
-        signaling and relay guarantee. 
-    \item Experimental evidence that indicates that iMonitor's implicit-signal
-        mechanism is almost as efficient as and sometimes even more efficient
-        than explicit-signal mechanism with simpler code complexity.
+        which supports concurrent programs with implicit-signal mechanism.
+    \item Experimental evaluation of iMonitor showing significant
+        improvements in performance and scalability with predicate tagging
+        and relay guarantee. 
+    \item Experimental evidence indicating that iMonitor's implicit-signal
+        mechanism is almost as efficient as or even more efficient
+        than explicit-signal mechanism with much simpler code complexity.
 \end{enumerate}
 %In this project, we are developing multiple such features.
 %Our second goal for SuperSynch is that the performance of the system
@@ -332,8 +330,8 @@ Our main contributions are as follows.
 %Organization
 %% NEERAJ
 \subsection{Organization}
-This paper is organized as follows. Section \ref{sec:pre} gives the
-preliminaries. Section \ref{sec:fw} describes the design of iMonitor
+This paper is organized as follows. Section \ref{sec:bg} gives the
+background. Section \ref{sec:fw} describes the design of iMonitor
 framework. The invented techniques are presented in Section \ref{sec:tech}
 and the practical implementation details are discussed in Section 
 \ref{sec:imp}. The proposed methods are then evaluated with experiments in 
@@ -341,7 +339,48 @@ Section \ref{sec:eval}. Section \ref{sec:related} provides a brief overview of
 related work, and Section \ref{sec:conclu} gives the concluding remarks.
 
 %% NEERAJ: \section{Prior NSF Results} 
-\section{Preliminaries} \label{sec:pre}
+\section{Background} \label{sec:bg}
+\subsection{Monitor}
+Monitor is an abstract object or module containing shared data to be used safely
+by multiple member functions and threads in concurrent programming. Monitor can
+be defined by two characteristics, mutual exclusion and synchronization. Mutual 
+exclusion guarantees that at most one thread can execute any member function of 
+a monitor at each time. Mutual exclusion provides programmers a more elegant
+way to update shared data when compared to directly accessing shared date. 
+Synchronization maintains the executing order between threads. Threads may wait
+for some condition to be met and release the privilege of the monitor control 
+temporarily. After the condition has been met, threads then re-acquire the 
+privilege and continue to execute.
+According to Buhr and Harji \cite{bh05}, monitors can be divided into two 
+categories according to the difference implementations of synchronization. 
+\begin{description}
+    \item{\bf Explicit-signal monitor} In this type of monitor, condition
+    variables and signal/await statement are used for synchronization. 
+    Programmers need to
+    associate assertions with condition variables manually. The mechanism of
+    synchronization involves two threads. One tread checks if some
+    assertion is met or not, and then explicit waits if the assertion is not
+    met. When another thread detects that the state has changed and the 
+    assertion is met, and then explicitly signals appropriate threads in the 
+    monitor.
+    \item{\bf Implicit-signal monitor} This kind of monitor uses waituntil
+    statements, instead of condition variables for
+    synchronization. Programmers do not need to associate assertions with
+    variables, but use waituntil statements directly. In
+    monitor, a thread will wait if the condition of a waitutil
+    statement is false, and execute the remaining tasks after the condition 
+    becomes true automatically.
+\end{description}
+
+Explicit-signal and implicit-signal monitors have different pros and cons. The 
+explicit-signal has more complex syntax than the implicit-signal monitor. In 
+addition, the explicit-signal needs the programmers to write the synchronization
+mechanism manually, which increases the chance of writing incorrect code. 
+However, in practice, the explicit-signal is more efficient than the implicit-signal. 
+The implicit-signal monitor is still useful in prototyping and verification. 
+Nevertheless, most of modern programming languages do not provide the 
+implicit-signal monitor mechanism.
+
 \subsection{Predicate}
 A predicate $P(\vec{x}): X \rightarrow \mathbb{B}$ is a statement that is 
 either true or false, where $X$ is the space spanned by the depending variables 
@@ -350,7 +389,7 @@ variables, shared variables and local variables. The set of shared variables,
 denoted as $S$, is accessible by every member function. The set of local 
 variables, denoted as $L$, is only accessible by the function in which the
 variables are declared. 
-Predicates can be divided into two categories based on the types of their 
+Predicates can be divided into two categories based on the type of their 
 depending variables.
 \begin{definition}
     Consider a predicate $P(\vec{x}): X \rightarrow \mathbb{B}$. If $X 
@@ -359,68 +398,16 @@ depending variables.
     is a general predicate. 
 \end{definition}
 
-Based on the semantics of predicates, three particular types of predicates have 
-been identified. 
-\begin{definition}
-    A predicate $P: (v = c)$ is an equivalence predicate, where $v$ is the
-    pivot variable and $v \in S$, and either $c \in L$ or $c$ is a constant 
-    value.
-\end{definition}
-\begin{definition}
-    A predicate $P: (v \neq c)$ is a non-equivalence predicate, where $v$ is the
-    pivot variable and $v \in S$, and either $c \in L$ or $c$ is a constant 
-    value.
-\end{definition}
-\begin{definition}
-    A predicate $P: (v \diamond c)$ is a threshold predicate, where $\diamond 
-    \in \{<,\ \le,\ >,\ \ge\}$, $v$ is the pivot variable and $v \in S$, and 
-    either $c \in L$ or $c$ is a constant value.
-\end{definition}
-
-These three types of predicates are XX\%. 
-Predicates are commonly used to describe the properties of conditions. 
-
-\subsection{Monitor}
-Monitor is an abstract object or module containing shared data to be used safely
-by multiple member functions and threads in concurrent programming. Monitor can
-be defined by two characteristics, mutual exclusion and synchronization. Mutual 
-exclusion guarantees that at most one thread can execute any member function of 
-a monitor at each time. The mutual exclusion provides programmers a more elegant
-way to update shared data compared to directly accessing shared date. 
-Synchronization maintains the executing order between threads. Threads may wait
-for some condition to be met and release mutual exclusion temporarily. After the
-condition has met, threads then re-acquire mutual exclusion and continue to 
-execute.
-According to Buhr and Harji \cite{bh05}, monitors can be divided into two 
-categories based on the difference implementations of synchronization. 
-\begin{description}
-    \item{\bf Explicit-signal monitor} In this type of monitor, condition
-    variables and signal/await statement are used for synchronization. 
-    Programmers need to
-    associate assertions with condition variables manually. The mechanism of
-    synchronization involves two threads. One tread checks if some
-    assertion is met or not and then explicit waits if the assertion is not
-    met. When another thread detects the state has changed and the assertion is
-    met, and then explicitly signals appropriate threads in the monitor.
-    \item{\bf Implicit-signal monitor} This kind of monitor uses waituntil
-    statements instead of condition variables for
-    synchronization. Programmers do not need to associate assertions with
-    variables but use waituntil statements and logical predicate directly. In
-    this kind of monitor, a thread will wait if the predicate of a waitutil
-    statement is false, and execute the remaining tasks after the predicate
-    has become true automatically.
-\end{description}
-
-Explicit-signal and implicit-signal monitors have different pros and cons. The 
-explicit-signal has more complex syntax than the implicit-signal monitor. In 
-addition, the explicit-signal needs the programmers to write the synchronization
-mechanism manually, which increases the chance of writing incorrect code. 
-However, in practice, explicit-signal is more efficient than implicit-signal. 
-The implicit-signal monitor is still useful in prototyping and verification. 
-Nevertheless, most of modern programming languages do not provide the 
-implicit-signal monitor mechanism.
-
-
+Predicates are commonly used to describe the properties of conditions. The
+predicates are disjunctive normal form in this paper. why? simple enough for us
+to reason and general enough in expression. 
+By De Morgan's law and distributive law, any predicate can be transformed to
+disjunctive normal form. By pushing negation inside, we can also assume 
+that there is no negation operator. For a predicate $P = \Sigma_{1}^{n}c_i$, 
+for each clause $c_i$ can be considered as a predicate, but all of the clauses 
+map to a same condition variable. If $c_i$ is a equivalence predicate, 
+non-equivalence predicate, or threshold predicate, then the above optimizations
+can be used. Otherwise, $c_i$ is stored in a linked list. 
 
 
 
@@ -494,6 +481,7 @@ The design principles underlying iMonitor are as follows.
 %function in which a particular thread is executing; therefore values of local variables 
 %cannot be changed by other threads after a particular thread is waiting. 
 %All other threads can check the globalized predicate safely. 
+
 Evaluating a general predicate in all threads is unattainable 
 because the accessibility of the local variables in the predicate is limited 
 to the thread declaring them. To evaluate a general predicate in all 
@@ -574,30 +562,66 @@ are avoidable by providing relay guarantee. Every time a
 thread exits a monitor or goes into waiting state, checking whether or not a
 waiting thread has true predicate. The remaining problem is how to find such
 thread efficiently. 
-\subsection{Automatically Predicate-Awareness Signaling}
+\subsection{Predicate Tagging and Signaling}
+In order to search an appropriate thread with a true predicate, different tags
+are assigned to every predicate according to its semantics. This kind of tags
+depicts the properties of a predicate and allows a true predicate to be found
+efficiently by examining the state of a monitor. Before going through the 
+details, two particular types of predicates are defined as follows according to
+the semantics of predicates. 
+\begin{definition}
+    A predicate $P: (v = c)$ is an equivalence predicate, where $v$ is the
+    pivot variable and $v \in S$, and either $c \in L$ or $c$ is a constant 
+    value.
+\end{definition}
+%\begin{definition}
+%    A predicate $P: (v \neq c)$ is a non-equivalence predicate, where $v$ is the
+%    pivot variable and $v \in S$, and either $c \in L$ or $c$ is a constant 
+%    value.
+%\end{definition}
+\begin{definition}
+   A predicate $P: (v\ \boldsymbol{op}\ c)$ is a threshold predicate, where 
+   $\boldsymbol{op}
+    \in \{<,\ \le,\ >,\ \ge\}$, $v$ is the pivot variable and $v \in S$, and 
+    either $c \in L$ or $c$ is a constant value.
+\end{definition}
 
-\subsubsection{Equivalence Predicate Signaling}
+These three types of predicates are XX\%. 
+\subsection{Tagging}
+A tag is a three tuple label $()$
+Tags are given to every predicate by the following rules. 
+Every minterm has a predicate. 
+A predicate's tags are their minterms' tags. 
+
+For a minterm, 
+if it contains ep, give it a ep tag. If no ep, check if it is tp, if yes, give
+it tp tag. If none of above, give it a NONE tag. 
+why do we do so? equivalent tag are most powerful in determine 
+
+\subsection{Signaling}
+\subsubsection{Equivalence Tag Signaling}
 Observing that, an equivalence predicate becomes true when its pivot variable 
 equals the specific value in the predicate. For evaluating distinct
 equivalence predicates related to a same pivot variable, at most one
 predicate can be true at a time because the value of pivot variable is 
 deterministic unique at any time. By observing the value of the pivot variable, 
 the true predicate can be identified if there is any. Based on this 
-observation, for each pivot variable of a equivalence predicate, we create a 
+observation, for each pivot variable of a equivalence tag, we create a 
 hash table, where the specific value is used as the key. By using this hash 
-table and the value of the pivot variable, the true predicate can be found in 
+table and the value of the pivot variable, go to check all predicates of the
+tag. If find a true predicate then return it.  
 $O(1)$ if it exists.
 
 %Monotonic predicate evaluations can be optimized by the following observation. 
-\subsubsection{Non-Equivalence Predicate Signaling}
-Observing that, the value of a variable is deterministic and unique at any 
-time. Two distinct non-equivalence predicates with a same pivot variable cannot
-be false simultaneously. For example, at least one of $x \ne 8$ and $x \ne 5$
-is true. Non-equivalence predicates with a same pivot variable are stored in
-a linked list. By checking the first two predicates of the 
-linked list, at least one predicate is true. 
+%\subsubsection{Non-Equivalence Predicate Signaling}
+%Observing that, the value of a variable is deterministic and unique at any 
+%time. Two distinct non-equivalence predicates with a same pivot variable cannot
+%be false simultaneously. For example, at least one of $x \ne 8$ and $x \ne 5$
+%is true. Non-equivalence predicates with a same pivot variable are stored in
+%a linked list. By checking the first two predicates of the 
+%linked list, at least one predicate is true. 
 
-\subsubsection{Threshold Predicate Signaling}
+\subsubsection{Threshold Tag Signaling}
 
 To optimize the threshold predicate evaluation, we consider the following
 situation. Suppose there are two predicates, $x > 5$ and $x > 3$, we know 
@@ -621,14 +645,6 @@ same, max-heap can be used for predicates with $<$ and $\le$ operations.
 %\end{definition}
 %\begin{proposition}
 %\end{proposition}
-\subsubsection{Conjunction and Disjunction}
-By De Morgan's law and distributive law, any predicate can be transformed to
-disjunctive normal form (DNF). By pushing negation inside, we can also assume 
-that there is no negation operator. For a predicate $P = \Sigma_{1}^{n}c_i$, 
-for each clause $c_i$ can be considered as a predicate, but all of the clauses 
-map to a same condition variable. If $c_i$ is a equivalence predicate, 
-non-equivalence predicate, or threshold predicate, then the above optimizations
-can be used. Otherwise, $c_i$ is stored in a linkedlist. 
 \section{Practical Implementation} \label{sec:imp}
 
 
@@ -806,7 +822,22 @@ monitor approach.
   \label{fig:pc_eval}
 \end{figure}
 
-
+\begin{table}
+   \centering
+   \begin{tabular}{|c||c|c|c|c|}
+      \hline 
+         & PC & PC* & RW & RR \\
+      \hline 
+      explicit & $O(1)$ & $O(n^2)$? & $O(1)$ & $O(1)$ \\
+      \hline 
+      baseline & $O(1)$ & $O(n)$ & $O(n)$ & $O(n)$ \\
+      \hline 
+      iMonitor & $O(1)$ & $O(1)$ & $O(1)$ & $O(1)$ \\
+      \hline 
+   \end{tabular}
+   \caption{The computing complexity}
+   \label{tab:<+label+>}
+\end{table}<++>
 
 %\begin{figure}
 %  \centering
@@ -1217,7 +1248,6 @@ Acknowledgments, if needed.
 \begin{thebibliography}{}
 \softraggedright
 
-
 \bibitem {bfc95}
   P. A. Buhr, M. Fortier, and M. H. Coffin, \emph{Monitor Classification}. ACM 
   Computing Surveys, ACM, 27(1):63--107, 
@@ -1239,5 +1269,4 @@ Acknowledgments, if needed.
 
 
 \end{thebibliography}
-
 \end{document}

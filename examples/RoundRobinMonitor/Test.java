@@ -5,13 +5,22 @@ class TestThread extends Thread {
     private RoundRobinMonitor monitor;
     private int numAccess; 
     private int myId;
-    public TestThread(RoundRobinMonitor monitor_, int numAccess_, int myId_) {
-        monitor = monitor_;
-        numAccess = numAccess_;
-        myId = myId_;
+    private int delay;
+    public TestThread(RoundRobinMonitor monitor, int numAccess, int myId, 
+          int delay) {
+        this.monitor = monitor;
+        this.numAccess = numAccess;
+        this.myId = myId;
+        this.delay = delay;
     }
     public void run() {
         for(int i = 0; i < numAccess; ++i) {
+           if (delay != 0) {
+              try {
+                  Thread.sleep(0, 1000 * delay);  
+              } catch(InterruptedException e) {
+              }
+           }
             monitor.access(myId);
         }
     }
@@ -22,6 +31,7 @@ public class Test{
     {
         int numProc = 16;
         int totalNumAccess = 1000;
+        int delay = 0;
         RoundRobinMonitor monitor = null;
         try {
             numProc = Integer.parseInt(args[0]); 
@@ -38,6 +48,7 @@ public class Test{
                     monitor = 
                         new iMonitorRoundRobin(numProc, args[2].charAt(0));
             }
+            delay = Integer.parseInt(args[3]);
         } catch(Exception e) {
             if(monitor == null) {
                 monitor = new ExplicitRoundRobinMonitor(numProc);
@@ -47,7 +58,7 @@ public class Test{
         long startTime = System.currentTimeMillis();
         TestThread[] testThreads = new TestThread[numProc];
         for (int i = 0; i < numProc; ++i) {
-            testThreads[i] = new TestThread(monitor, totalNumAccess/numProc, i);
+            testThreads[i] = new TestThread(monitor, totalNumAccess/numProc, i, delay);
             testThreads[i].start();
         }
         float totalCpuTime = 0.0f;
