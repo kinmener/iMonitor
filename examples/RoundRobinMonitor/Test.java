@@ -6,12 +6,14 @@ class TestThread extends Thread {
     private int numAccess; 
     private int myId;
     private int delay;
+    private long responseTime; 
     public TestThread(RoundRobinMonitor monitor, int numAccess, int myId, 
             int delay) {
         this.monitor = monitor;
         this.numAccess = numAccess;
         this.myId = myId;
         this.delay = delay;
+        responseTime = 0;
     }
     public void run() {
         for(int i = 0; i < numAccess; ++i) {
@@ -25,8 +27,14 @@ class TestThread extends Thread {
                 } catch(InterruptedException e) {
                 }
             }
+            long startTime = System.nanoTime();
             monitor.access(myId);
+            responseTime += (System.nanoTime() - startTime);
         }
+    }
+
+    public double getAvgResponseTime() {
+        return (double) responseTime / (double) numAccess;
     }
 }
 
@@ -65,15 +73,17 @@ public class Test{
             testThreads[i] = new TestThread(monitor, totalNumAccess/numProc, i, delay);
             testThreads[i].start();
         }
-        float totalCpuTime = 0.0f;
+        double totalResponseTime = 0.0f;
         for (int i = 0; i < numProc; ++i) {
             try {
                 testThreads[i].join();
+                totalResponseTime += testThreads[i].getAvgResponseTime();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
         long execTime = System.currentTimeMillis() - startTime;
-        System.out.println( execTime );
+//        System.out.println( execTime );
+        System.out.println(totalResponseTime / numProc);
     }
 }
