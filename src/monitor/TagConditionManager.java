@@ -77,6 +77,7 @@ public class TagConditionManager {
             }
         }
 
+        // lteptag
         for (Entry<String, PriorityQueue<PredicateTag>> entry : 
                 mapLTEPTag.entrySet()) {
             PredicateTag tag = entry.getValue().peek(); 
@@ -85,22 +86,46 @@ public class TagConditionManager {
                 continue;
             }
             
-            if (tag.isTrue()) {
+            LinkedList<PredicateTag> tags = new LinkedList<PredicateTag>();
+            while (tag.isTrue()) {
                 if (tag.signalOneAvailable()) {
+                    // add false tags back
+                    for (PredicateTag trueTag : tags) {
+                        entry.getValue().add(trueTag); 
+                    }
                     return;
-                } else {  // no predicates are true, need to handle 
+                } else {  // tage is ture but no predicates is true
+                    tags.add(entry.getValue().poll());
+                    tag = entry.getValue().peek();
                 }
             } 
+            // add false tags back
+            for (PredicateTag trueTag : tags) {
+                entry.getValue().add(trueTag); 
+            }
         }
 
         for (Entry<String, PriorityQueue<PredicateTag>> entry : 
                 mapGTEPTag.entrySet()) {
             PredicateTag tag = entry.getValue().peek(); 
 
-            if (tag != null) {
+            if (tag == null) {
+                continue;
+            }
+
+            LinkedList<PredicateTag> tags = new LinkedList<PredicateTag>();
+            while (tag.isTrue()) {
                 if (tag.signalOneAvailable()) {
+                    // add false tags back
+                    for (PredicateTag trueTag : tags) {
+                        entry.getValue().add(trueTag); 
+                    }
                     return;
+                } else {  // tage is ture but no predicates is true
+                    tags.add(entry.getValue().poll());
+                    tag = entry.getValue().peek();
                 }
+                return;
             }
         }
 

@@ -195,12 +195,12 @@ to explicitly associate the assertions with condition variables and call
 signal/await statement manually. The implicit-signal bounded buffer is written
 in our iMonitor framework. As can be expected, the implicit-signal monitor is
 more straightforward and simpler than the explicit-signal monitor for
-programmers. 
+programmers in both code reasoning and syntax. 
 \begin{figure*}[ht!]
 \begin{multicols}{2}
     \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
             framesep=5mm,numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Explicit-Signal Bounded Buffer}}]
+            label=\fbox{\small\emph{Explicit-Signal}}]
         class BoundedBuffer {
           Object[] items;  
           int putPtr, takePtr, count;
@@ -244,7 +244,7 @@ programmers.
     \end{Verbatim}
     \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
             numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Implicit-Signal Bounded Buffer}}]
+            label=\fbox{\small\emph{Implicit-Signal}}]
         monitor class BoundedBuffer { 
           Object[] items; 
           int putPtr, takePtr, count; 
@@ -277,7 +277,7 @@ programmers.
 \end{figure*}
 
 \subsection{Contributions}
-In this research, we develop new techniques that use tags to classify 
+In this research, we develop new techniques that use tags for classifying 
 predicates to minimize the number of times conditions are evaluated.
 %In our initial implementation, 
 %implicit signaling is generally as fast as explicit and even
@@ -320,15 +320,6 @@ Our main contributions are as follows.
 %for decades. Although the concept has now entered in concurrent programming world 
 %via transactional memories
 
-
-
-
-
-
-
-
-%Organization
-%% NEERAJ
 \subsection{Organization}
 This paper is organized as follows. Section \ref{sec:bg} gives the
 background. Section \ref{sec:fw} describes the design of iMonitor
@@ -338,7 +329,6 @@ and the practical implementation details are discussed in Section
 Section \ref{sec:eval}. Section \ref{sec:related} provides a brief overview of
 related work, and Section \ref{sec:conclu} gives the concluding remarks.
 
-%% NEERAJ: \section{Prior NSF Results} 
 \section{Background} \label{sec:bg}
 \subsection{Monitor}
 Monitor is an abstract object or module containing shared data to be used safely
@@ -394,20 +384,20 @@ depending variables.
 \begin{definition}
     Consider a predicate $P(\vec{x}): X \rightarrow \mathbb{B}$. If $X 
     \subseteq S$, $P$ 
-    is a restricted predicate. Otherwise, if $X \subseteq S \cup L$, $P$ 
+    is a restricted predicate. Otherwise, if $X \not\subseteq S$, $P$ 
     is a general predicate. 
 \end{definition}
 
-Predicates are commonly used to describe the properties of conditions. The
-predicates are disjunctive normal form in this paper. why? simple enough for us
-to reason and general enough in expression. 
-By De Morgan's law and distributive law, any predicate can be transformed to
-disjunctive normal form. By pushing negation inside, we can also assume 
-that there is no negation operator. For a predicate $P = \Sigma_{1}^{n}c_i$, 
-for each clause $c_i$ can be considered as a predicate, but all of the clauses 
-map to a same condition variable. If $c_i$ is a equivalence predicate, 
-non-equivalence predicate, or threshold predicate, then the above optimizations
-can be used. Otherwise, $c_i$ is stored in a linked list. 
+In this paper, we assume that every predicate, $p = \sum_i^nc_i$, is disjunctive 
+normal form (DNF), where a clause $c_i$ is defined as the conjunction of a set
+of atomic Boolean expressions. The DNF representation is adopted because of the
+generality that every Boolean formulas can be converted into DNF using De
+Morgan's laws and distributive law. 
+
+
+Predicates can be used to describe the properties of conditions. In this paper,
+the predicate is used to depict the condition of every waituntil statement. 
+
 
 
 
@@ -547,15 +537,14 @@ iMonitor, signalAll calls are avoided by providing the following guarantee.
 \end{proposition}
 \begin{proof}
     Suppose not. All waiting threads with true predicates are blocked and 
-    no other thread can signal them. Since a thread will signal one thread with
-    true predicate before leaving the monitor or going into waiting state, no 
-    thread is active in the monitor.  However, since a thread goes into waiting 
-    state with a false predicate, must some thread enters the monitor and
-    changes the status of the monitor. Suppose thread $T$ is the last thread 
-    being active in the monitor. It must signal one thread before leaving or 
-    going into waiting state since there are some threads with true predicate. 
-    A contraction. 
-\end{proof}
+    no other thread can signal them. Consider a true predicate $P$. Since some
+    thread goes into waiting state with $P$, $P$ is false initially. Some 
+    thread must enters the monitor and changes the status of the monitor to
+    make $P$ becomes true. Suppose thread $T$ is the last thread being active 
+    in the monitor. Since $P$ has become true, $T$ must signal one thread
+    waiting on $P$ or other true predicate before leaving or 
+    going into waiting state. A contraction. 
+ \end{proof}
 
 Proposition \ref{pro:one} lays the theoretical foundation that signalAll calls
 are avoidable by providing relay guarantee. Every time a
@@ -563,12 +552,12 @@ thread exits a monitor or goes into waiting state, checking whether or not a
 waiting thread has true predicate. The remaining problem is how to find such
 thread efficiently. 
 \subsection{Predicate Tagging and Signaling}
-In order to search an appropriate thread with a true predicate, different tags
-are assigned to every predicate according to its semantics. This kind of tags
-depicts the properties of a predicate and allows a true predicate to be found
-efficiently by examining the state of a monitor. Before going through the 
+In order to find an appropriate thread with a true predicate efficiently, 
+different tags are assigned to every predicate according to its semantics. 
+Those tags depict the properties of a predicate and allow true predicates to be 
+found efficiently by examining the state of a monitor. Before going through the 
 details, two particular types of predicates are defined as follows according to
-the semantics of predicates. 
+the their semantics. 
 \begin{definition}
     A predicate $P: (v = c)$ is an equivalence predicate, where $v$ is the
     pivot variable and $v \in S$, and either $c \in L$ or $c$ is a constant 
@@ -585,32 +574,84 @@ the semantics of predicates.
     \in \{<,\ \le,\ >,\ \ge\}$, $v$ is the pivot variable and $v \in S$, and 
     either $c \in L$ or $c$ is a constant value.
 \end{definition}
+An equivalence predicate is more deterministic than a threshold predicate since 
+the predicate is true only when the value of its pivot variable equal a
+specific value. 
 
-These three types of predicates are XX\%. 
+These two types of predicates are XX\%. 
+
 \subsection{Tagging}
-A tag is a three tuple label $()$
-Tags are given to every predicate by the following rules. 
-Every minterm has a predicate. 
-A predicate's tags are their minterms' tags. 
+In general, tags are assigned to predicates according to their types. The 
+formal definition of the tag is as follows. 
+\begin{definition}
+   A tag $T$ is a four-tuple $(L, op, v, c)$, where  
+   \begin{itemize}
+      \item $L \in \{Equivalence,\ Threshold,\ None\}$;
+      \item $op \in \{<,\ \le,\ >,\ \ge\}$ if $L = Threshold$; otherwise, 
+         $op = \perp$;
+      \item $v$ and $c$ are the name of pivot variable and the constant
+         value if $L \in \{Equivalence,\ Threshold\}$; otherwise, $v = \perp$
+         and $c = \perp$.
+   \end{itemize}
+\end{definition}
+Tags are given to every predicate by the algorithm shown in
+Fig.~\ref{fig:tagging}. The tags of its clauses form the set of tags of a
+predicate. A tag is assigned to every clause. The equivalence tag is more
+helpful in ruling out false predicates than the threshold predicate due to its
+determinism. Therefore, the equivalence tag has higher priority than others 
+when assigning tag to a clause. If a clause does not conjunct with an
+equivalence predicate, then we check whether or not it conjuncts with a 
+threshold predicate. If yes, then a threshold tag is assigned to the clause; 
+otherwise, the clause has none tag. 
 
-For a minterm, 
-if it contains ep, give it a ep tag. If no ep, check if it is tp, if yes, give
-it tp tag. If none of above, give it a NONE tag. 
-why do we do so? equivalent tag are most powerful in determine 
+The motivation behind the tag is to accelerate the process by ruling out false 
+predicate but not exhaustive search. Creating thorough tags for a clause is
+unnecessary. If a clause includes multiple equivalence predicates or threshold 
+predicates, only one arbitrary equivalence tag or threshold tag is assigned to 
+the clause. On one hand, a clause is false when at least one of its atomic 
+Boolean expressions is false. A tag of a clause is sufficient to help us ruling 
+out this predicate when it is false. On the other hand, too many of tags 
+increases as the performance decreases due the cost of maintaining tags. 
 
-\subsection{Signaling}
+\begin{figure}[ht!]
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
+            framesep=3mm]
+         tags = empty
+         foreach clause c 
+         if c contains an equivalence predicate x=v
+            create a tag t = (Equivalence, null, x, v)
+            add t to tags
+         else if c contains a threshold predicate x op v
+            create a tag t = (Threshold, op, x, v)
+            add t to tags
+         else 
+            create a tag t = (None, null, null, null)
+            add t to tags
+         return tags
+    \end{Verbatim}
+  \caption{Predicate Tagging}
+  \label{fig:tagging}
+\end{figure}
+
+
+\subsection{Tag Signaling}
+Signaling mechanism in iMonitor is based on tags. 
+Since the equivalence tag is more deterministic than the threshold tag. The
+predicates with equivalence are checked prior to the predicates with threshold
+tags. If no true predicate can be found after examining ``equivalence'' tags and
+``threshold'' tags, the exhaustive search in the predicates with ``none'' tags. 
+
 \subsubsection{Equivalence Tag Signaling}
-Observing that, an equivalence predicate becomes true when its pivot variable 
-equals the specific value in the predicate. For evaluating distinct
-equivalence predicates related to a same pivot variable, at most one
-predicate can be true at a time because the value of pivot variable is 
-deterministic unique at any time. By observing the value of the pivot variable, 
-the true predicate can be identified if there is any. Based on this 
-observation, for each pivot variable of a equivalence tag, we create a 
+Observing that, an equivalence predicate becomes true only when its pivot 
+variable equals the specific value in the predicate. For distinct equivalence 
+tags related to a same pivot variable, at most one tag can be true at a time 
+because the value of pivot variable is deterministic and unique at any time. By 
+observing the value of the pivot variable, the appropriate tag can be 
+identified if there is any. Based on this 
+observation, for each unique pivot variable of an equivalence tag, we create a 
 hash table, where the specific value is used as the key. By using this hash 
-table and the value of the pivot variable, go to check all predicates of the
-tag. If find a true predicate then return it.  
-$O(1)$ if it exists.
+table and the value of the pivot variable, we only need to check the predicates 
+with the tag. 
 
 %Monotonic predicate evaluations can be optimized by the following observation. 
 %\subsubsection{Non-Equivalence Predicate Signaling}
@@ -622,39 +663,63 @@ $O(1)$ if it exists.
 %linked list, at least one predicate is true. 
 
 \subsubsection{Threshold Tag Signaling}
+For threshold tag, we consider the following situation. Suppose there are two 
+predicates, $x > 5$ and $x > 3$, we know that if $x > 3$ is false, and then $x > 5$ 
+is impossible to be true. That is, we only need to check the predicate with the 
+smallest threshold value for $>$ and $\ge$ operations. The heap data structure
+is used for storing the threshold tags related to the same pivot variable. 
+Def.~\ref{def:th_order} gives the order for threshold tags. The min-heap and
+max-heap are used for tags with $\boldsymbol{op} \in \{>,\ \ge\}$ and
+$\boldsymbol{op} \in \{<,\ \le\}$. 
 
-To optimize the threshold predicate evaluation, we consider the following
-situation. Suppose there are two predicates, $x > 5$ and $x > 3$, we know 
-that if $x > 3$ is false, and then $x > 5$ is impossible to be true. That is,
-we only need to check the predicate with the smallest threshold value for $>$
-and $\ge$ operations. We only need to check the root of the min-heap. If the 
-predicate is true, then we signal a waiting thread of the root. Otherwise, all 
-the descendant nodes cannot be true either.  Therefore, the data structure 
-min-heap can be used with 
-the threshold value as key for predicates with $>$ and $\ge$ operations. The 
-same, max-heap can be used for predicates with $<$ and $\le$ operations.
+\begin{definition} \label{def:th_order}
+    An ordering $\prec$ is defined as follows
+\[
+   (c_1, \boldsymbol{op}_1) \prec (c_2, \boldsymbol{op}_2)
+\]
+if and only if $c_1 < c_2$ or $c_1 = c_2$ and $(\boldsymbol{op}_1,
+\boldsymbol{op}_2)  = (\ge, >)$ or $(\boldsymbol{op}_1, \boldsymbol{op}_2) =
+(<, \le)$. 
+\end{definition}
 
-%\begin{definition}
-%    A odering $<<$ is defined as follows
-%\[
-%    (c_1, \diamond_1) << (c_2, \diamond_2)
-%\]
-%if and only if $c_1 < c_2$ or $c_1 = c_2$ and $\diamond_1 = \ge$ and
-%$\diamond_2 = >$ or $\diamond_1 = <$ and $\diamond_2 = \le$.
-%
-%\end{definition}
-%\begin{proposition}
-%\end{proposition}
+The signaling mechanism for threshold tag is shown if Fig.~\ref{fig:th_sig}. In
+general, the tag in the root of a heap is checked. If the tag is false, all the
+descendant nodes cannot be true either. Otherwise, all predicates with the tag
+need to be checked for finding a true predicate. To maintain the correctness, 
+if no predicate is true, the tag is removed from the heap temporarily. Then the
+tag in the new root is checked again. After a true predicate is found or a
+false tag is found, those tags removed temporarily are reinserted to the heap.
+The reason to remove the tags is that the descendant of the tags may also be
+true since the tags are true. So we also need to check the descendant tags.
+\begin{figure}[ht!]
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
+            framesep=3mm]
+         list bakup = empty;
+         tag t = heap.peak();
+         while t is true
+            foreach predicate p with t
+               if p is true
+                  signal p
+                  foreach b in backup 
+                     heap.add(b)
+                  return
+            backup.insert(heap.pool())
+            t = heap.peak()
+         foreach b in backup 
+            heap.add(b)
+    \end{Verbatim}
+  \caption{Threshold tag signaling}
+  \label{fig:th_sig}
+\end{figure}
+
+
+
+
 \section{Practical Implementation} \label{sec:imp}
-
-
-
-
-
-
-
-
-
+The iMonitor Implementation involves two parts, the preprocessor and condition
+manager. The preprocessor converts a iMonitor extension code to a Java code.
+The condition manager implements the signal mechanism and the condition
+variable maintaining. 
 
 \subsection{Preprocessor}
 The preprocessor of iMonitor performs preprocessing in the following four 
@@ -717,8 +782,13 @@ beginning of every member function and released before the return statement.
 In addition, a condition manager, $condMgr$, is declared for 
 synchronization. The details of the condition manager will be discussed in next
 section. In general, the condition manager maintains the association between 
-predicates and condition variables created by iMonitor. All restricted
+predicates and condition variables created by iMonitor. The signal mechanism is
+also implemented in condition manager. 
+
+All predicates are transformed to DNF in
+preprocessing by De Morgan's laws and distributive law. All restricted
 predicates are identified in the preprocessing and added in the constructor. 
+
 In the waituntil statement, the predicate expression is checked initially. If 
 the expression is true, then the thread can continue. Otherwise, the type of
 predicate is checked. If the predicate is general, applying globalization to 
@@ -754,81 +824,95 @@ then the predicate is inactivated by the condition manager.
 
 
 \subsection{Condition Manager}
-Predicates have the same meaning should be mapped to the same condition
-variable. However, semantic equivalence is unattainable. We adopt syntax 
-equivalent. Two predicates are syntax equivalent means that the two predicates
+The condition manager maintains the predicates and condition variables, and
+provides the signaling mechanism. 
+
+To avoid creating redundant predicates and condition variables, predicates have 
+the same meaning should be mapped to the same condition variable. However, 
+semantic equivalence is unattainable. We adopt syntax equivalent. Two 
+predicates are syntax equivalent means that the two predicates
 are identical after applying globalization. Predicate table, implemented by a
-hash table, records predicates and their associated condition variables. A 
-condition variable then is stored in a data structure according to its type.  
+hash table, records predicates and their associated condition variables. 
 
-A predicate may associate with many condition variables. i.e., $P_1 = (x < 8)$
-and $P_2 = (x < 8) \vee (x > 100)$. The $(x < 8)$ should map two condition
-variables $c_1$ and $c_2$, where $c_2$ is shared with $(x > 100)$. 
+When a predicate is added to the condition manager, the predicate is analyzed
+and its tags are created. Then those tags are stored in an appropriate data
+structure. Fig.~\ref{fig:mgr} shows an example. The symbol $\bullet$ indicates 
+a condition variable. The gray blank indicate the predicate is inactivated.
+That is, no thread waits on it. A hash table is used for
+storing equivalence tags with pivot variable $x$. In addition, a min-heap and a
+max-heap are used for threshold tags. 
 
-A predicate must be removed form the checking list once no thread waits on 
-it to avoid unnecessary predicate evaluation and ensure correctness. 
-The threshold predicate should be removed if there is no waiting thread. Since 
-we only signal the root of the threshold predicate, a empty root 
-(no waiting thread) will lead to deadlock. Predicates may be reused. Instead of
-removing those predicate with no waiter, moving those predicate to a inactivate
-list. If they are used later, then put it back. Otherwise, when the length of 
-inactivated list exceeds some threshold, remove the oldest.
-
-Signaling order: equivalence predicate, non-equivalence predicate, threshold
-predicate, and then other predicates. Find one and signal then return. 
+For finding a true predicate in Fig.~\ref{fig:mgr}, the value of $x$ is 
+examined. Suppose at this point $x=4$. We check the hash table with a
+constant time and cannot find a tag. Then we check the root of the max-heap and 
+min-heap. Again, we cannot find a tag. Then we check the tags with the ``none''
+tag. We find $x \ne 5$ and signal the corresponding condition variable. As can
+be expected, the equivalence and threshold tags is helpful for efficiently
+searching a true predicate.  
 
 
-Fig.~\ref{fig:mgr} shows an example. 
 \begin{figure*}[ht!]
   \centering
-  \includegraphics[width=160mm]{fig/manager.eps}
+  \includegraphics[width=180mm]{fig/manager.eps}
   \caption{A example of the condition manager in iMonitor}
   \label{fig:mgr}
 \end{figure*}
 
-\clearpage
+A predicate must be removed from the tag once no thread waits on 
+it to avoid unnecessary predicate evaluation. A threshold tag also need to
+removed once no predicate is tagged as it. The reason is that 
+we signal the root of the threshold predicate, a empty root 
+will introduce overhead to find the next tag. 
+
+Predicates may be reused. Instead  of removing those predicate with no waiter, 
+we move those predicate to a inactivate list. If they are used later, then we 
+put it back. Otherwise, when the length of inactivated list exceeds some 
+threshold, we remove the oldest predicates form the list.
+%\clearpage
 
 
 \section{Evaluations} \label{sec:eval}
 %\subsection{Saturation}
-Four kinds of experiments were performed to evaluate the performances of the
-explicit-signal monitor with original Java and the implicit-signal monitor with
-iMonitor framework. All of the experiments were conducted on a machine with 16 
+\subsection{Environment}
+All of the experiments were conducted on a machine with 16 
 Intel(R) Xeon(R) X5560 CPUs and 64 GBs memory. 
+%Four kinds of experiments were performed to evaluate the performances of the
+%explicit-signal monitor with original Java and the implicit-signal monitor with
+%iMonitor framework. 
 
 
-Fig.~\ref{fig:pc_eval} shows the results of producer-consumer problem. The
-x-axis indicates the number of producers and consumers; the y-axis indicates the
-runtime in seconds. Total 512000 $put$ and $take$ operations were executed by
-all producers and consumers. As expected, the naive approach is much slower than
-others. Both N-Condition and map approaches are slightly slower in most cases.
-This phenomenon can be explained as follows. Observe explicit-signal and 
-implicit-signal approaches for the producer-consumer problem is shown in 
-Fig.~\ref{fig:bb_exp}. In the implicit-signal approaches, there are only two 
-waituntil statements with global predicates, $count > 0$ and 
-$count < items.length$. In the naive approach, producers and consumers are
-signaled every time when a thread await or want to exit the monitor. Therefore,
-if a consumer waits because $count = 0$, all other consumers are awaken and
-check the predicate $count > 0$. Such kind of operations is redundant and lead
-to the inefficiency of naive implementation. The map
-implementations only need to check two global predicates in a waituntil
-statement and the exit of monitor. Hence, the N-Condition and map implementation 
-has the similar performance and only slightly slower than the explicit-signal
-monitor approach. 
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/pc.eps}
-  \caption{The results of producer-consumer problem}
-  \label{fig:pc_eval}
-\end{figure}
+\subsection{Signaling mechanisms}
+The implementations using three different signaling mechanisms have been 
+compared. 
+\begin{description}
+    \item[Explicit-signal] Using the original Java explicit-signal mechanism. 
+    \item[iMonitor] Using the approach described in this paper. 
+    \item[Baseline] Using the implicit-signal mechanism without relay guarantee
+        and predicate tagging. 
+\end{description}
 
+\subsection{Test Problems}
+\begin{description}
+    \item[Producer-Consumer (PC)] The traditional producer-consumer shown in 
+        Fig.~\ref{fig:bb_exp}.
+    \item[Producer-Consumer* (PC*)] The producer may produce $n$ elements a 
+        time. In addition, the consumer may consume $n$ elements a time.
+    \item[Readers/Writers (RW)] In the approach \cite{bh05}, a ticket is used
+        to maintain the accessing order of readers and writers. Every reader
+        and writer get a ticket number indicating its arrival order. Readers
+        and writers are waiting on the monitor for their turn. 
+    \item[Round-Robin Access Pattern (RR)] Every test thread accesses the
+        monitor in round-robin order. 
+\end{description}
+
+The computing complexity is summarized in Tab.~\ref{tab:complexity}.
 \begin{table}
    \centering
    \begin{tabular}{|c||c|c|c|c|}
       \hline 
          & PC & PC* & RW & RR \\
       \hline 
-      explicit & $O(1)$ & $O(n^2)$? & $O(1)$ & $O(1)$ \\
+      explicit & $O(1)$ & $O(n)$ & $O(1)$ & $O(1)$ \\
       \hline 
       baseline & $O(1)$ & $O(n)$ & $O(n)$ & $O(n)$ \\
       \hline 
@@ -836,8 +920,43 @@ monitor approach.
       \hline 
    \end{tabular}
    \caption{The computing complexity}
-   \label{tab:<+label+>}
-\end{table}<++>
+   \label{tab:complexity}
+\end{table}
+
+
+
+\subsection{Testbed}
+Fig.~\ref{fig:testbed} shows the experimental testbed \cite{bfc95}. 
+Every test thread has two state, monitor state and workload state. A thread
+query to access monitor in monitor state and perform its own job on workload
+state. The average response time of the monitor allows us evaluate the
+performance of different monitors. The first part of the experiments assume
+no workload for every thread. That is, every thread executes only monitor
+accessing calls with no other work. In the second part, we compared the
+performance under different workload.  
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=40mm]{fig/testbed.eps}
+  \caption{The testbed}
+  \label{fig:testbed}
+\end{figure}
+
+\subsection{Saturation Evaluation}
+Fig.~\ref{fig:pc_eval} shows the results of producer-consumer problem. The
+x-axis indicates the number of producers and consumers; the y-axis indicates the
+runtime in seconds. Total 512000 $put$ and $take$ operations were executed by
+all producers and consumers. As expected, than three signaling mechanisms have 
+similar performance. This phenomenon can be explained as follows. There are 
+only two waituntil statements with global predicates, $count > 0$ and 
+$count < items.length$. Therefore, the complexity for signaling a thread in
+implicit-signal mechanisms are also constant. Hence, the explicit-signal
+mechanism is slightly more efficient than two other approaches. 
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/pc.eps}
+  \caption{The results of producer-consumer problem}
+  \label{fig:pc_eval}
+\end{figure}
 
 %\begin{figure}
 %  \centering
@@ -921,6 +1040,7 @@ worse than the explicit-signal approach with a steady difference.
   \label{fig:rr_eval}
 \end{figure}
 
+\subsection{Performance under Different Workload}
 %\begin{figure}
 %  \centering
 %  \subfloat[Explicit-Signal] {
@@ -1003,248 +1123,246 @@ The conclusion goes here. this is more of the conclusion
 
 
 \appendix
-\section{Bounded-Buffer Code}
-\begin{figure*}[ht!]
-\begin{multicols}{2}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
-            framesep=5mm,numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Explicit-Signal Bounded Buffer with
-            a Parameter}}]
-        class BoundedBuffer {
-          Object[] items;  
-          int putPtr, takePtr, count;
-          Lock mutex = new ReentrantLock();
-          Condition noSufficientSpace = mutex.newCondition();
-          Condition noSufficientItem = mutex.newCondition();
-          public BoundedBuffer(int n) {
-            items = new Object[n];
-            putPtr = takePtr = count = 0;
-          }
-          public void put(int n) {
-            mutex.lock();
-            while (n + count > items.length) {
-              noSufficientItem.signalAll();
-              noSufficientSpace.await();
-            }
-            for (int i = 0; i < n; ++i) {
-              items[putPtr++] = new Object();
-              if (putPtr == items.length) {
-                putPtr = 0;
-              }
-            }
-            count += n;
-            noSufficientItem.signalAll();
-            mutex.unlock();
-          }
-          public Object[] take(int n) {
-            mutex.lock();
-            while (count < n) {
-              noSufficientSpace.signalAll();
-              noSufficientItem.await();
-            }
-            Object[] ret = new Object[n];
-            for (int i = 0; i < n; ++i) {
-              ret[i] = items[takePtr++];
-              if (takePtr == items.length) {
-                takePtr = 0;
-              }
-            }
-            count -= n;
-            noSufficientSpace.signalAll();
-            mutex.unlock();
-            return ret;
-          }
-        }
-    \end{Verbatim}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
-            numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Implicit-Signal Bounded Buffer with a
-            Parameter}}]
-        monitor class BoundedBuffer { 
-          Object[] items; 
-          int putPtr, takePtr, count; 
-          public void put(int n) { 
-            waituntil(count + n <= items.length); 
-            for (int i = 0; i < n; ++i) {
-              items[putPtr++] = new Object(); 
-              if (putPtr == items.length) { 
-                putPtr = 0; 
-              } 
-            }
-            count += n; 
-          } 
-          public Object[] take(int n) { 
-            waituntil(count >= n);
-            Object[] ret = new Object[n];
-            for (int i = 0; i < n; ++i) {
-              ret[i] = items[takePtr++]; 
-              if (takePtr == items.length) { 
-                takePtr = 0; 
-              }
-            }
-            count -= n;
-            return ret;
-          }
-        }
-    \end{Verbatim}
-\end{multicols}
-  \caption{Bounded-buffer example}
-  \label{fig:npc_exp}
-\end{figure*}
-\section{Readers/Writers Code}
-\begin{figure*}[ht!]
-\begin{multicols}{2}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
-            framesep=5mm,numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Explicit-Signal Readers/Writers}}]
-        public class ReadersWritersMonitor {
-          int rcnt;
-          int ticket, serving;
-          Lock mutex = new ReentrantLock();
-          Map<Integer, Condition> mapCondition 
-              = new HashMap<Integer, Condition>();
-          public ReadersWritersMonitor() {
-            rcnt = ticket = serving = 0;
-          }
-          public void startRead() {
-            mutex.lock();
-            int myTicket = ticket;
-            ticket++;
-            Condition cond = mutex.newCondition();
-            mapCondition.put(myTicket, cond);
-            while (myTicket != serving) {
-              if (mapCondition.containsKey(serving)) {
-                 mapCondition.get(serving).signal();
-              }
-              cond.await();
-            }
-            mapCondition.remove(myTicket);
-            rcnt++;
-            serving++;
-            mutex.unlock();
-          }
-          public void endRead() {
-            mutex.lock();
-            rcnt--;
-            mutex.unlock();
-          }
-          public void startWrite() {
-            mutex.lock();
-            int myTicket = ticket;
-            ticket++;
-            Condition cond = mutex.newCondition();
-            mapCondition.put(myTicket, cond);
-            while (myTicket != serving || rcnt != 0) {
-              if (myTicket != serving &&
-                   mapCondition.containsKey(serving)) {
-                 mapCondition.get(serving).signal();
-              }
-              cond.await();
-            }
-            mapCondition.remove(myTicket);
-            mutex.unlock();
-          }
-          public void endWrite() {
-            mutex.lock();
-            serving++;
-            mutex.unlock();
-          }
-        }
-    \end{Verbatim}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
-            numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Implicit-Signal Readers/Writers}}]
-        public monitor class ReadersWritersMonitor {
-          int rcnt;
-          int ticket, serving;
-          public ReadersWritersMonitor() {
-            rcnt = ticket = serving = 0;
-          }
-          public void startRead() {
-            int myTicket = ticket;
-            ticket++;
-            waituntil(myTicket == serving);
-            rcnt++;
-            serving++;
-          }
-          public void endRead() {
-            rcnt--;
-          }
-          public void startWrite() {
-            int myTicket = ticket;
-            ticket++; 
-            waituntil(myTicket == serving && rcnt == 0);
-          }
-          public void endWrite() {
-            serving++;
-          }
-        }
-    \end{Verbatim}
-\end{multicols}
-  \caption{Readers-writers example}
-  \label{fig:trw_exp}
-\end{figure*}
-\section{Round-Robin Monitor Code}
-\begin{figure}[ht!]
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
-            framesep=5mm,numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Explicit-Signal Bounded Buffer}}]
-        public class RoundRobinMonitor{
-          int numProc;
-          int pid;
-          Lock mutex = new ReentrantLock();
-          Condition[] conds;
-          public RoundRobinMonitor(int n) {
-            numProc = n;
-            pid = 0;
-            Condition = new Condition[n];
-            for (int i = 0; i < n; i++) {
-              conds[i] = mutex.newCondition();
-            }
-          }
-          public void access(int myId) {
-            mutex.lock();
-            while (pid != myId) {
-              conds[pid].signal();
-              conds[myId].await();
-            }
-            pid = (pid + 1) % numProc;
-            conds[pid].signal();
-            mutex.unlock();
-          }
-        }
-    \end{Verbatim}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
-            numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Implicit-Signal Bounded Buffer}}]
-        public monitor class RoundRobinMonitor {
-          int numProc;
-          int pid;
-          public RoundRobinMonitor(int n) {
-            numProc = n;
-            pid = 0;
-          }
-          public void access(int myId) {
-            waituntil(pid == myId);
-            pid = (pid + 1) % numProc;
-          }
-        }
-    \end{Verbatim}
-  \caption{Round-Robin example}
-  \label{fig:rr_exp}
-\end{figure}
-
-
-\acks
-
-Acknowledgments, if needed.
-
-% We recommend abbrvnat bibliography style.
-
-\bibliographystyle{abbrvnat}
-
-% The bibliography should be embedded for final submission.
-
+%\section{Bounded-Buffer Code}
+%\begin{figure*}[ht!]
+%\begin{multicols}{2}
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+%            framesep=5mm,numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Explicit-Signal}}]
+%        class BoundedBuffer {
+%          Object[] items;  
+%          int putPtr, takePtr, count;
+%          Lock mutex = new ReentrantLock();
+%          Condition noSufficientSpace = mutex.newCondition();
+%          Condition noSufficientItem = mutex.newCondition();
+%          public BoundedBuffer(int n) {
+%            items = new Object[n];
+%            putPtr = takePtr = count = 0;
+%          }
+%          public void put(int n) {
+%            mutex.lock();
+%            while (n + count > items.length) {
+%              noSufficientItem.signalAll();
+%              noSufficientSpace.await();
+%            }
+%            for (int i = 0; i < n; ++i) {
+%              items[putPtr++] = new Object();
+%              if (putPtr == items.length) {
+%                putPtr = 0;
+%              }
+%            }
+%            count += n;
+%            noSufficientItem.signalAll();
+%            mutex.unlock();
+%          }
+%          public Object[] take(int n) {
+%            mutex.lock();
+%            while (count < n) {
+%              noSufficientSpace.signalAll();
+%              noSufficientItem.await();
+%            }
+%            Object[] ret = new Object[n];
+%            for (int i = 0; i < n; ++i) {
+%              ret[i] = items[takePtr++];
+%              if (takePtr == items.length) {
+%                takePtr = 0;
+%              }
+%            }
+%            count -= n;
+%            noSufficientSpace.signalAll();
+%            mutex.unlock();
+%            return ret;
+%          }
+%        }
+%    \end{Verbatim}
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+%            numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Implicit-Signal}}]
+%        monitor class BoundedBuffer { 
+%          Object[] items; 
+%          int putPtr, takePtr, count; 
+%          public void put(int n) { 
+%            waituntil(count + n <= items.length); 
+%            for (int i = 0; i < n; ++i) {
+%              items[putPtr++] = new Object(); 
+%              if (putPtr == items.length) { 
+%                putPtr = 0; 
+%              } 
+%            }
+%            count += n; 
+%          } 
+%          public Object[] take(int n) { 
+%            waituntil(count >= n);
+%            Object[] ret = new Object[n];
+%            for (int i = 0; i < n; ++i) {
+%              ret[i] = items[takePtr++]; 
+%              if (takePtr == items.length) { 
+%                takePtr = 0; 
+%              }
+%            }
+%            count -= n;
+%            return ret;
+%          }
+%        }
+%    \end{Verbatim}
+%\end{multicols}
+%  \caption{Bounded-buffer example}
+%  \label{fig:npc_exp}
+%\end{figure*}
+%\section{Readers/Writers Code}
+%\begin{figure*}[ht!]
+%\begin{multicols}{2}
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+%            framesep=5mm,numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Explicit-Signal}}]
+%        public class ReadersWritersMonitor {
+%          int rcnt;
+%          int ticket, serving;
+%          Lock mutex = new ReentrantLock();
+%          Map<Integer, Condition> mapCondition 
+%              = new HashMap<Integer, Condition>();
+%          public ReadersWritersMonitor() {
+%            rcnt = ticket = serving = 0;
+%          }
+%          public void startRead() {
+%            mutex.lock();
+%            int myTicket = ticket;
+%            ticket++;
+%            Condition cond = mutex.newCondition();
+%            mapCondition.put(myTicket, cond);
+%            while (myTicket != serving) {
+%              if (mapCondition.containsKey(serving)) {
+%                 mapCondition.get(serving).signal();
+%              }
+%              cond.await();
+%            }
+%            mapCondition.remove(myTicket);
+%            rcnt++;
+%            serving++;
+%            mutex.unlock();
+%          }
+%          public void endRead() {
+%            mutex.lock();
+%            rcnt--;
+%            mutex.unlock();
+%          }
+%          public void startWrite() {
+%            mutex.lock();
+%            int myTicket = ticket;
+%            ticket++;
+%            Condition cond = mutex.newCondition();
+%            mapCondition.put(myTicket, cond);
+%            while (myTicket != serving || rcnt != 0) {
+%              if (myTicket != serving &&
+%                   mapCondition.containsKey(serving)) {
+%                 mapCondition.get(serving).signal();
+%              }
+%              cond.await();
+%            }
+%            mapCondition.remove(myTicket);
+%            mutex.unlock();
+%          }
+%          public void endWrite() {
+%            mutex.lock();
+%            serving++;
+%            mutex.unlock();
+%          }
+%        }
+%    \end{Verbatim}
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+%            numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Implicit-Signal}}]
+%        public monitor class ReadersWritersMonitor {
+%          int rcnt;
+%          int ticket, serving;
+%          public ReadersWritersMonitor() {
+%            rcnt = ticket = serving = 0;
+%          }
+%          public void startRead() {
+%            int myTicket = ticket;
+%            ticket++;
+%            waituntil(myTicket == serving);
+%            rcnt++;
+%            serving++;
+%          }
+%          public void endRead() {
+%            rcnt--;
+%          }
+%          public void startWrite() {
+%            int myTicket = ticket;
+%            ticket++; 
+%            waituntil(myTicket == serving && rcnt == 0);
+%          }
+%          public void endWrite() {
+%            serving++;
+%          }
+%        }
+%    \end{Verbatim}
+%\end{multicols}
+%  \caption{Readers-writers example}
+%  \label{fig:trw_exp}
+%\end{figure*}
+%\section{Round-Robin Monitor Code}
+%\begin{figure}[ht!]
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+%            framesep=5mm,numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Explicit-Signal}}]
+%        public class RoundRobinMonitor{
+%          int numProc;
+%          int pid;
+%          Lock mutex = new ReentrantLock();
+%          Condition[] conds;
+%          public RoundRobinMonitor(int n) {
+%            numProc = n;
+%            pid = 0;
+%            Condition = new Condition[n];
+%            for (int i = 0; i < n; i++) {
+%              conds[i] = mutex.newCondition();
+%            }
+%          }
+%          public void access(int myId) {
+%            mutex.lock();
+%            while (pid != myId) {
+%              conds[pid].signal();
+%              conds[myId].await();
+%            }
+%            pid = (pid + 1) % numProc;
+%            conds[pid].signal();
+%            mutex.unlock();
+%          }
+%        }
+%    \end{Verbatim}
+%    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+%            numbers=left,numbersep=2pt,
+%            label=\fbox{\small\emph{Implicit-Signal}}]
+%        public monitor class RoundRobinMonitor {
+%          int numProc;
+%          int pid;
+%          public RoundRobinMonitor(int n) {
+%            numProc = n;
+%            pid = 0;
+%          }
+%          public void access(int myId) {
+%            waituntil(pid == myId);
+%            pid = (pid + 1) % numProc;
+%          }
+%        }
+%    \end{Verbatim}
+%  \caption{Round-Robin example}
+%  \label{fig:rr_exp}
+%\end{figure}
+%
+%
+%\acks
+%
+%Acknowledgments, if needed.
+%
+%% We recommend abbrvnat bibliography style.
+%
+%\bibliographystyle{abbrvnat}
+%
+%% The bibliography should be embedded for final submission.
+%
 \begin{thebibliography}{}
 \softraggedright
 

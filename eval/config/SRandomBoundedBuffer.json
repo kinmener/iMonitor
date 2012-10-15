@@ -1,0 +1,44 @@
+{
+  "exp_info": {
+    "name": "RandomBoundedBuffer",
+    "main_class": "examples.BoundedBuffer.TestRandomBoundedBuffer",
+    "main_dir": "../build",
+    "result_base_dir": "results",
+    "num_times": 10,
+    "params_order": [
+      "buf_size", "monitor_type", "num_proc", "num_tasks", "delay"
+    ],
+    "group_by": "delay",
+    "stat_by": "monitor_type",
+    "fig_dir": "../doc/tex/fig"
+  },
+  "exp_params": {
+    "buf_size": [
+      128
+    ],
+    "num_tasks": [ 
+      512000
+    ],
+    "monitor_type": [
+      "explicit",
+      "set",
+      "tag"
+    ],
+    "num_proc": [
+        128
+    ],
+    "delay": [
+      0, 25, 50, 75, 
+      100, 125, 150, 175,
+      200, 225, 250, 275,
+      300, 325, 350, 375,
+      400, 425, 450, 475,
+      500, 525, 550, 575,
+      600, 625, 650, 675,
+      700, 725, 750, 775,
+      800, 825, 850, 875,
+      900, 925, 950, 975,
+      1000
+    ]
+  }
+}
