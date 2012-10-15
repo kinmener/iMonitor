@@ -14,7 +14,7 @@
   },
   "exp_params": {
     "num_tasks": [ 
-      5120
+      512000
     ],
     "monitor_type": [
       "explicit",
@@ -22,7 +22,7 @@
       "tag"
     ],
     "num_proc": [
-      128
+    	256
     ],
     "delay": [
       0, 25, 50, 75, 
