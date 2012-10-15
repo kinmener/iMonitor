@@ -16,7 +16,7 @@ class Reader extends Thread {
         this.numRead = numRead;
         this.maxReadTime = maxReadTime;
         this.doneCounter = doneCounter;
-        this delay = delay;
+        this.delay = delay;
     }
 
     public void run() {
@@ -53,6 +53,7 @@ class Writer extends Thread {
     ReadersWritersMonitor monitor; 
     int numWrite;
     int maxWriteTime;
+    int delay;
 
     public Writer(ReadersWritersMonitor monitor, int numWrite, 
             int maxWriteTime, DoneCounter doneCounter, int delay) {
@@ -69,7 +70,7 @@ class Writer extends Thread {
             try {
                 if (maxWriteTime != 0) {
                     //Thread.sleep(0, maxWriteTime * 1000);
-                    Thread.sleep(0, (long) (Math.random() * maxWriteTime) + 1);
+                    Thread.sleep((long) (Math.random() * maxWriteTime) + 1);
                 }
             }
             catch(InterruptedException e) {
@@ -117,7 +118,7 @@ public class TestTicketReadersWriters {
             totalNumWrite = totalNumRead = Integer.parseInt(args[2]);
             maxReadTime = Integer.parseInt(args[3]);
             maxWriteTime = Integer.parseInt(args[4]);
-            delay = Intege.rparseInt(args[5]) * 1000;
+            delay = Integer.parseInt(args[5]) * 1000;
         } catch (Exception e) { /* use defaults */ 
             e.printStackTrace();
             if(monitor == null) {
