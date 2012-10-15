@@ -70,7 +70,8 @@ public class Test{
         long startTime = System.currentTimeMillis();
         TestThread[] testThreads = new TestThread[numProc];
         for (int i = 0; i < numProc; ++i) {
-            testThreads[i] = new TestThread(monitor, totalNumAccess/numProc, i, delay);
+            testThreads[i] = new TestThread(monitor, totalNumAccess/numProc, i, 
+                    delay);
             testThreads[i].start();
         }
         double totalResponseTime = 0.0f;
@@ -83,7 +84,7 @@ public class Test{
             }
         }
         long execTime = System.currentTimeMillis() - startTime;
-//        System.out.println( execTime );
-        System.out.println(totalResponseTime / numProc);
+        System.out.println( execTime );
+//        System.out.println(totalResponseTime / numProc);
     }
 }
