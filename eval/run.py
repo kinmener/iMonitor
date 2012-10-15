@@ -110,7 +110,7 @@ if __name__ == "__main__":
             exp_thread = Popen(cmd, stdout=PIPE)
 
             for line in exp_thread.stdout:
-                run_time = int(line)
+                run_time = float(line)
                 sum += run_time
                 if max < run_time: 
                     max = run_time
