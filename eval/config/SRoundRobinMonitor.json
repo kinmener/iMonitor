@@ -1,10 +1,10 @@
 {
   "exp_info": {
-    "name": "RoundRobinMonitor",
+    "name": "SRoundRobinMonitor",
     "main_class": "examples.RoundRobinMonitor.Test",
     "main_dir": "../build",
     "result_base_dir": "results",
-    "num_times": 10,
+    "num_times": 1,
     "params_order": [
       "num_proc", "num_tasks", "monitor_type", "delay"
     ],

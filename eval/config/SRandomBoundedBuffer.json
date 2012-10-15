@@ -1,6 +1,6 @@
 {
   "exp_info": {
-    "name": "RandomBoundedBuffer",
+    "name": "SRandomBoundedBuffer",
     "main_class": "examples.BoundedBuffer.TestRandomBoundedBuffer",
     "main_dir": "../build",
     "result_base_dir": "results",
