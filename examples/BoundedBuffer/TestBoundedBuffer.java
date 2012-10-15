@@ -37,7 +37,7 @@ public class TestBoundedBuffer {
             }
             CONSUMERS = PRODUCERS = Integer.parseInt(args[2]);
             totalNumActions = Integer.parseInt(args[3]);
-            delay = Integer.parseInt(args[4]);
+            delay = Integer.parseInt(args[4]) * 1000;
         } catch (Exception e) { /* use defaults */ 
             e.printStackTrace();
             if(rw_controller == null) {

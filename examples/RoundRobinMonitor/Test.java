@@ -7,7 +7,7 @@ class TestThread extends Thread {
     private int myId;
     private int delay;
     public TestThread(RoundRobinMonitor monitor, int numAccess, int myId, 
-          int delay) {
+            int delay) {
         this.monitor = monitor;
         this.numAccess = numAccess;
         this.myId = myId;
@@ -15,12 +15,16 @@ class TestThread extends Thread {
     }
     public void run() {
         for(int i = 0; i < numAccess; ++i) {
-           if (delay != 0) {
-              try {
-                  Thread.sleep(0, 1000 * delay);  
-              } catch(InterruptedException e) {
-              }
-           }
+            if (delay != 0) {
+                try {
+                    if (delay >= 1000000) {
+                        Thread.sleep(delay / 1000000, delay % 1000000);  
+                    } else {
+                        Thread.sleep(0, delay);  
+                    }
+                } catch(InterruptedException e) {
+                }
+            }
             monitor.access(myId);
         }
     }
@@ -48,7 +52,7 @@ public class Test{
                     monitor = 
                         new iMonitorRoundRobin(numProc, args[2].charAt(0));
             }
-            delay = Integer.parseInt(args[3]);
+            delay = Integer.parseInt(args[3]) * 1000; // microsecond 
         } catch(Exception e) {
             if(monitor == null) {
                 monitor = new ExplicitRoundRobinMonitor(numProc);
