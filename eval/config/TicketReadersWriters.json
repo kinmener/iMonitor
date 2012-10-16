@@ -7,7 +7,7 @@
     "num_times": 10,
     "params_order": [
       "monitor_type", "num_proc", "total_tasks",
-      "max_read_time", "max_write_time"
+      "max_read_time", "max_write_time", "delay"
     ],
     "group_by": "num_proc",
     "stat_by": "monitor_type",
@@ -30,6 +30,9 @@
     ],
     "num_proc": [
       1, 2, 4, 8, 16, 32
+    ],
+    "delay": [
+        0
     ]
   }
 }

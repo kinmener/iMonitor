@@ -64,92 +64,6 @@
 			<key>Head</key>
 			<dict>
 				<key>ID</key>
-				<integer>19</integer>
-			</dict>
-			<key>ID</key>
-			<integer>43497</integer>
-			<key>Points</key>
-			<array>
-				<string>{237, 145.5125023387705}</string>
-				<string>{237, 185.5}</string>
-			</array>
-			<key>Style</key>
-			<dict>
-				<key>stroke</key>
-				<dict>
-					<key>HeadArrow</key>
-					<string>FilledArrow</string>
-					<key>Legacy</key>
-					<true/>
-					<key>TailArrow</key>
-					<string>0</string>
-					<key>Width</key>
-					<real>3</real>
-				</dict>
-			</dict>
-			<key>Tail</key>
-			<dict>
-				<key>ID</key>
-				<integer>43496</integer>
-			</dict>
-		</dict>
-		<dict>
-			<key>Bounds</key>
-			<string>{{189, 47}, {96, 111}}</string>
-			<key>Class</key>
-			<string>ShapedGraphic</string>
-			<key>FontInfo</key>
-			<dict>
-				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
-				<key>Size</key>
-				<real>16</real>
-			</dict>
-			<key>ID</key>
-			<integer>43496</integer>
-			<key>Magnets</key>
-			<array>
-				<string>{0, 1}</string>
-				<string>{0, -1}</string>
-				<string>{1, 0}</string>
-				<string>{-1, 0}</string>
-			</array>
-			<key>Shape</key>
-			<string>DocumentShape</string>
-			<key>Style</key>
-			<dict>
-				<key>shadow</key>
-				<dict>
-					<key>Draws</key>
-					<string>NO</string>
-				</dict>
-			</dict>
-			<key>Text</key>
-			<dict>
-				<key>Text</key>
-				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
-{\colortbl;\red255\green255\blue255;}
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc
-
-\f0\fs32 \cf0 Parameters provided by programers}</string>
-				<key>VerticalPad</key>
-				<integer>0</integer>
-			</dict>
-		</dict>
-		<dict>
-			<key>Class</key>
-			<string>LineGraphic</string>
-			<key>FontInfo</key>
-			<dict>
-				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
-				<key>Size</key>
-				<real>16</real>
-			</dict>
-			<key>Head</key>
-			<dict>
-				<key>ID</key>
 				<integer>43494</integer>
 			</dict>
 			<key>ID</key>
@@ -213,7 +127,7 @@
 			<key>Text</key>
 			<dict>
 				<key>Text</key>
-				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187
+				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187\cocoasubrtf340
 \cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc
@@ -425,7 +339,7 @@
 			<key>Text</key>
 			<dict>
 				<key>Text</key>
-				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187
+				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187\cocoasubrtf340
 \cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc
@@ -469,7 +383,7 @@
 			<key>Text</key>
 			<dict>
 				<key>Text</key>
-				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187
+				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187\cocoasubrtf340
 \cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc
@@ -513,7 +427,7 @@
 			<key>Text</key>
 			<dict>
 				<key>Text</key>
-				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187
+				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187\cocoasubrtf340
 \cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc
@@ -548,6 +462,39 @@
 			<string>Rectangle</string>
 			<key>Style</key>
 			<dict>
+				<key>fill</key>
+				<dict>
+					<key>Color</key>
+					<dict>
+						<key>archive</key>
+						<data>
+						YnBsaXN0MDDUAQIDBAUGHyBYJHZl
+						cnNpb25YJG9iamVjdHNZJGFyY2hp
+						dmVyVCR0b3ASAAGGoKUHCBEVHFUk
+						bnVsbNQJCgsMDQ4PEFdOU1doaXRl
+						XE5TQ29sb3JTcGFjZV8QEk5TQ3Vz
+						dG9tQ29sb3JTcGFjZVYkY2xhc3NF
+						MC43NQAQA4ACgATSEgwTFFROU0lE
+						EAKAA9IWFxgZWiRjbGFzc25hbWVY
+						JGNsYXNzZXNcTlNDb2xvclNwYWNl
+						ohobXE5TQ29sb3JTcGFjZVhOU09i
+						amVjdNIWFx0eV05TQ29sb3KiHRtf
+						EA9OU0tleWVkQXJjaGl2ZXLRISJU
+						cm9vdIABAAgAEQAaACMALQAyADcA
+						PQBDAEwAVABhAHYAfQCDAIUAhwCJ
+						AI4AkwCVAJcAnACnALAAvQDAAM0A
+						1gDbAOMA5gD4APsBAAAAAAAAAAIB
+						AAAAAAAAACMAAAAAAAAAAAAAAAAA
+						AAEC
+						</data>
+						<key>b</key>
+						<string>0.75</string>
+						<key>g</key>
+						<string>0.75</string>
+						<key>r</key>
+						<string>0.75</string>
+					</dict>
+				</dict>
 				<key>shadow</key>
 				<dict>
 					<key>Draws</key>
@@ -557,7 +504,7 @@
 			<key>Text</key>
 			<dict>
 				<key>Text</key>
-				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187
+				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187\cocoasubrtf340
 \cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc
@@ -592,6 +539,39 @@
 			<string>Cylinder</string>
 			<key>Style</key>
 			<dict>
+				<key>fill</key>
+				<dict>
+					<key>Color</key>
+					<dict>
+						<key>archive</key>
+						<data>
+						YnBsaXN0MDDUAQIDBAUGHyBYJHZl
+						cnNpb25YJG9iamVjdHNZJGFyY2hp
+						dmVyVCR0b3ASAAGGoKUHCBEVHFUk
+						bnVsbNQJCgsMDQ4PEFdOU1doaXRl
+						XE5TQ29sb3JTcGFjZV8QEk5TQ3Vz
+						dG9tQ29sb3JTcGFjZVYkY2xhc3NF
+						MC43NQAQA4ACgATSEgwTFFROU0lE
+						EAKAA9IWFxgZWiRjbGFzc25hbWVY
+						JGNsYXNzZXNcTlNDb2xvclNwYWNl
+						ohobXE5TQ29sb3JTcGFjZVhOU09i
+						amVjdNIWFx0eV05TQ29sb3KiHRtf
+						EA9OU0tleWVkQXJjaGl2ZXLRISJU
+						cm9vdIABAAgAEQAaACMALQAyADcA
+						PQBDAEwAVABhAHYAfQCDAIUAhwCJ
+						AI4AkwCVAJcAnACnALAAvQDAAM0A
+						1gDbAOMA5gD4APsBAAAAAAAAAAIB
+						AAAAAAAAACMAAAAAAAAAAAAAAAAA
+						AAEC
+						</data>
+						<key>b</key>
+						<string>0.75</string>
+						<key>g</key>
+						<string>0.75</string>
+						<key>r</key>
+						<string>0.75</string>
+					</dict>
+				</dict>
 				<key>shadow</key>
 				<dict>
 					<key>Draws</key>
@@ -601,7 +581,7 @@
 			<key>Text</key>
 			<dict>
 				<key>Text</key>
-				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187
+				<string>{\rtf1\ansi\ansicpg1252\cocoartf1187\cocoasubrtf340
 \cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc
@@ -660,7 +640,7 @@ Java Library}</string>
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2012-09-03 15:16:34 +0000</string>
+	<string>2012-10-16 15:59:55 +0000</string>
 	<key>Modifier</key>
 	<string>Wei-Lun Hung</string>
 	<key>NotesVisible</key>

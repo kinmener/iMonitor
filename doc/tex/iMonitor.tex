@@ -130,7 +130,7 @@ In this research, we developed new method called {\it iMonitor}
 that allows gains in productivity of the programmer as well as gain in
 performance of the system.
 
-\subsection{Why Is Implicit-Signal Monitor Needed?}
+%\subsection{Why Is Implicit-Signal Monitor Needed?}
 Both pthreads and Java require programmers to explicitly
 signal threads that may be waiting on certain condition. The programmer
 has to explicitly declare condition variables and then signal one
@@ -147,32 +147,20 @@ For example, Buhu and Harji claim that implicit monitors are 10-50 times
 slower than explicit signals \cite{bfc95}. The reason for the slowdown is that
 previous implementations of implicit monitor are based on the
 evaluation of all conditions, whenever monitor is available. 
-Nevertheless, implicit signaling is still necessary for the following reasons:
+We show in the paper that implicit signaling is still necessary for the 
+following reasons:
 \begin{enumerate}
     \item Less work for programmers, which implies fewer bugs in programs.
     \item Potentially gaining performance through optimizing system based on
-        architecture information and avoiding signal all calls.
+        architecture information and avoiding signalAll calls.
     \item Rapid prototyping for speedup in developing process and accelerating
         products time to market.
     \item Mitigating the debugging of explicit-signal programs. 
 \end{enumerate}
 %garbage collection v.s. programmers manually free memory
 
-\subsection{iMonitir Syntax}
-In iMonitor, the programmer has to deal with fewer concepts 
-and constructs than other monitors based on traditional methods.
-iMonitor supports the monitor class and the waituntil statement.
-A monitor class is defined as every member function of the class that can be 
-executed by only one thread at any time. Namely, a monitor class is mutual 
-exclusion by nature. The monitor is reserved as a modifier, indicating a
-monitor class in iMonitor. A waituntil statement, appearing in only member 
-functions of a monitor class, has a predicate as its parameter. When a thread 
-is executing a waituntil statement, it checks whether or not the predicate is 
-true. If the predicate is false, the executing tread must wait and release 
-the privilege of the monitor control temporarily. After the predicate becomes 
-true, the thread can then continue to execute. 
-
-\subsection{iMonitor Example}
+%\subsection{iMonitir Syntax}
+%\subsection{iMonitor Example}
 %The concurrent programs are more difficult to be written and debugged than the 
 %sequential programs. Although explicit-signal monitor already provides an 
 %elegant mechanism for programmers to maintain mutual exclusion and synchronization 
@@ -276,7 +264,21 @@ programmers in both code reasoning and syntax.
   \label{fig:bb_exp}
 \end{figure*}
 
-\subsection{Contributions}
+In iMonitor, the programmer has to deal with fewer concepts 
+and constructs than other monitors based on traditional methods.
+iMonitor supports the monitor class and the waituntil statement.
+A monitor class is defined as every member function of the class that can be 
+executed by only one thread at any time. Namely, a monitor class is mutual 
+exclusion by nature. The monitor is reserved as a modifier, indicating a
+monitor class in iMonitor. A waituntil statement, appearing in only member 
+functions of a monitor class, has a predicate as its parameter. When a thread 
+is executing a waituntil statement, it checks whether or not the predicate is 
+true. If the predicate is false, the executing tread must wait and release 
+the privilege of the monitor control temporarily. After the predicate becomes 
+true, the thread can then continue to execute. 
+
+
+%\subsection{Contributions}
 In this research, we develop new techniques that use tags for classifying 
 predicates to minimize the number of times conditions are evaluated.
 %In our initial implementation, 
@@ -319,8 +321,63 @@ Our main contributions are as follows.
 %first notion is that of abortable transactions used in databases
 %for decades. Although the concept has now entered in concurrent programming world 
 %via transactional memories
+%\section{Design of iMonitor} \label{sec:fw}
+Fig.~\ref{fig:fw} illustrates the framework of iMonitor, which makes 
+the implicit-signal available with the modern high-level language, Java. 
+The iMonitor takes a Java-extension program providing the implicit-signal 
+mechanism through supporting the monitor class and the waituntil statement. The 
+iMonitor preprocessor transfers an iMonitor code into the tradition Java code 
+that can be compiled with iMonitor library. The iMonitor 
+Java library implements our implicit-signal monitor mechanism.  
 
-\subsection{Organization}
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/flow.eps}
+  \caption{The framework of iMonitor}
+  \label{fig:fw}
+\end{figure}
+
+
+%\begin{figure}
+%  \centering
+%  \subfloat[Explicit-Signal] {
+%    \fbox{
+%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitBoundedBuffer}
+%    }
+%    \label{subfig:bb_exam_exp}
+%  }
+%  \\
+%  \subfloat[Implicit-Signal] {
+%    \fbox{
+%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorBoundedBuffer}
+%    }
+%    \label{subfig:bb_exam_imp}
+%  }
+%  \caption{Bounded-buffer example}
+%  \label{fig:bb_exp}
+%\end{figure}
+
+
+%\subsection{Design Principles}
+The design principles underlying iMonitor are as follows.
+
+\begin{description}
+%    \item{\bf Check predicates in any thread.} Any thread that can access a
+%        monitor can check all predicates of waituntil statements in the 
+%        monitor. Therefore, a thread can decide
+%        to signal another thread with a true predicate before the thread waits
+%        or exits the monitor. 
+    \item{\bf Reduce context switches.} Context switch requires a certain 
+        amount of time to save and load registers and update various tables and
+        lists. Reducing unnecessary context switches boosts the performance. 
+    \item {\bf Check less predicates, if possible.} In the implicit-signal
+        mechanism, automatically signaling a thread is the responsibility of our
+        system. Checking less predicates to signal an appropriate thread is
+        desired. 
+\end{description}
+
+
+%\subsection{Organization}
 This paper is organized as follows. Section \ref{sec:bg} gives the
 background. Section \ref{sec:fw} describes the design of iMonitor
 framework. The invented techniques are presented in Section \ref{sec:tech}
@@ -371,7 +428,77 @@ The implicit-signal monitor is still useful in prototyping and verification.
 Nevertheless, most of modern programming languages do not provide the 
 implicit-signal monitor mechanism.
 
-\subsection{Predicate}
+
+\section{Why signalAll is Bad?}
+\begin{figure}[ht!]
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
+            framesep=5mm,numbers=left,numbersep=2pt,
+            label=\fbox{\small\emph{Explicit-Signal}}]
+        class BoundedBuffer {
+          Object[] items;  
+          int putPtr, takePtr, count;
+          Lock mutex = new ReentrantLock();
+          Condition noSufficientSpace = mutex.newCondition();
+          Condition noSufficientItem = mutex.newCondition();
+          public BoundedBuffer(int n) {
+            items = new Object[n];
+            putPtr = takePtr = count = 0;
+          }
+          public void put(int n) {
+            mutex.lock();
+            while (n + count > items.length) {
+              noSufficientItem.signalAll();
+              noSufficientSpace.await();
+            }
+            for (int i = 0; i < n; ++i) {
+              items[putPtr++] = new Object();
+              if (putPtr == items.length) {
+                putPtr = 0;
+              }
+            }
+            count += n;
+            noSufficientItem.signalAll();
+            mutex.unlock();
+          }
+          public Object[] take(int n) {
+            mutex.lock();
+            while (count < n) {
+              noSufficientSpace.signalAll();
+              noSufficientItem.await();
+            }
+            Object[] ret = new Object[n];
+            for (int i = 0; i < n; ++i) {
+              ret[i] = items[takePtr++];
+              if (takePtr == items.length) {
+                takePtr = 0;
+              }
+            }
+            count -= n;
+            noSufficientSpace.signalAll();
+            mutex.unlock();
+            return ret;
+          }
+        }
+    \end{Verbatim}
+\end{figure}
+
+
+\section{Technical Inventions} \label{sec:tech}
+
+
+\subsection{General Predicate Evaluation}
+%In order to allow any thread that can access a monitor to evaluation all
+%predicates of waiting threads, an operation called globalization is defined as 
+%replacing all local variables of
+%a predicate by its values at the time. The globalization converts a local 
+%predicate into a global predicate since all the local variables have been 
+%replaced. The globalization has an important characteristic that allows a
+%local predicate to be evaluated by any other thread safely after the original
+%thread waits. The reason is that no other thread can access to the local variables of a member 
+%function in which a particular thread is executing; therefore values of local variables 
+%cannot be changed by other threads after a particular thread is waiting. 
+%All other threads can check the globalized predicate safely. 
+%\subsection{Predicate}
 A predicate $P(\vec{x}): X \rightarrow \mathbb{B}$ is a statement that is 
 either true or false, where $X$ is the space spanned by the depending variables 
 $\vec{x}=(x_1, \dots, x_n)$. There are two kinds of
@@ -379,6 +506,7 @@ variables, shared variables and local variables. The set of shared variables,
 denoted as $S$, is accessible by every member function. The set of local 
 variables, denoted as $L$, is only accessible by the function in which the
 variables are declared. 
+
 Predicates can be divided into two categories based on the type of their 
 depending variables.
 \begin{definition}
@@ -398,79 +526,6 @@ Morgan's laws and distributive law.
 Predicates can be used to describe the properties of conditions. In this paper,
 the predicate is used to depict the condition of every waituntil statement. 
 
-
-
-
-\section{Design of iMonitor} \label{sec:fw}
-Fig.~\ref{fig:fw} illustrates the framework of iMonitor, which makes 
-the implicit-signal available with the modern high-level language, Java. 
-The iMonitor takes a Java-extension program providing the implicit-signal 
-mechanism through supporting the monitor class and the waituntil statement. The 
-iMonitor preprocessor transfers an iMonitor code into the tradition Java code 
-that can be compiled with iMonitor library. The iMonitor 
-Java library implements our implicit-signal monitor mechanism.  
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/flow.eps}
-  \caption{The framework of iMonitor}
-  \label{fig:fw}
-\end{figure}
-
-
-%\begin{figure}
-%  \centering
-%  \subfloat[Explicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitBoundedBuffer}
-%    }
-%    \label{subfig:bb_exam_exp}
-%  }
-%  \\
-%  \subfloat[Implicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorBoundedBuffer}
-%    }
-%    \label{subfig:bb_exam_imp}
-%  }
-%  \caption{Bounded-buffer example}
-%  \label{fig:bb_exp}
-%\end{figure}
-
-
-%\subsection{Design Principles}
-The design principles underlying iMonitor are as follows.
-
-\begin{description}
-    \item{\bf Check predicates in any thread.} Any thread that can access a
-        monitor can check all predicates of waituntil statements in the 
-        monitor. Therefore, a thread can decide
-        to signal another thread with a true predicate before the thread waits
-        or exits the monitor. 
-    \item{\bf Reduce context switches.} Context switch requires a certain 
-        amount of time to save and load registers and update various tables and
-        lists. Reducing unnecessary context switches boosts the performance. 
-    \item {\bf Check less predicates, if possible.} In the implicit-signal
-        mechanism, automatically signaling a thread is the responsibility of our
-        system. Checking less predicates to signal an appropriate thread is
-        desired. 
-\end{description}
-
-\section{Technical Inventions} \label{sec:tech}
-
-
-\subsection{General Predicate Evaluation}
-%In order to allow any thread that can access a monitor to evaluation all
-%predicates of waiting threads, an operation called globalization is defined as 
-%replacing all local variables of
-%a predicate by its values at the time. The globalization converts a local 
-%predicate into a global predicate since all the local variables have been 
-%replaced. The globalization has an important characteristic that allows a
-%local predicate to be evaluated by any other thread safely after the original
-%thread waits. The reason is that no other thread can access to the local variables of a member 
-%function in which a particular thread is executing; therefore values of local variables 
-%cannot be changed by other threads after a particular thread is waiting. 
-%All other threads can check the globalized predicate safely. 
 
 Evaluating a general predicate in all threads is unattainable 
 because the accessibility of the local variables in the predicate is limited 
