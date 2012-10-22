@@ -26,7 +26,8 @@
     "monitor_type": [
       "explicit",
       "set",
-      "tag"
+      "tag",
+      "naive"
     ],
     "num_proc": [
       1, 2, 4, 8, 16, 32
