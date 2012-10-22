@@ -64,16 +64,27 @@
 \maketitle
 
 \begin{abstract}
-This is the text of the abstract.
+For more than forty years, the parallel programming community has used monitor 
+as the main mechanism for conditional synchronization. Most of the modern 
+programming languages support only the explicit-signal monitor but the 
+implicit-signal monitor due to the performance issues. In this paper, we 
+argue that the implicit-signal monitor can be as efficient as implicit-signal
+monitor or even more efficient for some examples.
+
+To satisfy the need for implicit-signal monitor, we proposed a framework called 
+iMonitor. tagging, relay guarantees, no signalAll. 
+
 \end{abstract}
 
 \category{CR-number}{subcategory}{third-level}
 
 \terms
-term1, term2
+Algorithms, Languages, Performance 
 
 \keywords
-keyword1, keyword2
+automatic signal, concurrency, explicit signal, implicit signal, monitor, 
+parallel
+
 
 % code examples
 
@@ -126,7 +137,7 @@ based on ideas that were developed in early 70's \cite{hoa74, han75}. For
 example, the most widely used threads package in C++, pthreads, and
 the most widely used package in Java, java.util.concurrent, are based
 on the notion of monitors (or semaphores) developed in 60's and 70's.
-In this research, we developed new method called {\it iMonitor} 
+In this research, we developed new method called iMonitor 
 that allows gains in productivity of the programmer as well as gain in
 performance of the system.
 
@@ -150,15 +161,40 @@ evaluation of all conditions, whenever monitor is available.
 We show in the paper that implicit signaling is still necessary for the 
 following reasons:
 \begin{enumerate}
-    \item Less work for programmers, which implies fewer bugs in programs.
     \item Potentially gaining performance through optimizing system based on
-        architecture information and avoiding signalAll calls.
+        architecture information and avoiding signalAll calls. A signalAll 
+        call introduces unnecessary context switches and decreases performance. 
+        The details will be given in Section \ref{sec:sigAll}.
+    \item Less work for programmers, which implies fewer bugs in programs.
+        In explicit-signal monitor, it is the responsibility of programmers to 
+        explicitly invoke a signal call on some condition variable for
+        conditional synchronization. Using the wrong notification or signaling
+        a wrong condition variable are frequent source of bugs. 
+    \item Violating separation of concerns. In explicit-signal monitor, the
+        conditional synchronization is composed of two parts. A thread checks
+        whether or not the condition has met and explicitly waits on a
+        condition variable. Another thread detects the condition has met and
+        explicit signal the condition variable. The intricate relation between
+        threads for conditional synchronization leads the modularity of 
+        programming and encapsulation difficult.  
+    \item Mitigating the debugging of explicit-signal programs. It is easier to
+        reason a implicit-signal code than a explicit-signal code. A correct
+        implicit-signal implementation is helpful in debugging with a 
+        explicit-signal implementation.  
     \item Rapid prototyping for speedup in developing process and accelerating
         products time to market.
-    \item Mitigating the debugging of explicit-signal programs. 
 \end{enumerate}
-%garbage collection v.s. programmers manually free memory
 
+The relationship between the implicit-signal and explicit-signal monitor can be 
+depicted by analogy with the relationship between the garbage collection and 
+manual memory management. Although garbage collection leads to decreased
+performance due to the overhead in deciding which memory to free; programmers 
+elude manual memory deallocation. As a consequence, memory leaks and certain 
+bugs, such as dangling pointer bugs and double free bugs, are reduced and 
+eradicated. Similarly, implicit-signal mechanism consumes computing resources 
+in deciding which thread to be signaled; programmers avoid explicitly invoking 
+signal calls. As a result, some bugs, such as using wrong notification and
+signaling a wrong condition variable, are diminished and eliminated. 
 %\subsection{iMonitir Syntax}
 %\subsection{iMonitor Example}
 %The concurrent programs are more difficult to be written and debugged than the 
@@ -167,21 +203,61 @@ following reasons:
 %in concurrent programs; implicit-signal is more straightforward in both code
 %reasoning and syntax. 
 
+To make the implicit-signal mechanism available in Java, we proposes the 
+framework of iMonitor illustrated in Fig.~\ref{fig:fw}. In iMonitor, the 
+programmer has to deal with fewer concepts and constructs than other monitors 
+based on traditional methods. The iMonitor framework is composed of a 
+preprocessor and a Java condition manager library. The preprocessor translates 
+iMonitor codes into tradition Java codes. Our implicit-signal mechanism and 
+developed techniques were implemented in the Java library. Although this paper 
+focuses on only Java; our techniques are also applicable to other programming 
+language, such as pthread and C\#.  
+
+%Fig.~\ref{fig:fw} illustrates the framework of iMonitor, which makes 
+%the implicit-signal available with the modern high-level language, Java. 
+%The iMonitor takes a Java-extension program providing the implicit-signal 
+%mechanism through supporting the monitor class and the waituntil statement. The 
+%iMonitor preprocessor transfers an iMonitor code into the tradition Java code 
+%that can be compiled with iMonitor library. The iMonitor 
+%Java library implements our implicit-signal monitor mechanism.  
+%
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/flow.eps}
+  \caption{The framework of iMonitor}
+  \label{fig:fw}
+\end{figure}
+
+
+iMonitor extends Java with supporting the monitor class and the waituntil 
+statement. A monitor class is defined as every member function of the class 
+that can be executed by only one thread at any time. Namely, a monitor class is
+mutual  exclusion by nature. The $monitor$ is reserved as a modifier, 
+indicating a monitor class in iMonitor. A $waituntil$ statement, appearing in 
+only member functions of a monitor class, has a predicate as its parameter. 
+When a thread is executing a waituntil statement, it checks whether or not the 
+predicate is true. The thread can continue to execute only when the predicate
+is true. Otherwise, if the predicate is false, the executing tread must wait 
+and release the privilege of the monitor control temporarily. 
+
 Fig.~\ref{fig:bb_exp} shows an example demonstrating the difference between 
-implicit-signal monitor and explicit-signal monitor. This is the 
-producer-consumer problem, also known as the bounded-buffer problem. 
-There are two kinds of threads, producers and consumers, which are 
-trying to obtain access to the shared resources. Producers try to put items 
-into the buffer and consumers try to take items out from the buffer. Every 
-operation should be mutual exclusion. In addition, a producer cannot put any 
-item when the buffer is full and a consumer cannot take any item when the 
-buffer is empty. The explicit-signal bounded buffer is written in the original 
-Java program language. A lock variable and condition variables are
-needed to maintain mutual exclusion and synchronization. A thread needs to
-acquire the lock before entering member functions. In addition, programmers need
-to explicitly associate the assertions with condition variables and call
-signal/await statement manually. The implicit-signal bounded buffer is written
-in our iMonitor framework. As can be expected, the implicit-signal monitor is
+the Java implementation and the iMonitor implementation for the 
+bounded-buffer problem, also known as the producer-consumer problem. 
+In the problem, two kinds of threads, producers and consumers, tries to obtain 
+access to the shared resources. Producers put items 
+into the buffer, while consumers take items out from the buffer. Every 
+operation should be mutual exclusion. Furthermore, a producer must wait  
+when the buffer is full, while a consumer has to hold when the 
+buffer is empty. The explicit-signal bounded buffer is written in Java. A 
+lock variable and two condition variables are needed to maintain mutual exclusion 
+and conditional synchronization. A thread needs to acquire the lock before entering member
+functions. In addition, programmers need to explicitly associate conditional 
+assertions with condition variables and call signal or await function manually.
+On the contrary, 
+the implicit-signal bounded buffer is written in our iMonitor framework.
+Programmers use $monitor$ modifier to indicate the class is a monitor as line 
+1. Besides, programmers use only $waituntil$ as in line 9 for conditional
+synchronization. As can be expected, the implicit-signal monitor is
 more straightforward and simpler than the explicit-signal monitor for
 programmers in both code reasoning and syntax. 
 \begin{figure*}[ht!]
@@ -260,36 +336,52 @@ programmers in both code reasoning and syntax.
         }
     \end{Verbatim}
 \end{multicols}
-  \caption{Producer-Consumer example}
+  \caption{Bounded-buffer example}
   \label{fig:bb_exp}
 \end{figure*}
 
-In iMonitor, the programmer has to deal with fewer concepts 
-and constructs than other monitors based on traditional methods.
-iMonitor supports the monitor class and the waituntil statement.
-A monitor class is defined as every member function of the class that can be 
-executed by only one thread at any time. Namely, a monitor class is mutual 
-exclusion by nature. The monitor is reserved as a modifier, indicating a
-monitor class in iMonitor. A waituntil statement, appearing in only member 
-functions of a monitor class, has a predicate as its parameter. When a thread 
-is executing a waituntil statement, it checks whether or not the predicate is 
-true. If the predicate is false, the executing tread must wait and release 
-the privilege of the monitor control temporarily. After the predicate becomes 
-true, the thread can then continue to execute. 
+%\subsection{Design Principles}
+In this paper we argue that implicit signaling is generally as fast as explicit 
+and even faster for some examples. In Section \ref{sec:sigAll}, we give reasons
+for the efficiency in implicit signaling. In short, the explicit signaling has 
+to resort to signalAll in some examples; however, our implicit signaling never 
+uses signalAll. We hope to design and build iMonitor that is almost always as 
+fast as explicit and considerably faster for synchronization problems with 
+signalAll. The design principles underlying iMonitor are as follows.
+
+\begin{description}
+    \item{\bf Reduce context switches.} Context switch requires a certain 
+        amount of time to save and load registers and update various tables and
+        lists. Reducing unnecessary context switches boosts the performance.
+        A signalAll call introduces unnecessary context switches; therefore,
+        signal calls are forbidden in iMonitor. 
+    \item {\bf Check less predicates, if possible.} In the implicit-signal
+        mechanism, automatically signaling a thread is the responsibility of our
+        system. Checking less predicates to signal an appropriate thread is
+        desired. 
+\end{description}
+
 
 
 %\subsection{Contributions}
-In this research, we develop new techniques that use tags for classifying 
-predicates to minimize the number of times conditions are evaluated.
-%In our initial implementation, 
-%implicit signaling is generally as fast as explicit and even
-%x times faster for many examples. In Section \ref{sec:tech},
-%we give reasons for the efficiency in implicit signaling.
-%In short, the explicit signaling has to resort to signalAll
-%in many examples; however, implicit signaling never uses signalAll.
-%In this project, we hope to design and build iMonitor that
-%is almost always as fast as explicit and considerably faster 
-%for synchronization problems with signalAll.
+The starting point in the design of iMonitor is how to evaluate predicates of
+waituntil statements. Any thread that can access a monitor can check all 
+predicates of waituntil statements of the monitor. Therefore, a thread can 
+decide to signal another thread with a true predicate before the thread waits
+or exits the monitor. We investigated globalization operation to eable 
+predicate evaluations in any thread. Based on this operation, our framework can
+provides relay guarantee and accelerate the process in deciding which thread to
+be signaled with predicate tagging. To avoid using signalAll call, iMonitor 
+provids relay guarantee, which ensures that some waiting thread with a true 
+predicate is always signaled. Furthermore, predicate tags are used to
+classify predicates. In deciding which thread should be signaled, after
+examining the current state of a monitor, we can know which tags are infeasible
+to be true at the moment. Then we only need to check the predicates without
+those tags. 
+
+Our experimental results indicate that iMonitor can significantly improve
+performance \dots
+
 Our main contributions are as follows.
 \begin{enumerate}
     \item Presents the design and implementation of the iMonitor framework,
@@ -298,8 +390,8 @@ Our main contributions are as follows.
         improvements in performance and scalability with predicate tagging
         and relay guarantee. 
     \item Experimental evidence indicating that iMonitor's implicit-signal
-        mechanism is almost as efficient as or even more efficient
-        than explicit-signal mechanism with much simpler code complexity.
+        mechanism is almost as efficient as explicit-signal mechanism or even 
+        more efficient with much simpler code complexity.
 \end{enumerate}
 %In this project, we are developing multiple such features.
 %Our second goal for SuperSynch is that the performance of the system
@@ -322,114 +414,99 @@ Our main contributions are as follows.
 %for decades. Although the concept has now entered in concurrent programming world 
 %via transactional memories
 %\section{Design of iMonitor} \label{sec:fw}
-Fig.~\ref{fig:fw} illustrates the framework of iMonitor, which makes 
-the implicit-signal available with the modern high-level language, Java. 
-The iMonitor takes a Java-extension program providing the implicit-signal 
-mechanism through supporting the monitor class and the waituntil statement. The 
-iMonitor preprocessor transfers an iMonitor code into the tradition Java code 
-that can be compiled with iMonitor library. The iMonitor 
-Java library implements our implicit-signal monitor mechanism.  
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/flow.eps}
-  \caption{The framework of iMonitor}
-  \label{fig:fw}
-\end{figure}
-
-
-%\begin{figure}
-%  \centering
-%  \subfloat[Explicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitBoundedBuffer}
-%    }
-%    \label{subfig:bb_exam_exp}
-%  }
-%  \\
-%  \subfloat[Implicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorBoundedBuffer}
-%    }
-%    \label{subfig:bb_exam_imp}
-%  }
-%  \caption{Bounded-buffer example}
-%  \label{fig:bb_exp}
-%\end{figure}
-
-
-%\subsection{Design Principles}
-The design principles underlying iMonitor are as follows.
-
-\begin{description}
-%    \item{\bf Check predicates in any thread.} Any thread that can access a
-%        monitor can check all predicates of waituntil statements in the 
-%        monitor. Therefore, a thread can decide
-%        to signal another thread with a true predicate before the thread waits
-%        or exits the monitor. 
-    \item{\bf Reduce context switches.} Context switch requires a certain 
-        amount of time to save and load registers and update various tables and
-        lists. Reducing unnecessary context switches boosts the performance. 
-    \item {\bf Check less predicates, if possible.} In the implicit-signal
-        mechanism, automatically signaling a thread is the responsibility of our
-        system. Checking less predicates to signal an appropriate thread is
-        desired. 
-\end{description}
 
 
 %\subsection{Organization}
-This paper is organized as follows. Section \ref{sec:bg} gives the
-background. Section \ref{sec:fw} describes the design of iMonitor
-framework. The invented techniques are presented in Section \ref{sec:tech}
-and the practical implementation details are discussed in Section 
-\ref{sec:imp}. The proposed methods are then evaluated with experiments in 
-Section \ref{sec:eval}. Section \ref{sec:related} provides a brief overview of
-related work, and Section \ref{sec:conclu} gives the concluding remarks.
+This paper is organized as follows. Section \ref{sec:bg} gives the background
+of montior. 
+Section \ref{sec:sigAll} explains why signalAll is essential but bad. Our 
+concepts are presented in Section \ref{sec:concept} and the practical 
+implementation details are discussed in Section  \ref{sec:imp}. The proposed 
+methods are then evaluated with experiments in Section \ref{sec:eval}. 
+Our results are contrasted with prior work in Section \ref{sec:related}. 
+Section \ref{sec:conclu} gives the concluding remarks.
 
-\section{Background} \label{sec:bg}
-\subsection{Monitor}
+\section{Background: monitor} \label{sec:bg}
+%\subsection{Monitor}
 Monitor is an abstract object or module containing shared data to be used safely
 by multiple member functions and threads in concurrent programming. Monitor can
-be defined by two characteristics, mutual exclusion and synchronization. Mutual 
-exclusion guarantees that at most one thread can execute any member function of 
-a monitor at each time. Mutual exclusion provides programmers a more elegant
-way to update shared data when compared to directly accessing shared date. 
-Synchronization maintains the executing order between threads. Threads may wait
-for some condition to be met and release the privilege of the monitor control 
-temporarily. After the condition has been met, threads then re-acquire the 
-privilege and continue to execute.
-According to Buhr and Harji \cite{bh05}, monitors can be divided into two 
-categories according to the difference implementations of synchronization. 
+be defined by two characteristics, mutual exclusion and conditional 
+synchronization. Mutual exclusion guarantees that at most one thread can 
+execute any member function of a monitor at any time. It provides programmers a 
+more elegant way to update shared data when compared to other access mechanism
+such as semaphore. In general, threads need to acquire the lock of a monitor 
+to acquire the privilege for accessing the monitor. Conditional synchronization 
+maintains the executing order between threads. Threads may wait for some 
+condition to be met and release the monitor lock temporarily. After the 
+condition has been met, threads then re-acquire the lock and continue to 
+execute. According to Buhr and Harji \cite{bh05}, monitors can be divided into 
+two categories according to the different implementations of conditional 
+synchronization. 
 \begin{description}
     \item{\bf Explicit-signal monitor} In this type of monitor, condition
-    variables and signal/await statement are used for synchronization. 
-    Programmers need to
-    associate assertions with condition variables manually. The mechanism of
-    synchronization involves two threads. One tread checks if some
-    assertion is met or not, and then explicit waits if the assertion is not
-    met. When another thread detects that the state has changed and the 
-    assertion is met, and then explicitly signals appropriate threads in the 
-    monitor.
+    variables, signal and await functions are used for synchronization. 
+    Programmers need to associate assertions with condition variables manually.
+    This mechanism involves two threads. One tread checks if some
+    assertion is met or not, and then explicit waits on some condition variable 
+    if the assertion is not met. When another thread detects that the state has 
+    changed and the assertion is met, and then explicitly signals the 
+    appropriate condition variable for waking threads.
     \item{\bf Implicit-signal monitor} This kind of monitor uses waituntil
-    statements, instead of condition variables for
+    statements, such as line 9 in implicit-signal program in
+    Fig.~\ref{fig:bb_exp}, instead of condition variables for
     synchronization. Programmers do not need to associate assertions with
     variables, but use waituntil statements directly. In
     monitor, a thread will wait if the condition of a waitutil
     statement is false, and execute the remaining tasks after the condition 
-    becomes true automatically.
+    becomes true. The responsibility of signaling the waiting thread is the
+    system rather than the programmers. 
 \end{description}
 
-Explicit-signal and implicit-signal monitors have different pros and cons. The 
-explicit-signal has more complex syntax than the implicit-signal monitor. In 
-addition, the explicit-signal needs the programmers to write the synchronization
-mechanism manually, which increases the chance of writing incorrect code. 
-However, in practice, the explicit-signal is more efficient than the implicit-signal. 
-The implicit-signal monitor is still useful in prototyping and verification. 
-Nevertheless, most of modern programming languages do not provide the 
-implicit-signal monitor mechanism.
+Obviously, the explicit-signal is more complex than the implicit-signal monitor 
+for programmers. The explicit-signal requires that programmers
+have to write their conditional synchronization manually, which increases the 
+chance of writing incorrect code. The major advantage of the explicit-signal
+monitor is the performance. It is generally believed that that explicit-signal 
+monitor is much faster than the implicit-signal monitor. In this paper, we 
+argue that the implicit-signal monitor could be as efficient as the
+explicit-signal or ever faster in some cases. 
 
+\section{Why is signalAll essential but bad?} \label{sec:sigAll}
+The signalAll call is essential in explicit-signal mechanism when programmers
+do not know which thread should be signaled. Fig.~\ref{fig:sigAll_exp}
+illustrates an example. This example is also a bounded-buffer problem but 
+different from Fig.~\ref{fig:bb_exp}. In this example, a producer can put 
+$n$ items to the buffer a time, while a consumer can take $n$ items from the 
+buffer a time. Furthermore, a producer must wait if there is no space to put
+$n$ items, while a consumer has to hold when the buffer has insufficient items.
+The signalAll calls should be used instead of signal calls. The reason is that
+every producer and consumer waits for different condition to be met;
+programmers do not know which producer or consumer should be signaled at
+runtime. Although programmers can avoid using signalAll calls by writing
+complicated code that associates different predicates to different condition 
+variables; the complicated code makes the program difficult to be reasoned and 
+maintained. 
 
-\section{Why signalAll is Bad?}
+The signalAll call is bad since it may decreases the performance. The reason is 
+that signalAll calls introduce redundant context switches, requiring a certain 
+computing time to save and load registers and update various tables and lists.
+Furthermore, signalAll calls cannot increase parallelism because that threads
+are forbidden to access a monitor simultaneously. Although multiple threads are
+signaled at a time, only one thread is able to acquire the monitor. Many other 
+threads need to go back to waiting state since another thread may change the 
+status of the monitor. For example, the buffer has 64 items after a producer 
+finishes a put call. The producer calls $insufficientItem.signalAll()$ as in 
+line 24 before completing the call. Two waiting consumers are signaled; the 
+consumer $C_1$ is waiting to take $48$ items while the consumer $C_2$ is 
+waiting to take 
+$32$ items. Suppose $C_1$ re-acquires the lock first and takes $48$ items. The
+remaining items are $16$. Then $C_2$ re-acquires the lock; it figures out that
+the items are insufficient and then goes back to waiting state. Waking $C_2$ is
+redundant since it does not make any progress but go back to waiting.
+Therefore, if we avoid using the signalAll call and only signal a thread which
+is mostly like to make progress, the unnecessary context switches then can be
+reduced.
+
 \begin{figure}[ht!]
     \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
             framesep=5mm,numbers=left,numbersep=2pt,
@@ -438,8 +515,8 @@ implicit-signal monitor mechanism.
           Object[] items;  
           int putPtr, takePtr, count;
           Lock mutex = new ReentrantLock();
-          Condition noSufficientSpace = mutex.newCondition();
-          Condition noSufficientItem = mutex.newCondition();
+          Condition insufficientSpace = mutex.newCondition();
+          Condition insufficientItem = mutex.newCondition();
           public BoundedBuffer(int n) {
             items = new Object[n];
             putPtr = takePtr = count = 0;
@@ -447,8 +524,8 @@ implicit-signal monitor mechanism.
           public void put(int n) {
             mutex.lock();
             while (n + count > items.length) {
-              noSufficientItem.signalAll();
-              noSufficientSpace.await();
+              insufficientItem.signalAll();
+              insufficientSpace.await();
             }
             for (int i = 0; i < n; ++i) {
               items[putPtr++] = new Object();
@@ -457,14 +534,14 @@ implicit-signal monitor mechanism.
               }
             }
             count += n;
-            noSufficientItem.signalAll();
+            insufficientItem.signalAll();
             mutex.unlock();
           }
           public Object[] take(int n) {
             mutex.lock();
             while (count < n) {
-              noSufficientSpace.signalAll();
-              noSufficientItem.await();
+              insufficientSpace.signalAll();
+              insufficientItem.await();
             }
             Object[] ret = new Object[n];
             for (int i = 0; i < n; ++i) {
@@ -474,19 +551,21 @@ implicit-signal monitor mechanism.
               }
             }
             count -= n;
-            noSufficientSpace.signalAll();
+            insufficientSpace.signalAll();
             mutex.unlock();
             return ret;
           }
         }
     \end{Verbatim}
+    \caption{Bounded-buffer* example}
+    \label{fig:sigAll_exp}
 \end{figure}
 
 
-\section{Technical Inventions} \label{sec:tech}
+\section{iMonitor concepts} \label{sec:concept}
 
 
-\subsection{General Predicate Evaluation}
+\subsection{Predicate evaluation}
 %In order to allow any thread that can access a monitor to evaluation all
 %predicates of waiting threads, an operation called globalization is defined as 
 %replacing all local variables of
@@ -499,33 +578,33 @@ implicit-signal monitor mechanism.
 %cannot be changed by other threads after a particular thread is waiting. 
 %All other threads can check the globalized predicate safely. 
 %\subsection{Predicate}
-A predicate $P(\vec{x}): X \rightarrow \mathbb{B}$ is a statement that is 
-either true or false, where $X$ is the space spanned by the depending variables 
-$\vec{x}=(x_1, \dots, x_n)$. There are two kinds of
-variables, shared variables and local variables. The set of shared variables, 
-denoted as $S$, is accessible by every member function. The set of local 
-variables, denoted as $L$, is only accessible by the function in which the
-variables are declared. 
+In iMonitor, it is the responsibility of the system to signal appropriate 
+threads automatically. The predicate evaluation is crucial in deciding which
+thread should be signaled. We will discuss how to preform predicate evaluations
+of waituntil statements. 
+
+A predicate $P(\vec{x}): X \rightarrow \mathbb{B}$ is a Boolean condition, 
+where $X$ is the space spanned by the variables $\vec{x}=(x_1, \dots, x_n)$. 
+A variable of a monitor object is a shared variable if it is accessible to every 
+threads that accessing the monitor. The set of shared variables, denoted by 
+$S$. On the contrary, the set of local variables, denoted by $L$, is only 
+accessible by a thread calling a function in which the variables are declared. 
+
+Predicates can be used to describe the properties of conditions. In this paper,
+the predicate is used to depict the condition of every waituntil statement. 
+Furthermore, we assume that every predicate, $p = \sum_i^nc_i$, is disjunctive 
+normal form (DNF), where $c_i$ is defined as the conjunction of a set
+of atomic Boolean expressions. Every Boolean formulas can be converted into DNF 
+using De Morgan's laws and distributive law. 
 
 Predicates can be divided into two categories based on the type of their 
-depending variables.
+depending variables \cite{bh05}.
 \begin{definition}
     Consider a predicate $P(\vec{x}): X \rightarrow \mathbb{B}$. If $X 
     \subseteq S$, $P$ 
     is a restricted predicate. Otherwise, if $X \not\subseteq S$, $P$ 
     is a general predicate. 
 \end{definition}
-
-In this paper, we assume that every predicate, $p = \sum_i^nc_i$, is disjunctive 
-normal form (DNF), where a clause $c_i$ is defined as the conjunction of a set
-of atomic Boolean expressions. The DNF representation is adopted because of the
-generality that every Boolean formulas can be converted into DNF using De
-Morgan's laws and distributive law. 
-
-
-Predicates can be used to describe the properties of conditions. In this paper,
-the predicate is used to depict the condition of every waituntil statement. 
-
 
 Evaluating a general predicate in all threads is unattainable 
 because the accessibility of the local variables in the predicate is limited 
@@ -544,7 +623,7 @@ globalization as follows.
 \begin{proposition} \label{pro:glob}
     Consider a general predicate $P(\vec{x}, \vec{y})$ in a waituntil 
     statement. $P(\vec{x}, \vec{y})$ and its globlization 
-    $P(\vec{x}, \vec{y_t})$ are semantic equivalent during the waituntil 
+    $P(\vec{x}, \vec{y_t})$ are semantically equivalent during the waituntil 
     period, where $t$ is the runtime immediately before invoking the 
     waituntil statement.  
 \end{proposition}
@@ -565,16 +644,11 @@ all the local variables with their values immediately before invoking the
 statement. The predicate can be evaluated in all other threads during the
 waituntil period. 
 
-\subsection{Relay Guarantee}
-As mentioned earlier, reducing context switches increases throughput of
-concurrent programs. However, unnecessary signal or signalAll calls introduce
-redundant context switches. In addition, signalAll calls never increase 
-parallelism but needless context switches. The reason is that threads are 
-forbidden to access a monitor simultaneously. Although multiple threads are
-signaled, only one thread is able to acquire the monitor. Many other threads
-may go back to waiting state since other thread may change the status of the 
-monitor. Sometimes signalAll calls are inevitable in explicit-signal 
-mechanism because programs never know which thread should be signaled. In
+\subsection{Relay guarantee}
+As mentioned in Section ~\ref{sec:sigAll}, signalAll calls are inevitable in
+the explicit-signal mechanism sometimes; however, signalAll calls may decrease
+performance by introducing redundant context switches. 
+In
 iMonitor, signalAll calls are avoided by providing the following guarantee. 
 %should be reduced. Before a waiting thread is signaled, the 
 %predicate of the waiting thread is ensured to be true. In addition, at most 
@@ -583,30 +657,34 @@ iMonitor, signalAll calls are avoided by providing the following guarantee.
 %not increase parallelism but redundant context switches. 
 
 \begin{definition}{Relay guarantee:}
-    before a thread exits a monitor or goes into waiting state, it
-    signals one thread with true predicate if any.
+    when a thread exits a monitor or goes into waiting state, it checks whether
+    or not there is some thread waiting on a condition which has been met. If
+    at least one such waiting thread exists, the thread then signal one such
+    waiting thread.
 \end{definition}
 \begin{proposition} \label{pro:one}
     Relay guarantee never introduces deadlock. That is,
-    some waiting thread with true predicates will be signaled. 
+    some waiting thread with true predicates are always signaled. 
 \end{proposition}
 \begin{proof}
     Suppose not. All waiting threads with true predicates are blocked and 
     no other thread can signal them. Consider a true predicate $P$. Since some
     thread goes into waiting state with $P$, $P$ is false initially. Some 
-    thread must enters the monitor and changes the status of the monitor to
-    make $P$ becomes true. Suppose thread $T$ is the last thread being active 
+    other threads must enter the monitor and change the status of the monitor 
+    to make $P$ true. Suppose thread $T$ is the last thread active 
     in the monitor. Since $P$ has become true, $T$ must signal one thread
     waiting on $P$ or other true predicate before leaving or 
-    going into waiting state. A contraction. 
+    going into waiting state. A contradiction. 
  \end{proof}
 
 Proposition \ref{pro:one} lays the theoretical foundation that signalAll calls
 are avoidable by providing relay guarantee. Every time a
-thread exits a monitor or goes into waiting state, checking whether or not a
-waiting thread has true predicate. The remaining problem is how to find such
-thread efficiently. 
-\subsection{Predicate Tagging and Signaling}
+thread exits a monitor or goes into waiting state, it checks whether a
+waiting thread has a true predicate. If at least one waiting thread has true
+predicate, then one such thread is signaled. The remaining problem is how to 
+find such thread efficiently. 
+
+\subsection{Predicate tag}
 In order to find an appropriate thread with a true predicate efficiently, 
 different tags are assigned to every predicate according to its semantics. 
 Those tags depict the properties of a predicate and allow true predicates to be 
@@ -614,8 +692,8 @@ found efficiently by examining the state of a monitor. Before going through the
 details, two particular types of predicates are defined as follows according to
 the their semantics. 
 \begin{definition}
-    A predicate $P: (v = c)$ is an equivalence predicate, where $v$ is the
-    pivot variable and $v \in S$, and either $c \in L$ or $c$ is a constant 
+    A predicate $P: (v = c)$ is an equivalence predicate, where $v \in S$ is 
+    the pivot variable, and either $c \in L$ or $c$ is a constant 
     value.
 \end{definition}
 %\begin{definition}
@@ -626,22 +704,17 @@ the their semantics.
 \begin{definition}
    A predicate $P: (v\ \boldsymbol{op}\ c)$ is a threshold predicate, where 
    $\boldsymbol{op}
-    \in \{<,\ \le,\ >,\ \ge\}$, $v$ is the pivot variable and $v \in S$, and 
+    \in \{<,\ \le,\ >,\ \ge\}$, $v \in S$ is the pivot variable, and 
     either $c \in L$ or $c$ is a constant value.
 \end{definition}
-An equivalence predicate is more deterministic than a threshold predicate since 
-the predicate is true only when the value of its pivot variable equal a
-specific value. 
-
 These two types of predicates are XX\%. 
 
-\subsection{Tagging}
 In general, tags are assigned to predicates according to their types. The 
 formal definition of the tag is as follows. 
 \begin{definition}
-   A tag $T$ is a four-tuple $(L, op, v, c)$, where  
+   A tag $T$ is a four-tuple $(M, op, v, c)$, where  
    \begin{itemize}
-      \item $L \in \{Equivalence,\ Threshold,\ None\}$;
+      \item $M \in \{Equivalence,\ Threshold,\ None\}$;
       \item $op \in \{<,\ \le,\ >,\ \ge\}$ if $L = Threshold$; otherwise, 
          $op = \perp$;
       \item $v$ and $c$ are the name of pivot variable and the constant
@@ -649,38 +722,53 @@ formal definition of the tag is as follows.
          and $c = \perp$.
    \end{itemize}
 \end{definition}
+Every $Equivalence$ or $Threshold$ tag represents a equivalence predicate or
+threshold predicate respectively. We say a tag is true if the predicate
+represented by the tag is true; otherwise, we say the tag is false. 
+\subsubsection{Predicate tagging}
 Tags are given to every predicate by the algorithm shown in
-Fig.~\ref{fig:tagging}. The tags of its clauses form the set of tags of a
-predicate. A tag is assigned to every clause. The equivalence tag is more
-helpful in ruling out false predicates than the threshold predicate due to its
-determinism. Therefore, the equivalence tag has higher priority than others 
-when assigning tag to a clause. If a clause does not conjunct with an
-equivalence predicate, then we check whether or not it conjuncts with a 
-threshold predicate. If yes, then a threshold tag is assigned to the clause; 
-otherwise, the clause has none tag. 
+Fig.~\ref{fig:tagging}. The tags of conjunctions of a predicate form the set of 
+tags of the predicate. A tag is assigned to every conjunction. When assigning a 
+tag to a conjunction, the equivalence tag has higher priority than others. The
+reason is that an equivalence predicate is more deterministic than a threshold 
+predicate since the predicate is true only when the value of its pivot variable 
+equal a specific value. For example, consider a equivalence predicate $x = 8$
+and a threshold predicate $x > 3$. $x = 8$ is true only when the value of $x$
+is $8$. On the contrary, $x > 3$ is true for every value of $x$ is greater than
+$3$. Therefore, the $Equivalence$ tags is more helpful in
+pruning false predicates than other kinds of tags. If a conjunction does not 
+include any equivalence predicate, then we check whether or not it 
+include any threshold predicate. If yes, then a $Threshold$ tag is assigned 
+to the conjunction; otherwise, the conjunction has $None$ tag. 
 
-The motivation behind the tag is to accelerate the process by ruling out false 
-predicate but not exhaustive search. Creating thorough tags for a clause is
-unnecessary. If a clause includes multiple equivalence predicates or threshold 
-predicates, only one arbitrary equivalence tag or threshold tag is assigned to 
-the clause. On one hand, a clause is false when at least one of its atomic 
-Boolean expressions is false. A tag of a clause is sufficient to help us ruling 
-out this predicate when it is false. On the other hand, too many of tags 
-increases as the performance decreases due the cost of maintaining tags. 
-
+Creating all tags for a conjunction is unnecessary. If a conjunction includes 
+multiple equivalence predicates or threshold predicates, only one arbitrary 
+$Equivalence$ tag or threshold tag is assigned to the clause. The first reason is 
+that, if there is a large number of tags, then the performance may decrease due 
+to cost of maintaining tags. The second reason is that the motivation behind 
+the tag is to accelerate the searching process by pruning false predicate 
+but not exhaustive search.  A clause is false when at least one 
+of its atomic Boolean expressions is false. A tag of a clause is sufficient to 
+help us in pruning this predicate when it is false. For example, consider a
+conjunction $(x = 8) \wedge (y = 9)$. Only tag $(Equivalence,\ null,\ x,\ 8)$
+is assigned to the conjunction. We check the predicate only when the tag is
+true. Adding another tag $(Equivalence,\ null,\ y,\ 9)$ cannot help us in pruning
+this predicate when it is false since we need to check both tags. Hence, we 
+creating only one tag for each conjunction.
+ 
 \begin{figure}[ht!]
     \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
             framesep=3mm]
          tags = empty
-         foreach clause c 
+         foreach conjunction c 
          if c contains an equivalence predicate x=v
-            create a tag t = (Equivalence, null, x, v)
+            tag t = (Equivalence, null, x, v)
             add t to tags
          else if c contains a threshold predicate x op v
-            create a tag t = (Threshold, op, x, v)
+            tag t = (Threshold, op, x, v)
             add t to tags
          else 
-            create a tag t = (None, null, null, null)
+            tag t = (None, null, null, null)
             add t to tags
          return tags
     \end{Verbatim}
@@ -689,24 +777,28 @@ increases as the performance decreases due the cost of maintaining tags.
 \end{figure}
 
 
-\subsection{Tag Signaling}
+\subsubsection{Tag signaling}
 Signaling mechanism in iMonitor is based on tags. 
-Since the equivalence tag is more deterministic than the threshold tag. The
-predicates with equivalence are checked prior to the predicates with threshold
-tags. If no true predicate can be found after examining ``equivalence'' tags and
-``threshold'' tags, the exhaustive search in the predicates with ``none'' tags. 
+Since the equivalence tag is more deterministic than the threshold tag, the
+predicates with equivalence are checked prior to the predicates with other 
+tags. If no true predicate can be found after examining $Equivalence$ tags and
+$Threshold$ tags, our algorithm does the exhaustive search for the predicates 
+with $None$ tags. 
 
-\subsubsection{Equivalence Tag Signaling}
-Observing that, an equivalence predicate becomes true only when its pivot 
+\paragraph{Equivalence tag signaling}
+Observes that, an equivalence predicate becomes true only when its pivot 
 variable equals the specific value in the predicate. For distinct equivalence 
 tags related to a same pivot variable, at most one tag can be true at a time 
 because the value of pivot variable is deterministic and unique at any time. By 
 observing the value of the pivot variable, the appropriate tag can be 
-identified if there is any. Based on this 
+identified if there is any. For example, there are three $Equivalence$ tags for
+predicates $x = 3$, $x = 6$, and $x = 8$. We examine $x$ and figure out that
+its value is $8$. Then we know that only $x = 8$ is true. Based on this 
 observation, for each unique pivot variable of an equivalence tag, we create a 
 hash table, where the specific value is used as the key. By using this hash 
-table and the value of the pivot variable, we only need to check the predicates 
-with the tag. 
+table and examining the value of the pivot variable at runtime, we can decide a
+true tag in $O(1)$ time if there is any. Then we only need to check the 
+predicates with the tag. 
 
 %Monotonic predicate evaluations can be optimized by the following observation. 
 %\subsubsection{Non-Equivalence Predicate Signaling}
@@ -717,15 +809,20 @@ with the tag.
 %a linked list. By checking the first two predicates of the 
 %linked list, at least one predicate is true. 
 
-\subsubsection{Threshold Tag Signaling}
+\paragraph{Threshold tag signaling}
 For threshold tag, we consider the following situation. Suppose there are two 
-predicates, $x > 5$ and $x > 3$, we know that if $x > 3$ is false, and then $x > 5$ 
-is impossible to be true. That is, we only need to check the predicate with the 
-smallest threshold value for $>$ and $\ge$ operations. The heap data structure
-is used for storing the threshold tags related to the same pivot variable. 
-Def.~\ref{def:th_order} gives the order for threshold tags. The min-heap and
-max-heap are used for tags with $\boldsymbol{op} \in \{>,\ \ge\}$ and
-$\boldsymbol{op} \in \{<,\ \le\}$. 
+predicates, $x > 5$ and $x > 3$, we know that if $x > 3$ is false, and then 
+$x > 5$ cannot be true. That is, we only need to check the predicate with the 
+smallest threshold value for $>$ and $\ge$ operations. Furthermore, consider the predicates
+with the same threshold value but different operations, $x > 3$ and $x \ge 3$.
+The $x > 3$ cannot be true when $x \ge 3$ is false. Therefore, the min-heap 
+data structure can be used for storing the threshold tags related to the same 
+pivot variable with $\boldsymbol{op} \in \{>, \ge\}$. If two predicates have 
+the same threshold value but different operations, then the predicate with 
+$\boldsymbol{op}=\ge$ is prior to the predicate with $\boldsymbol{op}=>$.
+Similarly, the max-heap can be used for threshold tags with $\boldsymbol{op}
+\in \{<, \le\}$. Def.~\ref{def:th_order} gives the formal definition of the 
+order for threshold tags. 
 
 \begin{definition} \label{def:th_order}
     An ordering $\prec$ is defined as follows
@@ -770,9 +867,10 @@ true since the tags are true. So we also need to check the descendant tags.
 
 
 
-\section{Practical Implementation} \label{sec:imp}
-The iMonitor Implementation involves two parts, the preprocessor and condition
-manager. The preprocessor converts a iMonitor extension code to a Java code.
+\section{iMonitor implementation} \label{sec:imp}
+The iMonitor Implementation involves two parts, the preprocessor and the Java
+library of our condition manager. 
+The preprocessor translates a iMonitor extension code to a Java code.
 The condition manager implements the signal mechanism and the condition
 variable maintaining. 
 
@@ -878,29 +976,34 @@ then the predicate is inactivated by the condition manager.
 %
 
 
-\subsection{Condition Manager}
+\subsection{iMonitor Java library: condition manager}
 The condition manager maintains the predicates and condition variables, and
 provides the signaling mechanism. 
 
 To avoid creating redundant predicates and condition variables, predicates have 
-the same meaning should be mapped to the same condition variable. However, 
-semantic equivalence is unattainable. We adopt syntax equivalent. Two 
-predicates are syntax equivalent means that the two predicates
+the same meaning should be mapped to the same condition variable. We adopt 
+syntax equivalent. Two predicates are syntax equivalent means that the two predicates
 are identical after applying globalization. Predicate table, implemented by a
 hash table, records predicates and their associated condition variables. 
 
 When a predicate is added to the condition manager, the predicate is analyzed
 and its tags are created. Then those tags are stored in an appropriate data
 structure. Fig.~\ref{fig:mgr} shows an example. The symbol $\bullet$ indicates 
-a condition variable. The gray blank indicate the predicate is inactivated.
-That is, no thread waits on it. A hash table is used for
+a condition variable. The gray blank indicate the predicate is inactive,
+that is, no thread waits on it. A hash table is used for
 storing equivalence tags with pivot variable $x$. In addition, a min-heap and a
 max-heap are used for threshold tags. 
+
+\begin{definition}
+    A predicate is inactive if there is no thread waiting on it. Otherwise, we
+    say the predicate is active.
+\end{definition}
+
 
 For finding a true predicate in Fig.~\ref{fig:mgr}, the value of $x$ is 
 examined. Suppose at this point $x=4$. We check the hash table with a
 constant time and cannot find a tag. Then we check the root of the max-heap and 
-min-heap. Again, we cannot find a tag. Then we check the tags with the ``none''
+min-heap. Again, we cannot find a tag. Then we check the tags with the $None$
 tag. We find $x \ne 5$ and signal the corresponding condition variable. As can
 be expected, the equivalence and threshold tags is helpful for efficiently
 searching a true predicate.  
@@ -914,14 +1017,15 @@ searching a true predicate.
 \end{figure*}
 
 A predicate must be removed from the tag once no thread waits on 
-it to avoid unnecessary predicate evaluation. A threshold tag also need to
-removed once no predicate is tagged as it. The reason is that 
+it to avoid unnecessary predicate evaluation. A threshold tag also needs to be
+removed once it has no predicate. The reason is that 
 we signal the root of the threshold predicate, a empty root 
 will introduce overhead to find the next tag. 
 
-Predicates may be reused. Instead  of removing those predicate with no waiter, 
-we move those predicate to a inactivate list. If they are used later, then we 
-put it back. Otherwise, when the length of inactivated list exceeds some 
+Predicates may be reused. Instead  of removing those predicate with no waiting
+thread, 
+we move those predicate to an inactivate list. If they are used later, then we 
+put them back. Otherwise, when the length of inactivate list exceeds some 
 threshold, we remove the oldest predicates form the list.
 %\clearpage
 
@@ -942,11 +1046,14 @@ compared.
 \begin{description}
     \item[Explicit-signal] Using the original Java explicit-signal mechanism. 
     \item[iMonitor] Using the approach described in this paper. 
-    \item[Baseline] Using the implicit-signal mechanism without relay guarantee
-        and predicate tagging. 
+    \item[iMonitor-T] Using the approach described in this paper but excluding
+        predicate tagging. 
+    \item[Baseline] Using the implicit-signal mechanism which relying on only
+        one condition variable. It calls signalAll all the time to check the
+        predicates
 \end{description}
 
-\subsection{Test Problems}
+\subsection{Test problems}
 \begin{description}
     \item[Producer-Consumer (PC)] The traditional producer-consumer shown in 
         Fig.~\ref{fig:bb_exp}.
@@ -980,23 +1087,23 @@ The computing complexity is summarized in Tab.~\ref{tab:complexity}.
 
 
 
-\subsection{Testbed}
-Fig.~\ref{fig:testbed} shows the experimental testbed \cite{bfc95}. 
-Every test thread has two state, monitor state and workload state. A thread
-query to access monitor in monitor state and perform its own job on workload
-state. The average response time of the monitor allows us evaluate the
-performance of different monitors. The first part of the experiments assume
-no workload for every thread. That is, every thread executes only monitor
-accessing calls with no other work. In the second part, we compared the
-performance under different workload.  
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=40mm]{fig/testbed.eps}
-  \caption{The testbed}
-  \label{fig:testbed}
-\end{figure}
-
-\subsection{Saturation Evaluation}
+%\subsection{Testbed}
+%Fig.~\ref{fig:testbed} shows the experimental testbed \cite{bfc95}. 
+%Every test thread has two state, monitor state and workload state. A thread
+%query to access monitor in monitor state and perform its own job on workload
+%state. The average response time of the monitor allows us evaluate the
+%performance of different monitors. The first part of the experiments assume
+%no workload for every thread. That is, every thread executes only monitor
+%accessing calls with no other work. In the second part, we compared the
+%performance under different workload.  
+%\begin{figure}[ht!]
+%  \centering
+%  \includegraphics[width=40mm]{fig/testbed.eps}
+%  \caption{The testbed}
+%  \label{fig:testbed}
+%\end{figure}
+%
+%\subsection{Saturation evaluation}
 Fig.~\ref{fig:pc_eval} shows the results of producer-consumer problem. The
 x-axis indicates the number of producers and consumers; the y-axis indicates the
 runtime in seconds. Total 512000 $put$ and $take$ operations were executed by
@@ -1095,7 +1202,7 @@ worse than the explicit-signal approach with a steady difference.
   \label{fig:rr_eval}
 \end{figure}
 
-\subsection{Performance under Different Workload}
+%\subsection{Performance under different workload}
 %\begin{figure}
 %  \centering
 %  \subfloat[Explicit-Signal] {
@@ -1162,11 +1269,16 @@ worse than the explicit-signal approach with a steady difference.
 
 
 
-\section{Related Work} \label{sec:related}
+\section{Related work} \label{sec:related}
 \section{Conclusion} \label{sec:conclu}
-The conclusion goes here. this is more of the conclusion
+In this paper, we propose the iMonitor framework that supports implicit-signal
+mechanism with monitor class and waituntil statement. \dots
 
+To evaluate the effectiveness of iMonitor, 
 
+Using architecture info.
+
+fairness
 
 % use section* for acknowledgement
 

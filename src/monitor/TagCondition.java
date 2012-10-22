@@ -1,7 +1,6 @@
 package monitor;
 
 import java.util.concurrent.locks.Condition;
-import java.util.HashSet;
 
 public class TagCondition extends AbstractCondition {
     

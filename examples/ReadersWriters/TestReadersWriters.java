@@ -35,7 +35,6 @@ class Reader extends Thread {
 }
 
 class Writer extends Thread {
-    private long  cpuTime;
     private static final Random rnd = new Random();
     private DoneCounter doneCounter ;
     ReadersWritersMonitor monitor; 

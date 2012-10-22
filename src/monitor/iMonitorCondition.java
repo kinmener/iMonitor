@@ -1,11 +1,7 @@
 package monitor;
 
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-
 import util.Common;
 
 public class iMonitorCondition extends AbstractCondition {

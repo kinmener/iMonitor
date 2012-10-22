@@ -1,7 +1,6 @@
 package monitor;
 
 import java.util.HashSet;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class HashCondition extends AbstractCondition {

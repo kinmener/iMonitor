@@ -1,7 +1,6 @@
 
 package examples.ReadersWriters;
 
-import java.util.HashMap;
 
 public abstract class ReadersWritersMonitor {
 

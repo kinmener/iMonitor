@@ -23,7 +23,7 @@ class Philosopher implements Runnable {
    /**
      * Amount of time in milliseconds to simulate thinking.
      */
-   private int napThink = 0;
+ //  private int napThink = 0;
    /**
      * Amount of time in milliseconds to simulate eating.
      */
@@ -57,7 +57,7 @@ class Philosopher implements Runnable {
            int numEat, DoneCounter dc) {
       this.name = "Philosopher " + id;
       this.id = id;
-      this.napThink = napThink;
+//      this.napThink = napThink;
       this.napEat = napEat;
       this.ds = ds;
       this.numEat = numEat;
@@ -104,8 +104,8 @@ class Philosopher implements Runnable {
      * @throws InterruptedException
      */
    private void think() throws InterruptedException {
-      int napping;
-      napping = 1 + (int) AgeRandom.random(napThink);
+//      int napping;
+//      napping = 1 + (int) AgeRandom.random(napThink);
       //System.out.println("age=" + AgeRandom.age() + ", " + name
       //   + " is thinking for " + napping + " ms");
       //Thread.sleep(napping);

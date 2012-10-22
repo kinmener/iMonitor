@@ -74,11 +74,11 @@ public class Test{
                     delay);
             testThreads[i].start();
         }
-        double totalResponseTime = 0.0f;
+ //       double totalResponseTime = 0.0f;
         for (int i = 0; i < numProc; ++i) {
             try {
                 testThreads[i].join();
-                totalResponseTime += testThreads[i].getAvgResponseTime();
+//                totalResponseTime += testThreads[i].getAvgResponseTime();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

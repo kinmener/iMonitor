@@ -1,7 +1,6 @@
 package monitor;
 
 import java.util.HashSet;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class SetCondition extends AbstractCondition {
@@ -27,7 +26,9 @@ public class SetCondition extends AbstractCondition {
         if(!self.assertionIsTrue()) {
             // condition.signalAll();
             for(SetCondition cond : setCondition) {
-                cond.conditionalSignal();
+                if (cond.conditionalSignal()) {
+                    break;
+                }
             }
             do {
                 try {

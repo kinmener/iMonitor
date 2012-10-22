@@ -2,7 +2,6 @@
 package monitor;
 
 import java.util.Comparator;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,7 +9,7 @@ import java.util.Map.Entry;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
-import util.Common;
+//import util.Common;
 
 public class TagConditionManager {
 

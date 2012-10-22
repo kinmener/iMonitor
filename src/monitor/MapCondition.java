@@ -2,7 +2,6 @@ package monitor;
 
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class MapCondition extends AbstractCondition {

@@ -1,7 +1,6 @@
 package monitor;
 
 import java.util.HashSet;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class SetMonitor extends AbstractImplicitMonitor  {
@@ -20,7 +19,9 @@ public class SetMonitor extends AbstractImplicitMonitor  {
         if(setCondition != null) {
             //condition_.signalAll();
             for(SetCondition cond: setCondition) {
-               cond.conditionalSignal(); 
+               if (cond.conditionalSignal()) {
+                   break;
+               }
             }
         }
         mutex.unlock();

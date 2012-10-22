@@ -1,6 +1,5 @@
 package examples.TicketReadersWriters;
 
-import java.util.HashMap;
 
 public abstract class ReadersWritersMonitor {
 

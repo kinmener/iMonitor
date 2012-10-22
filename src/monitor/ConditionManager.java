@@ -1,15 +1,12 @@
 package monitor;
 
 import java.util.Comparator;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
-import java.util.LinkedList;
 import java.util.PriorityQueue;
 
-import util.Common;
 
 public class ConditionManager {
 
@@ -179,6 +176,8 @@ public class ConditionManager {
                 }
 
                 mapECP.get(varName).get(val).add(ret);
+        default:
+            break;
         }
         return ret;
     }
@@ -224,6 +223,8 @@ public class ConditionManager {
             case EC:
                 mapECP.get(cond.getVarName()).get(cond.getVal()).remove(cond);
                 break;
+        default:
+            break;
         }
     }
 }

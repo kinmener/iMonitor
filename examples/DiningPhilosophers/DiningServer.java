@@ -7,8 +7,7 @@ package examples.DiningPhilosophers;
  * @author Stephen J. Hartley
  * @version 2005 July
  */
-import java.util.HashMap;
-import java.lang.management.*;
+
 
 public abstract class DiningServer {
     /**
@@ -74,8 +73,8 @@ public abstract class DiningServer {
      * @throws InterruptedException
      */
     private void eat(String name, int napEat) throws InterruptedException {
-        int napping;
-        napping = 1 + (int) AgeRandom.random(napEat);
+ //       int napping;
+ //       napping = 1 + (int) AgeRandom.random(napEat);
         //System.out.println("age=" + AgeRandom.age() + ", " + name
         //   + " is eating for " + napping + " ms");
         //Thread.sleep(napping);

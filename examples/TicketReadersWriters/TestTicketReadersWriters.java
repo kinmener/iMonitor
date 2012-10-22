@@ -1,6 +1,5 @@
 package examples.TicketReadersWriters;
 
-import java.util.Random;
 
 import examples.util.DoneCounter;
 class Reader extends Thread {
