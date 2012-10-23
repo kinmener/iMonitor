@@ -16,6 +16,5 @@ set key left top
 #      "TicketReadersWriters/set.dat" using 2:xticlabels(1) title 'baseline' with linespoints, \
 #      "TicketReadersWriters/tag.dat" using 2:xticlabels(1) title 'tag' with linespoints
 plot  "TicketReadersWriters/explicit.dat" using 1:2 title 'explicit' with linespoints, \
-      "TicketReadersWriters/naive.dat" using 1:2 title 'baseline' with linespoints, \
       "TicketReadersWriters/set.dat" using 1:2 title 'iMonitor-T' with linespoints, \
       "TicketReadersWriters/tag.dat" using 1:2 title 'iMonitor' with linespoints
