@@ -8,6 +8,7 @@ class Reader extends Thread {
     int numRead;
     int maxReadTime;
     int delay;
+    long responseTime;
 
     public Reader(ReadersWritersMonitor monitor, int numRead, int maxReadTime,
             DoneCounter doneCounter, int delay) {
@@ -16,10 +17,12 @@ class Reader extends Thread {
         this.maxReadTime = maxReadTime;
         this.doneCounter = doneCounter;
         this.delay = delay;
+        responseTime = 0;
     }
 
     public void run() {
         for(int i = 0; i < numRead; ++i) {
+            long startTime = System.nanoTime();
             monitor.startRead();
             // read
             try {
@@ -32,6 +35,7 @@ class Reader extends Thread {
                 
             }
             monitor.endRead();
+            responseTime += (System.nanoTime() - startTime);
             if (delay != 0) {
                 try {
                     if (delay >= 1000000) {
@@ -45,6 +49,9 @@ class Reader extends Thread {
         }
         doneCounter.increment() ;
     }
+    public double getAvgResponseTime() {
+        return (double) responseTime / (double) numRead;
+    }
 }
 
 class Writer extends Thread {
@@ -53,6 +60,7 @@ class Writer extends Thread {
     int numWrite;
     int maxWriteTime;
     int delay;
+    long responseTime;
 
     public Writer(ReadersWritersMonitor monitor, int numWrite, 
             int maxWriteTime, DoneCounter doneCounter, int delay) {
@@ -61,9 +69,11 @@ class Writer extends Thread {
         this.maxWriteTime = maxWriteTime;
         this.doneCounter = doneCounter;
         this.delay = delay;
+        responseTime = 0;
     }
     public void run() {
         for (int i = 0; i < numWrite; ++i) {
+            long startTime = System.nanoTime();
             monitor.startWrite();
             // write
             try {
@@ -76,6 +86,7 @@ class Writer extends Thread {
                 
             }
             monitor.endWrite();
+            responseTime += (System.nanoTime() - startTime);
             if (delay != 0) {
                 try {
                     if (delay >= 1000000) {
@@ -88,6 +99,9 @@ class Writer extends Thread {
             }
         }
         doneCounter.increment() ;
+    }
+    public double getAvgResponseTime() {
+        return (double) responseTime / (double) numWrite;
     }
 }
 
@@ -144,8 +158,16 @@ public class TestTicketReadersWriters {
         }
 
         doneCounter.waitForDone() ;
-        
+       
+        double totalResponseTime = 0.0f;
+        for (int i = 0; i < READERS; i++) {
+            totalResponseTime += r[i].getAvgResponseTime();
+        }
+        for (int i = 0; i < WRITERS; i++) {
+            totalResponseTime += w[i].getAvgResponseTime();
+        }
         long execTime = System.currentTimeMillis() - startTime;
-        System.out.println( execTime );
+        //System.out.println( execTime );
+        System.out.println( totalResponseTime / (READERS + WRITERS));
     }
 }

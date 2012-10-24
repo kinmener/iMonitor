@@ -67,12 +67,13 @@
 For more than forty years, the parallel programming community has used monitor 
 as the main mechanism for conditional synchronization. Most of the modern 
 programming languages support only the explicit-signal monitor but the 
-implicit-signal monitor due to the performance issues. In this paper, we 
+implicit-signal monitor because of the performance issues. In this paper, we 
 argue that the implicit-signal monitor can be as efficient as implicit-signal
 monitor or even more efficient for some examples.
 
 To satisfy the need for implicit-signal monitor, we proposed a framework called 
-iMonitor. tagging, relay guarantees, no signalAll. 
+iMonitor. tagging, relay guarantees, no signalAll. Experiment results show
+\dots
 
 \end{abstract}
 
@@ -188,7 +189,7 @@ following reasons:
 The relationship between the implicit-signal and explicit-signal monitor can be 
 depicted by analogy with the relationship between the garbage collection and 
 manual memory management. Although garbage collection leads to decreased
-performance due to the overhead in deciding which memory to free; programmers 
+performance because of the overhead in deciding which memory to free; programmers 
 elude manual memory deallocation. As a consequence, memory leaks and certain 
 bugs, such as dangling pointer bugs and double free bugs, are reduced and 
 eradicated. Similarly, implicit-signal mechanism consumes computing resources 
@@ -727,8 +728,8 @@ threshold predicate respectively. We say a tag is true if the predicate
 represented by the tag is true; otherwise, we say the tag is false. 
 \subsubsection{Predicate tagging}
 Tags are given to every predicate by the algorithm shown in
-Fig.~\ref{fig:tagging}. The tags of conjunctions of a predicate form the set of 
-tags of the predicate. A tag is assigned to every conjunction. When assigning a 
+Fig.~\ref{fig:tagging}. The tags of conjunctions of a predicate constitute the 
+set of tags of the predicate. A tag is assigned to every conjunction. When assigning a 
 tag to a conjunction, the equivalence tag has higher priority than others. The
 reason is that an equivalence predicate is more deterministic than a threshold 
 predicate since the predicate is true only when the value of its pivot variable 
@@ -744,8 +745,8 @@ to the conjunction; otherwise, the conjunction has $None$ tag.
 Creating all tags for a conjunction is unnecessary. If a conjunction includes 
 multiple equivalence predicates or threshold predicates, only one arbitrary 
 $Equivalence$ tag or threshold tag is assigned to the clause. The first reason is 
-that, if there is a large number of tags, then the performance may decrease due 
-to cost of maintaining tags. The second reason is that the motivation behind 
+that, if there is a large number of tags, then the performance may decrease
+because of the cost of maintaining tags. The second reason is that the motivation behind 
 the tag is to accelerate the searching process by pruning false predicate 
 but not exhaustive search.  A clause is false when at least one 
 of its atomic Boolean expressions is false. A tag of a clause is sufficient to 
@@ -986,6 +987,14 @@ syntax equivalent. Two predicates are syntax equivalent means that the two predi
 are identical after applying globalization. Predicate table, implemented by a
 hash table, records predicates and their associated condition variables. 
 
+\begin{figure*}[ht!]
+  \centering
+  \includegraphics[width=180mm]{fig/manager.eps}
+  \caption{A example of the condition manager in iMonitor}
+  \label{fig:mgr}
+\end{figure*}
+
+
 When a predicate is added to the condition manager, the predicate is analyzed
 and its tags are created. Then those tags are stored in an appropriate data
 structure. Fig.~\ref{fig:mgr} shows an example. The symbol $\bullet$ indicates 
@@ -1008,13 +1017,6 @@ tag. We find $x \ne 5$ and signal the corresponding condition variable. As can
 be expected, the equivalence and threshold tags is helpful for efficiently
 searching a true predicate.  
 
-
-\begin{figure*}[ht!]
-  \centering
-  \includegraphics[width=180mm]{fig/manager.eps}
-  \caption{A example of the condition manager in iMonitor}
-  \label{fig:mgr}
-\end{figure*}
 
 A predicate must be removed from the tag once no thread waits on 
 it to avoid unnecessary predicate evaluation. A threshold tag also needs to be
@@ -1041,7 +1043,7 @@ Intel(R) Xeon(R) X5560 CPUs and 64 GBs memory.
 
 
 \subsection{Signaling mechanisms}
-The implementations using three different signaling mechanisms have been 
+Four implementations using different signaling mechanisms have been 
 compared. 
 \begin{description}
     \item[Explicit-signal] Using the original Java explicit-signal mechanism. 
@@ -1050,40 +1052,58 @@ compared.
         predicate tagging. 
     \item[Baseline] Using the implicit-signal mechanism which relying on only
         one condition variable. It calls signalAll all the time to check the
-        predicates
+        predicates.
 \end{description}
 
 \subsection{Test problems}
 \begin{description}
     \item[Producer-Consumer (PC)] The traditional producer-consumer shown in 
         Fig.~\ref{fig:bb_exp}.
-    \item[Producer-Consumer* (PC*)] The producer may produce $n$ elements a 
-        time. In addition, the consumer may consume $n$ elements a time.
+    \item[Producer-Consumer* (PC*)] The producer-consumer* problem shown in
+        Fig.~\ref{fig:sigAll_exp}. 
+    \item[Round-Robin Access Pattern (RR)] Every test thread accesses the
+        monitor in round-robin order. 
     \item[Readers/Writers (RW)] In the approach \cite{bh05}, a ticket is used
         to maintain the accessing order of readers and writers. Every reader
         and writer get a ticket number indicating its arrival order. Readers
         and writers are waiting on the monitor for their turn. 
-    \item[Round-Robin Access Pattern (RR)] Every test thread accesses the
-        monitor in round-robin order. 
 \end{description}
 
-The computing complexity is summarized in Tab.~\ref{tab:complexity}.
-\begin{table}
+The computing complexity for maintaining condition variable and deciding which 
+thread should be signaled is summarized in Tab.~\ref{tab:complexity}. The $C$
+indicates the computing complexity for maintaining condition variable, while 
+the $S$ indicates the computing complexity for deciding which condition 
+variable should be signaled. Note that, for producer-consumer* problem, it
+takes $O(ln(n))$ to maintain the condition variable. The reason is that we use
+heap as underlying data structure for threshold predicates. The computing
+complexity of add and remove operations is $O(ln(n))$.
+
+\begin{table*}[ht!]
    \centering
-   \begin{tabular}{|c||c|c|c|c|}
+   \begin{tabular}{|c||c|c||c|c||c|c||c|c|}
       \hline 
-         & PC & PC* & RW & RR \\
+      & \multicolumn{2}{c||}{PC} & \multicolumn{2}{c||}{PC*} & 
+        \multicolumn{2}{c||}{RR} & \multicolumn{2}{c|}{RW} \\
+      \hline
+         & C & S & C & S & C & S & C & S \\
       \hline 
-      explicit & $O(1)$ & $O(n)$ & $O(1)$ & $O(1)$ \\
       \hline 
-      baseline & $O(1)$ & $O(n)$ & $O(n)$ & $O(n)$ \\
+      explicit & $O(1)$ & $O(1)$ & $O(1)$ & $O(n)$ & $O(1)$ & $O(1)$ & $O(1)$ &
+      $O(1)$ \\
       \hline 
-      iMonitor & $O(1)$ & $O(1)$ & $O(1)$ & $O(1)$ \\
+      baseline & $O(1)$ & $O(n^2)$ & $O(1)$ & $O(n^2)$ & $O(1)$ & $O(n^2)$ &
+      $O(1)$ & $O(n^2)$ \\
+      \hline 
+      iMonitor-T & $O(1)$ & $O(1)$ & $O(1)$ & $O(n)$ & $O(1)$ & $O(n)$ & $O(1)$ 
+      & $O(n)$ \\
+      \hline 
+      iMonitor & $O(1)$ & $O(1)$ & $O(ln(n))$ & $O(1)$ & $O(1)$ & $O(1)$ & 
+      $O(1)$ & $O(1)$\\
       \hline 
    \end{tabular}
    \caption{The computing complexity}
    \label{tab:complexity}
-\end{table}
+\end{table*}
 
 
 
@@ -1103,16 +1123,22 @@ The computing complexity is summarized in Tab.~\ref{tab:complexity}.
 %  \label{fig:testbed}
 %\end{figure}
 %
-%\subsection{Saturation evaluation}
-Fig.~\ref{fig:pc_eval} shows the results of producer-consumer problem. The
-x-axis indicates the number of producers and consumers; the y-axis indicates the
-runtime in seconds. Total 512000 $put$ and $take$ operations were executed by
-all producers and consumers. As expected, than three signaling mechanisms have 
-similar performance. This phenomenon can be explained as follows. There are 
-only two waituntil statements with global predicates, $count > 0$ and 
-$count < items.length$. Therefore, the complexity for signaling a thread in
-implicit-signal mechanisms are also constant. Hence, the explicit-signal
-mechanism is slightly more efficient than two other approaches. 
+\subsection{Saturation evaluation}
+%\subsection{Experimental results}
+
+
+Fig.~\ref{fig:pc_eval} shows the results of producer-consumer problem. The 
+x-axis indicates the number of producers and consumers; the y-axis indicates 
+the runtime in milliseconds. Total 
+512000 $put$ and $take$ operations were executed by
+all producers and consumers. As expected, the baseline is much slower than
+other three signaling mechanisms, which have similar performance. This 
+phenomenon can be explained as follows. There are only two waituntil statements 
+with global predicates, $count > 0$ and $count < items.length$. Therefore, the 
+complexity for signaling a thread in iMonitor and iMonitor-T are also constant. 
+Hence, both iMontior and iMontior-T is as efficient as explicit-signal 
+mechanism. 
+
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/pc.eps}
@@ -1120,36 +1146,40 @@ mechanism is slightly more efficient than two other approaches.
   \label{fig:pc_eval}
 \end{figure}
 
-%\begin{figure}
-%  \centering
-%  \subfloat[Explicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitNBoundedBuffer}
-%    }
-%    \label{subfig:rbb_exam_exp}
-%  }
-%  \\
-%  \subfloat[Implicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorNBoundedBuffer}
-%    }
-%    \label{subfig:rbb_exam_imp}
-%  }
-%  \caption{Random Bounded-buffer example}
-%  \label{fig:rbb_exp}
-%\end{figure}
+Fig.~\ref{fig:rpc_eval} shows the results of producer-consumer* problem. Total
+512000 items are $put$ and then $taken$. The x-axis indicates the number of 
+consumers; the y-axis indicates the runtime in milliseconds. Only one producer
+was in this experiment. The producer put a item into the buffer a time. A 
+consumer randomly take $b/2$ ~ $b$ items a time, where $b = 128$ is the size of 
+the buffer. Fig.~\ref{fig:rpc.eps} indicates that iMonitor and iMonitor-T are
+much faster than the baseline and the explicit-signal mechanism. The reason is
+that both explicit-signal mechanism and baseline use signallAll calls. In this
+experiment setup, many unnecessary context switches were introduced since a
+consumer takes a large amount of items a time but the producer only puts one
+item a time. Both iMonitor and iMonitor-T are similar in
+Fig.~\ref{fig:rpc_eval} due to the scaling. We compare them in
+Fig.~\ref{fig:rpch_eval}. As can be seen, the iMonitor has a consistent
+performance even when the number of producers increases. Although iMonitor-T has
+slightly better performance when the number of producers is small; its 
+performance decrease significantly as the number of producers increases. It can
+be explained as follows. iMonitor has some computing overhead in maintaining 
+tags and predicates. When the number of producers is small, the benefit of
+predicate tagging is less than the computing overhead. However, iMonitor is
+much more scalable with this slight performance sacrifice.
+
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/rpc.eps}
-  \caption{The results of random producer-consumer problem}
+  \caption{The results of producer-consumer* problem}
   \label{fig:rpc_eval}
 \end{figure}
 
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/rpch.eps}
-  \caption{The results of random producer-consumer problem with comparing heap}
-  \label{fig:rpc_eval}
+  \caption{The results of producer-consumer* problem comparing iMonitor and
+  iMonitor-T}
+  \label{fig:rpch_eval}
 \end{figure}
 
 %Fig.~\ref{fig:rw_eval} shows the results of reader-writer problem. The
@@ -1159,12 +1189,6 @@ mechanism is slightly more efficient than two other approaches.
 %The runtime decreases as number of readers increases. Need to figure out why 
 %explicit-signal approach is so slow in 1/5. Maybe the implementation? 
 %
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/trw.eps}
-  \caption{The results of ticket reader-writer problem}
-  \label{fig:rw_eval}
-\end{figure}
 
 
 %The dining philosophers problem is often used in computer science to describe 
@@ -1183,17 +1207,19 @@ mechanism is slightly more efficient than two other approaches.
 %
 Fig.~\ref{fig:rr_eval} shows the results of round-robin access pattern. The
 x-axis indicates the number of threads; the y-axis indicates the
-runtime in seconds. In this set of experiments, threads are allowed to enter a
-monitor in round-robin scheduling. Again, the results of N-Condition approach
-are not shown because their performance is much worse than others. Total 
-128000 operations were performed on the monitor. In this set
-of experiment, the explicit-signal approach has an advantage since it can
-explicitly to signal the next thread to enter the monitor. As can be seen, the
-performance of explicit-signal approach is steady as the number of thread
-increases. In comparison with our implicit-signal approaches, threads can only 
-wait to enter the monitor. The runtime increases much as the number of thread 
-increase in naive implementation. For the map approach, the performance is 
-worse than the explicit-signal approach with a steady difference. 
+runtime in milliseconds. In this set of experiments, threads are allowed to enter a
+monitor in round-robin scheduling. Total 128000 operations were performed on 
+the monitor. In this set of experiment, the explicit-signal mechanism has an 
+advantage since it can explicitly to signal the next thread to enter the 
+monitor. Since the baseline is around 50 times slower than the explicit-signal
+mechanism, the result of baseline is not plotted in Fig.~\ref{fig:rr_eval} due
+to the scaling. 
+As can be seen, the performance of explicit-signal mechanism is steady 
+as the number of thread increases. In comparison with iMonitor-T, the runtime 
+increases significantly as the number of thread increase. For iMonitor, the 
+performance is slower than the explicit-signal mechanism between 2.3 to 2.4
+times. However, the performance of iMonitor does not decrease as the number of
+threads increases. 
 
 \begin{figure}[ht!]
   \centering
@@ -1201,26 +1227,6 @@ worse than the explicit-signal approach with a steady difference.
   \caption{The results of round-robin access pattern}
   \label{fig:rr_eval}
 \end{figure}
-
-%\subsection{Performance under different workload}
-%\begin{figure}
-%  \centering
-%  \subfloat[Explicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitRoundRobinMonitor}
-%    }
-%    \label{subfig:rr_exam_exp}
-%  }
-%  \\
-%  \subfloat[Implicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorRoundRobinMonitor}
-%    }
-%    \label{subfig:rr_exam_imp}
-%  }
-%  \caption{Round-Robin example}
-%  \label{fig:rbb_exp}
-%\end{figure}
 
 
 %\subsection{Practical}
@@ -1267,7 +1273,32 @@ worse than the explicit-signal approach with a steady difference.
 %  \label{fig:rbb_exp}
 %\end{figure}
 
+%Fig.~\ref{fig:rw_eval} shows the results of reads/writers problem. The
+%x-axis indicates the number of writers; the y-axis indicates the
+%runtime in milliseconds. In this set of experiments, the number of readers in
+%the 5 times of the number of writers. Total 128000 reads and writes were performed on 
+%the monitor. The same, the result of baseline is not plotted in Fig.~\ref{fig:rw_eval} due
+%to the scaling issue. 
+%As can be seen, the performance of explicit-signal mechanism is steady 
+%as the number of thread increases. In comparison with iMonitor-T, the runtime 
+%increases significantly as the number of thread increase. For iMonitor, the 
+%performance is slower than the explicit-signal mechanism between 2.3 to 2.4
+%times. However, the performance of iMonitor does not decrease as the number of
+%threads increases. 
 
+
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/trw.eps}
+  \caption{The results of ticket readers/writers problem}
+  \label{fig:rw_eval}
+\end{figure}
+
+\subsection{Performance under different workload}
+Conduct experiment for readers/writers problem. There is a delay between each
+read/write operation. As the length of delay increase, the workload of the
+monitor decrease. Measure the average response time of the monitor. 
 
 \section{Related work} \label{sec:related}
 \section{Conclusion} \label{sec:conclu}
