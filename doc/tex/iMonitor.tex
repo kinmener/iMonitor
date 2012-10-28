@@ -54,7 +54,7 @@
 \titlebanner{banner above paper title}        % These are ignored unless
 \preprintfooter{short description of paper}   % 'preprint' option specified.
 
-\title{iMonitor: An Implicit-Signal Monitor Based on Predicate Tagging}
+\title{AutoSynch: An Automatic-Signal Monitor \\ Based on Predicate Tagging}
 \subtitle{}
 
 \authorinfo{Wei-Lun Hung\and Vijay K. Garg}
@@ -65,15 +65,33 @@
 
 \begin{abstract}
 For more than forty years, the parallel programming community has used monitor 
-as the main mechanism for conditional synchronization. Most of the modern 
-programming languages support only the explicit-signal monitor but the 
-implicit-signal monitor because of the performance issues. In this paper, we 
-argue that the implicit-signal monitor can be as efficient as implicit-signal
-monitor or even more efficient for some examples.
+as the main mechanism for mutual exclusion and conditional synchronization. An 
+automatic-signal monitor uses the $waituntil$ statement for conditional 
+synchronization, while the explicit-signal monitor uses condition variables and 
+signal/wait statements. Despite the simplicity of the automatic-signal monitor, 
+most of the modern programming languages support only the explicit-signal 
+monitor but not the automatic-signal monitor because of the performance issues. 
+In this paper, we argue that the automatic-signal monitor can be as efficient 
+as explicit-signal monitor or even more efficient for some examples.
 
-To satisfy the need for implicit-signal monitor, we proposed a framework called 
-iMonitor. tagging, relay guarantees, no signalAll. Experiment results show
-\dots
+To satisfy the need for automatic-signal monitor, we propose a system called 
+AutoSynch that allows gains in productivity of 
+programmers as well as gain in performance. We introduce an operation called
+$globalization$ that enables that the predicate evaluation can be performed in
+every thread. Based on this operation, AutoSynch provides $relay\ guarantee$
+that some thread waiting for a condition has been met is always signaled; 
+therefore, the signalAll call is avoidable in AutoSynch. To accelerating the 
+process in
+deciding which thread should be signaled, AutoSynch uses 
+$predicate\ tagging$, in which tags are assigned to every predicate according
+to its semantics. AutoSynch can find and signal an appropriate condition 
+variable efficiently by examining the state of a monitor and tags. 
+
+To evaluate the efficiency of AutoSynch, we implemented many different 
+well-known synchronization problems such as the producers/consumers problem,
+the readers/writers problems, and the dining philosophers problem. The results
+suggest that AutoSynch is almost as efficient as the explicit-signal monitor
+and even more efficient for some cases. 
 
 \end{abstract}
 
@@ -90,11 +108,6 @@ parallel
 % code examples
 
 
-
-
-
-
-
 \section{Introduction} \label{sec:intro}
 %Developing efficient and robust concurrent programs within a limited time is 
 %critical than ever. On the one hand, the multi-core processor, which allows 
@@ -109,19 +122,19 @@ parallel
 %In addition, the debugging process is panic in concurrent programs due to the 
 %thread scheduling. 
 
-%The monitor \cite{hoa74, han75} is commonly used in the concurrent programming for 
+%The monitor \cite{hoa74, bh75a} is commonly used in the concurrent programming for 
 %maintaining the mutual exclusion of shared resources and providing the 
 %synchronization mechanism between threads. Buhr and Harji \cite{bh05} divided 
 %monitors into two categories, the explicit-signal monitor and the 
-%implicit-signal monitor. Buhr and Harji used the explicit-signal monitor to 
-%simulate the implicit-signal monitor and pointed out that the implicit-signal 
+%automatic-signal monitor. Buhr and Harji used the explicit-signal monitor to 
+%simulate the automatic-signal monitor and pointed out that the automatic-signal 
 %monitor is not as efficient as the explicit-signal monitor. However, the 
-%implicit-signal is easy to be used and useful in concurrent programming,
+%automatic-signal is easy to be used and useful in concurrent programming,
 %especially for prototyping. 
 
 %Most programming languages, including the popular object-oriented language Java,
-%only provide the explicit-signal monitor but not implicit-signal. This research 
-%focuses on developing a framework supporting implicit-signal monitor without
+%only provide the explicit-signal monitor but not automatic-signal. This research 
+%focuses on developing a framework supporting automatic-signal monitor without
 %sacrificing efficiency in the modern programming language - Java. 
 
 %our contribution
@@ -130,137 +143,102 @@ parallel
 The multicore hardware is now ubiquitous. Even the cell phones have
 multicore processors. Programming these multicore processors is
 still a challenging task due to
-bugs resulted form concurrency and synchronization.
+bugs resulting from concurrency and synchronization.
 Although there is widespread acknowledgement of difficulties 
 in programming these systems, it is almost hard to believe that 
 by and large the most prevalent methods of dealing with synchronization are
-based on ideas that were developed in early 70's \cite{hoa74, han75}. For 
-example, the most widely used threads package in C++, pthreads, and
+based on ideas that were developed in early 70's \cite{hoa74, bh75a}. For 
+example, the most widely used threads package in C++, 
+pthreads, and
 the most widely used package in Java, java.util.concurrent, are based
 on the notion of monitors (or semaphores) developed in 60's and 70's.
-In this research, we developed new method called iMonitor 
+In this paper, we propose a new method called AutoSynch 
 that allows gains in productivity of the programmer as well as gain in
 performance of the system.
 
-%\subsection{Why Is Implicit-Signal Monitor Needed?}
+%\subsection{Why Is Automatic-Signal Monitor Needed?}
 Both pthreads and Java require programmers to explicitly
 signal threads that may be waiting on certain condition. The programmer
 has to explicitly declare condition variables and then signal one
 or all of the threads when the associated condition becomes true.
 Using the wrong notification (signal versus signalAll) is a frequent
-source of bugs. In iMonitor there is no notion of condition variables
+source of bugs. In AutoSynch there is no notion of condition variables
 and it is the responsibility of the system to signal appropriate threads.
-This feature in iMonitor significantly reduces the program size and complexity.
+This feature in AutoSynch significantly reduces the program size and complexity.
 Note that the idea of automatic signaling has been proposed 
-in the original paper by Hoare as an alternative to implicit
-signaling \cite{hoa74}. However, it is generally believed that implicit 
+in the original paper by Hoare as \cite{hoa74}. Buhr and Harji use implicit
+signal an alternative to automatic signaling \cite{bh05}. 
+However, it is generally believed that automatic 
 signaling is extremely inefficient compared to explicit signaling. 
-For example, Buhu and Harji claim that implicit monitors are 10-50 times
+For example, Buhr, Fortier, and Coffin claim that automatic monitors are 10-50 times
 slower than explicit signals \cite{bfc95}. The reason for the slowdown is that
-previous implementations of implicit monitor are based on the
-evaluation of all conditions, whenever monitor is available. 
-We show in the paper that implicit signaling is still necessary for the 
-following reasons:
-\begin{enumerate}
-    \item Potentially gaining performance through optimizing system based on
-        architecture information and avoiding signalAll calls. A signalAll 
-        call introduces unnecessary context switches and decreases performance. 
-        The details will be given in Section \ref{sec:sigAll}.
-    \item Less work for programmers, which implies fewer bugs in programs.
-        In explicit-signal monitor, it is the responsibility of programmers to 
-        explicitly invoke a signal call on some condition variable for
-        conditional synchronization. Using the wrong notification or signaling
-        a wrong condition variable are frequent source of bugs. 
-    \item Violating separation of concerns. In explicit-signal monitor, the
-        conditional synchronization is composed of two parts. A thread checks
-        whether or not the condition has met and explicitly waits on a
-        condition variable. Another thread detects the condition has met and
-        explicit signal the condition variable. The intricate relation between
-        threads for conditional synchronization leads the modularity of 
-        programming and encapsulation difficult.  
-    \item Mitigating the debugging of explicit-signal programs. It is easier to
-        reason a implicit-signal code than a explicit-signal code. A correct
-        implicit-signal implementation is helpful in debugging with a 
-        explicit-signal implementation.  
-    \item Rapid prototyping for speedup in developing process and accelerating
-        products time to market.
-\end{enumerate}
-
-The relationship between the implicit-signal and explicit-signal monitor can be 
-depicted by analogy with the relationship between the garbage collection and 
-manual memory management. Although garbage collection leads to decreased
-performance because of the overhead in deciding which memory to free; programmers 
-elude manual memory deallocation. As a consequence, memory leaks and certain 
-bugs, such as dangling pointer bugs and double free bugs, are reduced and 
-eradicated. Similarly, implicit-signal mechanism consumes computing resources 
-in deciding which thread to be signaled; programmers avoid explicitly invoking 
-signal calls. As a result, some bugs, such as using wrong notification and
-signaling a wrong condition variable, are diminished and eliminated. 
-%\subsection{iMonitir Syntax}
-%\subsection{iMonitor Example}
+previous implementations of automatic monitor are based on the
+evaluation of all conditions, whenever monitor is available. We show in this
+paper that the widely held belief is wrong. 
+%\subsection{AutoSynch Example}
 %The concurrent programs are more difficult to be written and debugged than the 
 %sequential programs. Although explicit-signal monitor already provides an 
 %elegant mechanism for programmers to maintain mutual exclusion and synchronization 
-%in concurrent programs; implicit-signal is more straightforward in both code
+%in concurrent programs; automatic-signal is more straightforward in both code
 %reasoning and syntax. 
 
-To make the implicit-signal mechanism available in Java, we proposes the 
-framework of iMonitor illustrated in Fig.~\ref{fig:fw}. In iMonitor, the 
-programmer has to deal with fewer concepts and constructs than other monitors 
-based on traditional methods. The iMonitor framework is composed of a 
+To make the automatic-signal mechanism available in Java \cite{gjs00}, we proposes the 
+framework of AutoSynch illustrated in Fig.~\ref{fig:fw}. 
+The AutoSynch framework is composed of a 
 preprocessor and a Java condition manager library. The preprocessor translates 
-iMonitor codes into tradition Java codes. Our implicit-signal mechanism and 
+AutoSynch code into traditional Java code. Our automatic-signal mechanism and 
 developed techniques were implemented in the Java library. Although this paper 
-focuses on only Java; our techniques are also applicable to other programming 
-language, such as pthread and C\#.  
+focuses on Java; our techniques are also applicable to other programming 
+languages and models, such as pthread\cite{bute97} in C++\cite{stro97} and C\# \cite{hwg03}.
 
-%Fig.~\ref{fig:fw} illustrates the framework of iMonitor, which makes 
-%the implicit-signal available with the modern high-level language, Java. 
-%The iMonitor takes a Java-extension program providing the implicit-signal 
+%Fig.~\ref{fig:fw} illustrates the framework of AutoSynch, which makes 
+%the automatic-signal available with the modern high-level language, Java. 
+%The AutoSynch takes a Java-extension program providing the automatic-signal 
 %mechanism through supporting the monitor class and the waituntil statement. The 
-%iMonitor preprocessor transfers an iMonitor code into the tradition Java code 
-%that can be compiled with iMonitor library. The iMonitor 
-%Java library implements our implicit-signal monitor mechanism.  
+%AutoSynch preprocessor transfers an AutoSynch code into the tradition Java code 
+%that can be compiled with AutoSynch library. The AutoSynch 
+%Java library implements our automatic-signal monitor mechanism.  
 %
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/flow.eps}
-  \caption{The framework of iMonitor}
+  \caption{The framework of AutoSynch}
   \label{fig:fw}
 \end{figure}
 
 
-iMonitor extends Java with supporting the monitor class and the waituntil 
-statement. A monitor class is defined as every member function of the class 
-that can be executed by only one thread at any time. Namely, a monitor class is
-mutual  exclusion by nature. The $monitor$ is reserved as a modifier, 
-indicating a monitor class in iMonitor. A $waituntil$ statement, appearing in 
-only member functions of a monitor class, has a predicate as its parameter. 
-When a thread is executing a waituntil statement, it checks whether or not the 
+AutoSynch extends Java with supporting the $AutoSynch$ class and the
+$waituntil$ 
+statement. An $AutoSynch$ class is defined as every member function of the class 
+that can be executed by only one thread at any time. Namely, an $AutoSynch$ class is
+mutual exclusion by nature. The $AutoSynch$ is reserved as a modifier, 
+indicating a $AutoSynch$ class. A $waituntil$ statement, appearing in 
+only member functions of a $AutoSynch$ class, has a predicate as its parameter. 
+When a thread is executing a $waituntil$ statement, it checks whether or not the 
 predicate is true. The thread can continue to execute only when the predicate
-is true. Otherwise, if the predicate is false, the executing tread must wait 
+is true. Otherwise, if the predicate is false, the executing thread must wait 
 and release the privilege of the monitor control temporarily. 
 
 Fig.~\ref{fig:bb_exp} shows an example demonstrating the difference between 
-the Java implementation and the iMonitor implementation for the 
+the Java implementation and the AutoSynch implementation for the 
 bounded-buffer problem, also known as the producer-consumer problem. 
 In the problem, two kinds of threads, producers and consumers, tries to obtain 
 access to the shared resources. Producers put items 
 into the buffer, while consumers take items out from the buffer. Every 
-operation should be mutual exclusion. Furthermore, a producer must wait  
-when the buffer is full, while a consumer has to hold when the 
+operation should be under mutual exclusion. Furthermore, a producer must wait  
+when the buffer is full, while a consumer has to wait when the 
 buffer is empty. The explicit-signal bounded buffer is written in Java. A 
 lock variable and two condition variables are needed to maintain mutual exclusion 
 and conditional synchronization. A thread needs to acquire the lock before entering member
 functions. In addition, programmers need to explicitly associate conditional 
 assertions with condition variables and call signal or await function manually.
 On the contrary, 
-the implicit-signal bounded buffer is written in our iMonitor framework.
-Programmers use $monitor$ modifier to indicate the class is a monitor as line 
+the automatic-signal bounded buffer is written in our AutoSynch framework.
+Programmers use $AutoSynch$ modifier to indicate the class is a monitor as line 
 1. Besides, programmers use only $waituntil$ as in line 9 for conditional
-synchronization. As can be expected, the implicit-signal monitor is
+synchronization. As can be expected, the automatic-signal monitor is
 more straightforward and simpler than the explicit-signal monitor for
-programmers in both code reasoning and syntax. 
+reasoning about code.
 \begin{figure*}[ht!]
 \begin{multicols}{2}
     \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
@@ -309,8 +287,8 @@ programmers in both code reasoning and syntax.
     \end{Verbatim}
     \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
             numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Implicit-Signal}}]
-        monitor class BoundedBuffer { 
+            label=\fbox{\small\emph{Automatic-Signal}}]
+        AutoSynch class BoundedBuffer { 
           Object[] items; 
           int putPtr, takePtr, count; 
           public BoundedBuffer(int n) {
@@ -342,59 +320,119 @@ programmers in both code reasoning and syntax.
 \end{figure*}
 
 %\subsection{Design Principles}
-In this paper we argue that implicit signaling is generally as fast as explicit 
+In this paper we argue that automatic signaling is generally as fast as explicit 
 and even faster for some examples. In Section \ref{sec:sigAll}, we give reasons
-for the efficiency in implicit signaling. In short, the explicit signaling has 
-to resort to signalAll in some examples; however, our implicit signaling never 
-uses signalAll. We hope to design and build iMonitor that is almost always as 
+for the efficiency in automatic signaling. In short, the explicit signaling has 
+to resort to signalAll in some examples; however, our automatic signaling never 
+uses signalAll. We have built AutoSynch that is almost always as 
 fast as explicit and considerably faster for synchronization problems with 
-signalAll. The design principles underlying iMonitor are as follows.
+signalAll. The design principles underlying AutoSynch are as follows.
 
 \begin{description}
     \item{\bf Reduce context switches.} Context switch requires a certain 
         amount of time to save and load registers and update various tables and
         lists. Reducing unnecessary context switches boosts the performance.
         A signalAll call introduces unnecessary context switches; therefore,
-        signal calls are forbidden in iMonitor. 
-    \item {\bf Check less predicates, if possible.} In the implicit-signal
-        mechanism, automatically signaling a thread is the responsibility of our
-        system. Checking less predicates to signal an appropriate thread is
-        desired. 
+        signal calls are forbidden in AutoSynch. 
+    \item {\bf Reduce the number of unnecessary predicate evaluation.} In the 
+        automatic-signal mechanism, automatically signaling a thread is the 
+        responsibility of our system. The number of predicate evaluations is 
+        crucial for efficiency in deciding which thread should be signaled. The
+        lower the number, the better the performance.
 \end{description}
 
 
-
 %\subsection{Contributions}
-The starting point in the design of iMonitor is how to evaluate predicates of
-waituntil statements. Any thread that can access a monitor can check all 
-predicates of waituntil statements of the monitor. Therefore, a thread can 
-decide to signal another thread with a true predicate before the thread waits
-or exits the monitor. We investigated globalization operation to eable 
-predicate evaluations in any thread. Based on this operation, our framework can
-provides relay guarantee and accelerate the process in deciding which thread to
-be signaled with predicate tagging. To avoid using signalAll call, iMonitor 
-provids relay guarantee, which ensures that some waiting thread with a true 
-predicate is always signaled. Furthermore, predicate tags are used to
-classify predicates. In deciding which thread should be signaled, after
-examining the current state of a monitor, we can know which tags are infeasible
-to be true at the moment. Then we only need to check the predicates without
+The starting point in the design of AutoSynch is how to evaluate predicates of
+$waituntil$ statements. Any thread that can access a monitor should be able
+to check all predicates of $waituntil$ statements of the monitor. Therefore, a 
+thread can decide which thread should be signaled according to the results of
+predicate evaluations before the thread waits or exits the monitor. We 
+investigated globalization operation to enable predicate evaluations in any 
+thread. Based on this operation, our framework can provide relay guarantee and 
+predicate tagging. 
+
+To avoid using signalAll call, AutoSynch 
+provides relay guarantee, which ensures that some thread waiting for a
+condition has met is always signaled. With this guarantee, the signalAll call 
+is unnecessary in our automatic-signal mechanism. Therefore, AutoSynch reduces 
+the number of context switches by avoiding signalAll call. 
+
+To accelerate the process in deciding which thread to be signaled, predicate 
+tags are used for classifying predicates. Tags are assigned to every predicate
+according to the semantics of the predicate. In deciding which thread should be 
+signaled, we identify tags that are most likely to be true after examining the 
+current state of a monitor. Then we only need to check the predicates with 
 those tags. 
 
-Our experimental results indicate that iMonitor can significantly improve
-performance \dots
+Our experimental results indicate that AutoSynch can significantly improve
+performance compared to other automatic-signal mechanisms \cite{bh05}.
+Furthermore, AutoSynch is faster than the explicit-signal mechanism in some
+cases that rely on signalAll calls. In most of the cases, AutoSynch is around 2
+times slower than the expliciti-signal mechanism. It is much better than the
+generaly belief that the automatic-signal monitor is 10-50 time slower than
+the explicit-signal montior \cite{bfc95}. Besides, the experimental resutls
+also shows that AutoSynch is scalabel; the performance of AutoSynch is steady 
+even when the number of threads increases. 
+
+
+Even if automatic signals are slower, they are still necessary for the following
+reasons: 
+\begin{enumerate}
+    \item Potentially gaining performance through optimizing system based on
+        architecture information and avoiding signalAll calls. A signalAll 
+        call introduces unnecessary context switches and decreases performance. 
+        We show that
+        automatic signal monitor can be implemented with almost same efficiency
+        as explicit signals. In fact, in our implementation automatic monitor
+        are sometimes faster than explicit signals. 
+    \item Less work for programmers, which implies fewer bugs in programs.
+        In explicit-signal monitor, it is the responsibility of programmers to 
+        explicitly invoke a signal call on some condition variable for
+        conditional synchronization. Using the wrong notification or signaling
+        a wrong condition variable are frequent source of bugs. 
+    \item Violating separation of concerns. In explicit-signal monitor, the
+        conditional synchronization is composed of two parts. A thread checks
+        whether or not a condition has met and explicitly waits on a
+        condition variable. Another thread detects the condition has met and
+        explicit signal the condition variable. The intricate relation between
+        threads for conditional synchronization breaks the modularity and 
+        encapsulation of programming.  
+    \item Mitigating the debugging of explicit-signal programs. It is easier to
+        reason a automatic-signal code than a explicit-signal code. A correct
+        automatic-signal implementation is helpful in debugging with a 
+        explicit-signal implementation.  
+    \item Rapid prototyping for speedup in developing process and accelerating
+        products time to market.
+\end{enumerate}
+
+The relationship between the automatic-signal and explicit-signal monitor can be 
+depicted by analogy with the relationship between the garbage collection and 
+manual memory management. Although garbage collection leads to decreased
+performance because of the overhead in deciding which memory to free; programmers 
+avoid manual memory deallocation. As a consequence, memory leaks and certain 
+bugs, such as dangling pointer bugs and double free bugs, are reduced and 
+eradicated. Similarly, automatic-signal mechanism consumes computing resources 
+in deciding which thread to be signaled; programmers avoid explicitly invoking 
+signal calls. As a result, some bugs, such as using wrong notification and
+signaling a wrong condition variable, are diminished and eliminated. 
 
 Our main contributions are as follows.
-\begin{enumerate}
-    \item Presents the design and implementation of the iMonitor framework,
-        which supports concurrent programs with implicit-signal mechanism.
-    \item Experimental evaluation of iMonitor showing significant
-        improvements in performance and scalability with predicate tagging
-        and relay guarantee. 
-    \item Experimental evidence indicating that iMonitor's implicit-signal
+\begin{enumerate} 
+    \item Presents the globalization, relay guarantee, and predicate tagging
+        techniques that make automatic-signaling efficient. Experimental 
+        evaluation of AutoSynch showing significant improvements in performance 
+        and scalability with predicate tagging and relay guarantee. 
+    \item Proposes the design and implementation of the AutoSynch framework,
+        which supports concurrent programs with automatic-signal mechanism.
+    \item Reveals that the signalAll call may introduce unnecessary context
+        switches that decrease the performance. 
+    \item Experimental evidence indicating that AutoSynch's automatic-signal
         mechanism is almost as efficient as explicit-signal mechanism or even 
         more efficient with much simpler code complexity.
-\end{enumerate}
-%In this project, we are developing multiple such features.
+\end{enumerate} 
+
+%In this project, we are developing multiple such features. 
 %Our second goal for SuperSynch is that the performance of the system
 %with SuperSynch is at least as good as that for traditional systems.
 %Continuing with the previous example of signaling threads,
@@ -414,27 +452,25 @@ Our main contributions are as follows.
 %first notion is that of abortable transactions used in databases
 %for decades. Although the concept has now entered in concurrent programming world 
 %via transactional memories
-%\section{Design of iMonitor} \label{sec:fw}
+%\section{Design of AutoSynch} \label{sec:fw}
 
-
-%\subsection{Organization}
 This paper is organized as follows. Section \ref{sec:bg} gives the background
 of montior. 
-Section \ref{sec:sigAll} explains why signalAll is essential but bad. Our 
-concepts are presented in Section \ref{sec:concept} and the practical 
+Section \ref{sec:sigAll} explains why signalAll is required concepts for
+explicit-signal monitor but not automatic-signal monitor. The concepts of 
+AutoSynch are presented in Section \ref{sec:concept} and the practical 
 implementation details are discussed in Section  \ref{sec:imp}. The proposed 
 methods are then evaluated with experiments in Section \ref{sec:eval}. 
-Our results are contrasted with prior work in Section \ref{sec:related}. 
 Section \ref{sec:conclu} gives the concluding remarks.
 
-\section{Background: monitor} \label{sec:bg}
+\section{Background: monitor} \label{sec:bg} 
 %\subsection{Monitor}
 Monitor is an abstract object or module containing shared data to be used safely
 by multiple member functions and threads in concurrent programming. Monitor can
 be defined by two characteristics, mutual exclusion and conditional 
 synchronization. Mutual exclusion guarantees that at most one thread can 
 execute any member function of a monitor at any time. It provides programmers a 
-more elegant way to update shared data when compared to other access mechanism
+simpler way to update shared data compared to other access mechanism
 such as semaphore. In general, threads need to acquire the lock of a monitor 
 to acquire the privilege for accessing the monitor. Conditional synchronization 
 maintains the executing order between threads. Threads may wait for some 
@@ -447,44 +483,47 @@ synchronization.
     \item{\bf Explicit-signal monitor} In this type of monitor, condition
     variables, signal and await functions are used for synchronization. 
     Programmers need to associate assertions with condition variables manually.
-    This mechanism involves two threads. One tread checks if some
-    assertion is met or not, and then explicit waits on some condition variable 
+    This mechanism involves two threads. One thread checks if some
+    assertion is met or not, and then explicitly waits on some condition variable 
     if the assertion is not met. When another thread detects that the state has 
-    changed and the assertion is met, and then explicitly signals the 
-    appropriate condition variable for waking threads.
-    \item{\bf Implicit-signal monitor} This kind of monitor uses waituntil
-    statements, such as line 9 in implicit-signal program in
+    changed and the assertion is met, it explicitly signals the 
+    appropriate condition variable.
+    \item{\bf Automatic-signal monitor} This kind of monitor uses waituntil
+    statements, such as line 9 in automatic-signal program in
     Fig.~\ref{fig:bb_exp}, instead of condition variables for
     synchronization. Programmers do not need to associate assertions with
     variables, but use waituntil statements directly. In
     monitor, a thread will wait if the condition of a waitutil
     statement is false, and execute the remaining tasks after the condition 
-    becomes true. The responsibility of signaling the waiting thread is the
+    becomes true. The responsibility of signaling a waiting thread is that of 
     system rather than the programmers. 
 \end{description}
 
-Obviously, the explicit-signal is more complex than the implicit-signal monitor 
+Obviously, the explicit-signal is more complex than the automatic-signal monitor 
 for programmers. The explicit-signal requires that programmers
 have to write their conditional synchronization manually, which increases the 
-chance of writing incorrect code. The major advantage of the explicit-signal
-monitor is the performance. It is generally believed that that explicit-signal 
-monitor is much faster than the implicit-signal monitor. In this paper, we 
-argue that the implicit-signal monitor could be as efficient as the
+chance of writing incorrect code. It is generally believed that that 
+explicit-signal 
+monitor is much faster than the automatic-signal monitor. In this paper, we 
+argue that the automatic-signal monitor could be as efficient as the
 explicit-signal or ever faster in some cases. 
 
-\section{Why is signalAll essential but bad?} \label{sec:sigAll}
+\section{Why is signalAll required in the explicit-signal mechanism?} 
+\label{sec:sigAll}
 The signalAll call is essential in explicit-signal mechanism when programmers
 do not know which thread should be signaled. Fig.~\ref{fig:sigAll_exp}
 illustrates an example. This example is also a bounded-buffer problem but 
-different from Fig.~\ref{fig:bb_exp}. In this example, a producer can put 
-$n$ items to the buffer a time, while a consumer can take $n$ items from the 
-buffer a time. Furthermore, a producer must wait if there is no space to put
-$n$ items, while a consumer has to hold when the buffer has insufficient items.
-The signalAll calls should be used instead of signal calls. The reason is that
-every producer and consumer waits for different condition to be met;
-programmers do not know which producer or consumer should be signaled at
-runtime. Although programmers can avoid using signalAll calls by writing
-complicated code that associates different predicates to different condition 
+different from Fig.~\ref{fig:bb_exp}. In this example, both $put$ and $take$
+function have a parameter, $num$, indicating how many items are put or taken. 
+Every producer and consumer can put and take a different number of items
+every time.  Furthermore, a producer must wait if there is no space to put
+$num$ items, while a consumer has to hold when the buffer has insufficient items.
+Note that, since the parameter $num$ may be different every time, every 
+consumer and producer may wait on a different condition to be met; programmers 
+do not know which producer or consumer should be signaled at runtime. 
+Therefore, the signalAll calls should be used instead of signal calls.
+Although programmers can avoid using signalAll calls by writing
+complicated code that associates different conditions to different condition 
 variables; the complicated code makes the program difficult to be reasoned and 
 maintained. 
 
@@ -501,11 +540,11 @@ line 24 before completing the call. Two waiting consumers are signaled; the
 consumer $C_1$ is waiting to take $48$ items while the consumer $C_2$ is 
 waiting to take 
 $32$ items. Suppose $C_1$ re-acquires the lock first and takes $48$ items. The
-remaining items are $16$. Then $C_2$ re-acquires the lock; it figures out that
+remaining items are $16$. $C_2$ then re-acquires the lock; it figures out that
 the items are insufficient and then goes back to waiting state. Waking $C_2$ is
-redundant since it does not make any progress but go back to waiting.
+redundant since $C_2$ does not make any progress but goes back to waiting.
 Therefore, if we avoid using the signalAll call and only signal a thread which
-is mostly like to make progress, the unnecessary context switches then can be
+is most likely to make progress, the unnecessary context switches can be
 reduced.
 
 \begin{figure}[ht!]
@@ -522,36 +561,36 @@ reduced.
             items = new Object[n];
             putPtr = takePtr = count = 0;
           }
-          public void put(int n) {
+          public void put(int num) {
             mutex.lock();
-            while (n + count > items.length) {
+            while (num + count > items.length) {
               insufficientItem.signalAll();
               insufficientSpace.await();
             }
-            for (int i = 0; i < n; ++i) {
+            for (int i = 0; i < num; ++i) {
               items[putPtr++] = new Object();
               if (putPtr == items.length) {
                 putPtr = 0;
               }
             }
-            count += n;
+            count += num;
             insufficientItem.signalAll();
             mutex.unlock();
           }
-          public Object[] take(int n) {
+          public Object[] take(int num) {
             mutex.lock();
-            while (count < n) {
+            while (count < num) {
               insufficientSpace.signalAll();
               insufficientItem.await();
             }
             Object[] ret = new Object[n];
-            for (int i = 0; i < n; ++i) {
+            for (int i = 0; i < num; ++i) {
               ret[i] = items[takePtr++];
               if (takePtr == items.length) {
                 takePtr = 0;
               }
             }
-            count -= n;
+            count -= num;
             insufficientSpace.signalAll();
             mutex.unlock();
             return ret;
@@ -563,7 +602,7 @@ reduced.
 \end{figure}
 
 
-\section{iMonitor concepts} \label{sec:concept}
+\section{AutoSynch concepts} \label{sec:concept}
 
 
 \subsection{Predicate evaluation}
@@ -579,7 +618,7 @@ reduced.
 %cannot be changed by other threads after a particular thread is waiting. 
 %All other threads can check the globalized predicate safely. 
 %\subsection{Predicate}
-In iMonitor, it is the responsibility of the system to signal appropriate 
+In AutoSynch, it is the responsibility of the system to signal appropriate 
 threads automatically. The predicate evaluation is crucial in deciding which
 thread should be signaled. We will discuss how to preform predicate evaluations
 of waituntil statements. 
@@ -587,19 +626,23 @@ of waituntil statements.
 A predicate $P(\vec{x}): X \rightarrow \mathbb{B}$ is a Boolean condition, 
 where $X$ is the space spanned by the variables $\vec{x}=(x_1, \dots, x_n)$. 
 A variable of a monitor object is a shared variable if it is accessible to every 
-threads that accessing the monitor. The set of shared variables, denoted by 
-$S$. On the contrary, the set of local variables, denoted by $L$, is only 
-accessible by a thread calling a function in which the variables are declared. 
+threads that is accessing the monitor. The set of shared variables, which is denoted by 
+$S$. On the contrary, the set of local variables, denoted by $L$, is 
+accessible only by a thread calling a function in which the variables are declared. 
 
 Predicates can be used to describe the properties of conditions. In this paper,
-the predicate is used to depict the condition of every waituntil statement. 
-Furthermore, we assume that every predicate, $p = \sum_i^nc_i$, is disjunctive 
-normal form (DNF), where $c_i$ is defined as the conjunction of a set
-of atomic Boolean expressions. Every Boolean formulas can be converted into DNF 
-using De Morgan's laws and distributive law. 
+every condition of waituntil statement is represented by a predicate. We say
+a condition has met if its representing predicate is true; otherwise, the
+predicate is false. 
+Furthermore, we assume that every predicate, $p = \vee_{i=1}^nc_i$, is 
+disjunctive normal form (DNF), where $c_i$ is defined as the conjunction of a 
+set of atomic Boolean expressions. For example, a predicate $(x = 1) \wedge 
+(y = 6) \vee (z \ne 8)$ is DNF, where $c_1 = (x = 1) \wedge (y = 6)$ and $c_2 = 
+(z \ne 8)$. Note that, every Boolean formulas can be converted into DNF using 
+De Morgan's laws and distributive law. 
 
 Predicates can be divided into two categories based on the type of their 
-depending variables \cite{bh05}.
+variables \cite{bh05}.
 \begin{definition}
     Consider a predicate $P(\vec{x}): X \rightarrow \mathbb{B}$. If $X 
     \subseteq S$, $P$ 
@@ -621,6 +664,15 @@ globalization as follows.
     \]
     where $\vec{y_t}$ the values of $\vec{y}$ at runtime $t$.
 \end{definition}
+
+The globalization can be applied to any general predicate; a restricted 
+predicate is derived form the globalization. For example, consider a 
+general predicate $(x = v)$, where $x$ is a shared variable and $v$ is a local
+variable. Suppose at runtime $t$, the value of $v$ is $6$, that is $v_t=6$. We
+apply the globalization at $t$ and derive a restricted predicate $(x = 6)$. 
+
+The following proposition suggests that the general predicate evaluation of
+waituntil statment in all thread can be achieved through the globalization. 
 \begin{proposition} \label{pro:glob}
     Consider a general predicate $P(\vec{x}, \vec{y})$ in a waituntil 
     statement. $P(\vec{x}, \vec{y})$ and its globlization 
@@ -646,11 +698,11 @@ statement. The predicate can be evaluated in all other threads during the
 waituntil period. 
 
 \subsection{Relay guarantee}
-As mentioned in Section ~\ref{sec:sigAll}, signalAll calls are inevitable in
+As mentioned in Section ~\ref{sec:sigAll}, signalAll calls are unavoidable in
 the explicit-signal mechanism sometimes; however, signalAll calls may decrease
 performance by introducing redundant context switches. 
 In
-iMonitor, signalAll calls are avoided by providing the following guarantee. 
+AutoSynch, signalAll calls are avoided by providing the following guarantee. 
 %should be reduced. Before a waiting thread is signaled, the 
 %predicate of the waiting thread is ensured to be true. In addition, at most 
 %one waiting thread is signaled at any time. The reason is that threads are 
@@ -658,44 +710,44 @@ iMonitor, signalAll calls are avoided by providing the following guarantee.
 %not increase parallelism but redundant context switches. 
 
 \begin{definition}{Relay guarantee:}
-    when a thread exits a monitor or goes into waiting state, it checks whether
-    or not there is some thread waiting on a condition which has been met. If
-    at least one such waiting thread exists, the thread then signal one such
-    waiting thread.
+    some thread waiting for a condition has met is always signaled. 
+    
 \end{definition}
 \begin{proposition} \label{pro:one}
-    Relay guarantee never introduces deadlock. That is,
-    some waiting thread with true predicates are always signaled. 
+    Relay guarantee can be provided by the following procedure. When a thread 
+    exits a monitor or goes into waiting state, it checks whether or not there 
+    is some thread waiting on a condition that has been met. If
+    at least one such waiting thread exists, the thread then be signaled.
 \end{proposition}
 \begin{proof}
-    Suppose not. All waiting threads with true predicates are blocked and 
-    no other thread can signal them. Consider a true predicate $P$. Since some
-    thread goes into waiting state with $P$, $P$ is false initially. Some 
-    other threads must enter the monitor and change the status of the monitor 
-    to make $P$ true. Suppose thread $T$ is the last thread active 
-    in the monitor. Since $P$ has become true, $T$ must signal one thread
-    waiting on $P$ or other true predicate before leaving or 
-    going into waiting state. A contradiction. 
+    Suppose not. All threads waiting for conditions have met are blocked and 
+    no other thread can signal them. Consider a condition $P$ that has been 
+    true. Since some thread goes into waiting state with $P$, $P$ is false
+    initially. Some other threads must enter the monitor and change the status 
+    of the monitor to make $P$ true. Suppose thread $T$ is the last thread 
+    active in the monitor. Since $P$ has become true, $T$ must signal one 
+    thread waiting on $P$ or another thread waiting on another predicate that
+    has been true before leaving or going into waiting state. A contradiction. 
  \end{proof}
 
-Proposition \ref{pro:one} lays the theoretical foundation that signalAll calls
-are avoidable by providing relay guarantee. Every time a
-thread exits a monitor or goes into waiting state, it checks whether a
-waiting thread has a true predicate. If at least one waiting thread has true
-predicate, then one such thread is signaled. The remaining problem is how to 
-find such thread efficiently. 
+Relay guarantee never introduces deadlock; consequently, signalAll calls
+are avoidable by providing relay guarantee. 
+Proposition \ref{pro:one} lays the theoretical foundation that the relay
+guarantee can be provided in our automatic-signaling mechanism. 
+The remaining problem is how to find a thread waiting for a condition that has 
+been met efficiently. 
 
-\subsection{Predicate tag}
-In order to find an appropriate thread with a true predicate efficiently, 
-different tags are assigned to every predicate according to its semantics. 
-Those tags depict the properties of a predicate and allow true predicates to be 
-found efficiently by examining the state of a monitor. Before going through the 
-details, two particular types of predicates are defined as follows according to
-the their semantics. 
+\subsection{Predicate tag} 
+In order to find an appropriate thread waiting for a predicate that has been
+true efficiently, every predicate acquires different tags according to its 
+semantics. Those tags depict the properties of a predicate and allow predicates
+that have been true to be found efficiently by examining the state of a 
+monitor. Before going through the details, two particular types of predicates 
+are defined as follows according to the their semantics. 
 \begin{definition}
-    A predicate $P: (v = c)$ is an equivalence predicate, where $v \in S$ is 
-    the pivot variable, and either $c \in L$ or $c$ is a constant 
-    value.
+    A predicate $P: (ge = le)$ is an equivalence predicate, where $ge$ is an
+    expression depending on only shared variables and $le$ is an expression
+    depending on only local variables and constant values.
 \end{definition}
 %\begin{definition}
 %    A predicate $P: (v \neq c)$ is a non-equivalence predicate, where $v$ is the
@@ -703,24 +755,26 @@ the their semantics.
 %    value.
 %\end{definition}
 \begin{definition}
-   A predicate $P: (v\ \boldsymbol{op}\ c)$ is a threshold predicate, where 
+   A predicate $P: (ge\ \boldsymbol{op}\ le)$ is a threshold predicate, where 
    $\boldsymbol{op}
-    \in \{<,\ \le,\ >,\ \ge\}$, $v \in S$ is the pivot variable, and 
-    either $c \in L$ or $c$ is a constant value.
+    \in \{<,\ \le,\ >,\ \ge\}$, $ge$ is an
+    expression depending on only shared variables and $le$ is an expression
+    depending on only local variables and constant values.
 \end{definition}
+Note that, variables can be moved form one side to another side by negation. 
 These two types of predicates are XX\%. 
 
 In general, tags are assigned to predicates according to their types. The 
 formal definition of the tag is as follows. 
 \begin{definition}
-   A tag $T$ is a four-tuple $(M, op, v, c)$, where  
+   A tag $T$ is a four-tuple $(M, op, ge, le)$, where  
    \begin{itemize}
       \item $M \in \{Equivalence,\ Threshold,\ None\}$;
       \item $op \in \{<,\ \le,\ >,\ \ge\}$ if $L = Threshold$; otherwise, 
          $op = \perp$;
-      \item $v$ and $c$ are the name of pivot variable and the constant
-         value if $L \in \{Equivalence,\ Threshold\}$; otherwise, $v = \perp$
-         and $c = \perp$.
+      \item $ge$ and $le$ are the general expression and local expression if 
+          $M \in \{Equivalence,\ Threshold\}$; otherwise, $ge = \perp$
+         and $le = \perp$.
    \end{itemize}
 \end{definition}
 Every $Equivalence$ or $Threshold$ tag represents a equivalence predicate or
@@ -739,7 +793,7 @@ is $8$. On the contrary, $x > 3$ is true for every value of $x$ is greater than
 $3$. Therefore, the $Equivalence$ tags is more helpful in
 pruning false predicates than other kinds of tags. If a conjunction does not 
 include any equivalence predicate, then we check whether or not it 
-include any threshold predicate. If yes, then a $Threshold$ tag is assigned 
+includes any threshold predicate. If yes, then a $Threshold$ tag is assigned 
 to the conjunction; otherwise, the conjunction has $None$ tag. 
 
 Creating all tags for a conjunction is unnecessary. If a conjunction includes 
@@ -755,7 +809,7 @@ conjunction $(x = 8) \wedge (y = 9)$. Only tag $(Equivalence,\ null,\ x,\ 8)$
 is assigned to the conjunction. We check the predicate only when the tag is
 true. Adding another tag $(Equivalence,\ null,\ y,\ 9)$ cannot help us in pruning
 this predicate when it is false since we need to check both tags. Hence, we 
-creating only one tag for each conjunction.
+create only one tag for each conjunction.
  
 \begin{figure}[ht!]
     \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
@@ -779,7 +833,7 @@ creating only one tag for each conjunction.
 
 
 \subsubsection{Tag signaling}
-Signaling mechanism in iMonitor is based on tags. 
+Signaling mechanism in AutoSynch is based on tags. 
 Since the equivalence tag is more deterministic than the threshold tag, the
 predicates with equivalence are checked prior to the predicates with other 
 tags. If no true predicate can be found after examining $Equivalence$ tags and
@@ -868,15 +922,14 @@ true since the tags are true. So we also need to check the descendant tags.
 
 
 
-\section{iMonitor implementation} \label{sec:imp}
-The iMonitor Implementation involves two parts, the preprocessor and the Java
+\section{AutoSynch implementation} \label{sec:imp}
+The AutoSynch implementation involves two parts, the preprocessor and the Java
 library of our condition manager. 
-The preprocessor translates a iMonitor extension code to a Java code.
-The condition manager implements the signal mechanism and the condition
-variable maintaining. 
+The preprocessor translates a AutoSynch code to Java code. The condition 
+manager implements the signal mechanism and the condition variable maintaining. 
 
 \subsection{Preprocessor}
-The preprocessor of iMonitor performs preprocessing in the following four 
+The preprocessor of AutoSynch performs preprocessing in the following four 
 parts:
 \begin{enumerate}
   \item Monitor-constructor: the constructor of the monitor class, including 
@@ -926,17 +979,17 @@ parts:
         condMgr.signalOneAvailable() 
         unlock L
     \end{Verbatim}
-  \caption{Preprocessing of iMonitor}
+  \caption{Preprocessing of AutoSynch}
   \label{fig:prep}
 \end{figure}  
 
-Fig.~\ref{fig:prep} summarizes the preprocessing of iMonitor. One lock variable,
+Fig.~\ref{fig:prep} summarizes the preprocessing of AutoSynch. One lock variable,
 $L$, is declared for mutual exclusion, which should be acquired in the 
 beginning of every member function and released before the return statement.
 In addition, a condition manager, $condMgr$, is declared for 
 synchronization. The details of the condition manager will be discussed in next
 section. In general, the condition manager maintains the association between 
-predicates and condition variables created by iMonitor. The signal mechanism is
+predicates and condition variables created by AutoSynch. The signal mechanism is
 also implemented in condition manager. 
 
 All predicates are transformed to DNF in
@@ -977,20 +1030,20 @@ then the predicate is inactivated by the condition manager.
 %
 
 
-\subsection{iMonitor Java library: condition manager}
+\subsection{AutoSynch Java library: condition manager}
 The condition manager maintains the predicates and condition variables, and
 provides the signaling mechanism. 
 
 To avoid creating redundant predicates and condition variables, predicates have 
-the same meaning should be mapped to the same condition variable. We adopt 
-syntax equivalent. Two predicates are syntax equivalent means that the two predicates
+the same meaning should be mapped to the same condition variable. Two 
+predicates are syntax equivalent means that the two predicates
 are identical after applying globalization. Predicate table, implemented by a
 hash table, records predicates and their associated condition variables. 
 
 \begin{figure*}[ht!]
   \centering
   \includegraphics[width=180mm]{fig/manager.eps}
-  \caption{A example of the condition manager in iMonitor}
+  \caption{A example of the condition manager in AutoSynch}
   \label{fig:mgr}
 \end{figure*}
 
@@ -1021,7 +1074,7 @@ searching a true predicate.
 A predicate must be removed from the tag once no thread waits on 
 it to avoid unnecessary predicate evaluation. A threshold tag also needs to be
 removed once it has no predicate. The reason is that 
-we signal the root of the threshold predicate, a empty root 
+we signal the root of the threshold predicate, an empty root 
 will introduce overhead to find the next tag. 
 
 Predicates may be reused. Instead  of removing those predicate with no waiting
@@ -1038,8 +1091,8 @@ threshold, we remove the oldest predicates form the list.
 All of the experiments were conducted on a machine with 16 
 Intel(R) Xeon(R) X5560 CPUs and 64 GBs memory. 
 %Four kinds of experiments were performed to evaluate the performances of the
-%explicit-signal monitor with original Java and the implicit-signal monitor with
-%iMonitor framework. 
+%explicit-signal monitor with original Java and the automatic-signal monitor with
+%AutoSynch framework. 
 
 
 \subsection{Signaling mechanisms}
@@ -1047,10 +1100,10 @@ Four implementations using different signaling mechanisms have been
 compared. 
 \begin{description}
     \item[Explicit-signal] Using the original Java explicit-signal mechanism. 
-    \item[iMonitor] Using the approach described in this paper. 
-    \item[iMonitor-T] Using the approach described in this paper but excluding
+    \item[AutoSynch] Using the approach described in this paper. 
+    \item[AutoSynch-T] Using the approach described in this paper but excluding
         predicate tagging. 
-    \item[Baseline] Using the implicit-signal mechanism which relying on only
+    \item[Baseline] Using the automatic-signal mechanism relying on only
         one condition variable. It calls signalAll all the time to check the
         predicates.
 \end{description}
@@ -1063,7 +1116,9 @@ compared.
         Fig.~\ref{fig:sigAll_exp}. 
     \item[Round-Robin Access Pattern (RR)] Every test thread accesses the
         monitor in round-robin order. 
-    \item[Readers/Writers (RW)] In the approach \cite{bh05}, a ticket is used
+    \item[Readers/Writers (RW)\cite{chp71}] The first approach is not fifo
+        \cite{bh75b}. In the 
+        approach \cite{bh05}, a ticket is used
         to maintain the accessing order of readers and writers. Every reader
         and writer get a ticket number indicating its arrival order. Readers
         and writers are waiting on the monitor for their turn. 
@@ -1094,10 +1149,10 @@ complexity of add and remove operations is $O(ln(n))$.
       baseline & $O(1)$ & $O(n^2)$ & $O(1)$ & $O(n^2)$ & $O(1)$ & $O(n^2)$ &
       $O(1)$ & $O(n^2)$ \\
       \hline 
-      iMonitor-T & $O(1)$ & $O(1)$ & $O(1)$ & $O(n)$ & $O(1)$ & $O(n)$ & $O(1)$ 
+      AutoSynch-T & $O(1)$ & $O(1)$ & $O(1)$ & $O(n)$ & $O(1)$ & $O(n)$ & $O(1)$ 
       & $O(n)$ \\
       \hline 
-      iMonitor & $O(1)$ & $O(1)$ & $O(ln(n))$ & $O(1)$ & $O(1)$ & $O(1)$ & 
+      AutoSynch & $O(1)$ & $O(1)$ & $O(ln(n))$ & $O(1)$ & $O(1)$ & $O(1)$ & 
       $O(1)$ & $O(1)$\\
       \hline 
    \end{tabular}
@@ -1123,8 +1178,8 @@ complexity of add and remove operations is $O(ln(n))$.
 %  \label{fig:testbed}
 %\end{figure}
 %
-\subsection{Saturation evaluation}
-%\subsection{Experimental results}
+%\subsection{Saturation evaluation}
+\subsection{Experimental results}
 
 
 Fig.~\ref{fig:pc_eval} shows the results of producer-consumer problem. The 
@@ -1135,8 +1190,8 @@ all producers and consumers. As expected, the baseline is much slower than
 other three signaling mechanisms, which have similar performance. This 
 phenomenon can be explained as follows. There are only two waituntil statements 
 with global predicates, $count > 0$ and $count < items.length$. Therefore, the 
-complexity for signaling a thread in iMonitor and iMonitor-T are also constant. 
-Hence, both iMontior and iMontior-T is as efficient as explicit-signal 
+complexity for signaling a thread in AutoSynch and AutoSynch-T are also constant. 
+Hence, both AutoSynch and AutoSynch-T are as efficient as explicit-signal 
 mechanism. 
 
 \begin{figure}[ht!]
@@ -1151,20 +1206,20 @@ Fig.~\ref{fig:rpc_eval} shows the results of producer-consumer* problem. Total
 consumers; the y-axis indicates the runtime in milliseconds. Only one producer
 was in this experiment. The producer put a item into the buffer a time. A 
 consumer randomly take $b/2$ ~ $b$ items a time, where $b = 128$ is the size of 
-the buffer. Fig.~\ref{fig:rpc.eps} indicates that iMonitor and iMonitor-T are
+the buffer. Fig.~\ref{fig:rpc.eps} indicates that AutoSynch and AutoSynch-T are
 much faster than the baseline and the explicit-signal mechanism. The reason is
 that both explicit-signal mechanism and baseline use signallAll calls. In this
 experiment setup, many unnecessary context switches were introduced since a
 consumer takes a large amount of items a time but the producer only puts one
-item a time. Both iMonitor and iMonitor-T are similar in
+item a time. Both AutoSynch and AutoSynch-T are similar in
 Fig.~\ref{fig:rpc_eval} due to the scaling. We compare them in
-Fig.~\ref{fig:rpch_eval}. As can be seen, the iMonitor has a consistent
-performance even when the number of producers increases. Although iMonitor-T has
+Fig.~\ref{fig:rpch_eval}. As can be seen, the AutoSynch has a consistent
+performance even when the number of producers increases. Although AutoSynch-T has
 slightly better performance when the number of producers is small; its 
 performance decrease significantly as the number of producers increases. It can
-be explained as follows. iMonitor has some computing overhead in maintaining 
+be explained as follows. AutoSynch has some computing overhead in maintaining 
 tags and predicates. When the number of producers is small, the benefit of
-predicate tagging is less than the computing overhead. However, iMonitor is
+predicate tagging is less than the computing overhead. However, AutoSynch is
 much more scalable with this slight performance sacrifice.
 
 \begin{figure}[ht!]
@@ -1177,8 +1232,8 @@ much more scalable with this slight performance sacrifice.
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/rpch.eps}
-  \caption{The results of producer-consumer* problem comparing iMonitor and
-  iMonitor-T}
+  \caption{The results of producer-consumer* problem comparing AutoSynch and
+  AutoSynch-T}
   \label{fig:rpch_eval}
 \end{figure}
 
@@ -1210,15 +1265,15 @@ x-axis indicates the number of threads; the y-axis indicates the
 runtime in milliseconds. In this set of experiments, threads are allowed to enter a
 monitor in round-robin scheduling. Total 128000 operations were performed on 
 the monitor. In this set of experiment, the explicit-signal mechanism has an 
-advantage since it can explicitly to signal the next thread to enter the 
+advantage since it can explicitly signal the next thread to enter the 
 monitor. Since the baseline is around 50 times slower than the explicit-signal
 mechanism, the result of baseline is not plotted in Fig.~\ref{fig:rr_eval} due
-to the scaling. 
+to the scaling issues. 
 As can be seen, the performance of explicit-signal mechanism is steady 
-as the number of thread increases. In comparison with iMonitor-T, the runtime 
-increases significantly as the number of thread increase. For iMonitor, the 
+as the number of thread increases. In comparison with AutoSynch-T, the runtime 
+increases significantly as the number of thread increase. For AutoSynch, the 
 performance is slower than the explicit-signal mechanism between 2.3 to 2.4
-times. However, the performance of iMonitor does not decrease as the number of
+times. However, the performance of AutoSynch does not decrease as the number of
 threads increases. 
 
 \begin{figure}[ht!]
@@ -1243,7 +1298,7 @@ threads increases.
 %explained as follows. The thinking time is much larger than the synchronization 
 %time in the monitor. Therefore, the runtime is dominated by the thinking time.
 %%These results suggest that if applications do not have many operations to access
-%%a monitor, the performance will not have much difference in implicit-signal and
+%%a monitor, the performance will not have much difference in automatic-signal and
 %%explicit-signal monitor.
 %
 %
@@ -1263,9 +1318,9 @@ threads increases.
 %    \label{subfig:rw_exam_exp}
 %  }
 %  \\
-%  \subfloat[Implicit-Signal] {
+%  \subfloat[Automatic-Signal] {
 %    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{iMonitorTicketReadersWriters}
+%      \BUseVerbatim[fontsize=\footnotesize]{AutoSynchTicketReadersWriters}
 %    }
 %    \label{subfig:rw_exam_imp}
 %  }
@@ -1280,10 +1335,10 @@ threads increases.
 %the monitor. The same, the result of baseline is not plotted in Fig.~\ref{fig:rw_eval} due
 %to the scaling issue. 
 %As can be seen, the performance of explicit-signal mechanism is steady 
-%as the number of thread increases. In comparison with iMonitor-T, the runtime 
-%increases significantly as the number of thread increase. For iMonitor, the 
+%as the number of thread increases. In comparison with AutoSynch-T, the runtime 
+%increases significantly as the number of thread increase. For AutoSynch, the 
 %performance is slower than the explicit-signal mechanism between 2.3 to 2.4
-%times. However, the performance of iMonitor does not decrease as the number of
+%times. However, the performance of AutoSynch does not decrease as the number of
 %threads increases. 
 
 
@@ -1300,16 +1355,18 @@ Conduct experiment for readers/writers problem. There is a delay between each
 read/write operation. As the length of delay increase, the workload of the
 monitor decrease. Measure the average response time of the monitor. 
 
-\section{Related work} \label{sec:related}
 \section{Conclusion} \label{sec:conclu}
-In this paper, we propose the iMonitor framework that supports implicit-signal
-mechanism with monitor class and waituntil statement. \dots
+In this paper, we propose AutoSynch framework that supports 
+automatic-signal mechanism with $AtuSynch$ class and $waituntil$ statement.
+AutoSynch uses the $globalization$ operation enabling the predicate evaluation 
+to be performed in every thread. Next, it provides $relay\ guarantee$ that some
+thread waiting for a condition has met is always signaled to avoid signalAll
+calls. AutoSynch also uses predicate tag to accelerate the process in deciding
+which thread should be signaled. 
 
-To evaluate the effectiveness of iMonitor, 
+To evaluate the effectiveness of AutoSynch, 
 
 Using architecture info.
-
-fairness
 
 % use section* for acknowledgement
 
@@ -1375,7 +1432,7 @@ fairness
 %    \end{Verbatim}
 %    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
 %            numbers=left,numbersep=2pt,
-%            label=\fbox{\small\emph{Implicit-Signal}}]
+%            label=\fbox{\small\emph{Automatic-Signal}}]
 %        monitor class BoundedBuffer { 
 %          Object[] items; 
 %          int putPtr, takePtr, count; 
@@ -1469,7 +1526,7 @@ fairness
 %    \end{Verbatim}
 %    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
 %            numbers=left,numbersep=2pt,
-%            label=\fbox{\small\emph{Implicit-Signal}}]
+%            label=\fbox{\small\emph{Automatic-Signal}}]
 %        public monitor class ReadersWritersMonitor {
 %          int rcnt;
 %          int ticket, serving;
@@ -1532,7 +1589,7 @@ fairness
 %    \end{Verbatim}
 %    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
 %            numbers=left,numbersep=2pt,
-%            label=\fbox{\small\emph{Implicit-Signal}}]
+%            label=\fbox{\small\emph{Automatic-Signal}}]
 %        public monitor class RoundRobinMonitor {
 %          int numProc;
 %          int pid;
@@ -1564,9 +1621,17 @@ fairness
 \begin{thebibliography}{}
 \softraggedright
 
+\bibitem {bh75a}
+  P. Brinch Hansen, \emph{The Programming language concurrent Pascal}. IEEE
+  Trans.~Software Engineering, 1(2), 199--207, June, 1975.
+
+\bibitem {bh75b}
+    P. Brinch Hansen, \emph{Structured multiprogramming}. Commun.~ACM 15(7),
+    574--578, July 1972.
+
 \bibitem {bfc95}
   P. A. Buhr, M. Fortier, and M. H. Coffin, \emph{Monitor Classification}. ACM 
-  Computing Surveys, ACM, 27(1):63--107, 
+  Computing Surveys, ACM, 27(1), 63--107, 
   Nov. 2005.
   
 \bibitem {bh05}
@@ -1574,15 +1639,29 @@ fairness
   Transactions on Programming Languages and Systems ACM, 27(6):1270--1343, 
   Nov. 2005.
 
-\bibitem {han75}
-  P. B. Hansen, \emph{The Programming language concurrent Pascal}. IEEE
-  Trans.~Software Engineering, 1(2), 149--207, 1975.
+\bibitem {bute97}
+  D. R. Butenhof, \emph{Programming With Posix Threads}.
+  Addison-Wesley, MA, 1997.
+
+\bibitem {chp71}
+    P. J. Courtois, F. Heymans, D. L. Parnars, \emph{Concurrent control with
+    “``readers'' and “``writers''}. Commun.~ACM, 14(10), 667--668, Oct. 1971.
+
+\bibitem {gjs00}
+    J. Gosling, B. Joy, and G. Steele, \emph{The Java Language Specification}.
+    2nd ed. Addison-Wesley, MA, 2000. 
+
+\bibitem {hwg03}
+    A. Hejisberg, S. Wiltamuth, and P. Golde, \emph{C\# Language
+    Specification}. Addison-Wesley, MA, 2003.
 
 \bibitem {hoa74}
   C. A. R. Hoare, \emph{Monitors: an operating system structuring concept}. 
-  Commun.~ACM 17, 10(Oct. 1974), 549--557.
+  Commun.~ACM, 17(10), 549--557, Oct. 1974. 
 
-
-
+\bibitem{stro97}
+    B. Stroustrup, \emph{The C++ Programming Language}. 3rd ed. Addison-Wesley,
+    MA, 1997.
+      
 \end{thebibliography}
 \end{document}
