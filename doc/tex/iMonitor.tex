@@ -68,16 +68,16 @@ For more than forty years, the parallel programming community has used monitor
 as the main mechanism for mutual exclusion and conditional synchronization. An 
 automatic-signal monitor uses the $waituntil$ statement for conditional 
 synchronization, while the explicit-signal monitor uses condition variables and 
-signal/wait statements. Despite the simplicity of the automatic-signal monitor, 
+$signal/wait$ statements. Despite the simplicity of the automatic-signal monitor, 
 most of the modern programming languages support only the explicit-signal 
 monitor but not the automatic-signal monitor because of the performance issues. 
 In this paper, we argue that the automatic-signal monitor can be as efficient 
-as explicit-signal monitor or even more efficient for some examples.
+as explicit-signal monitor or even more efficient for some cases.
 
 To satisfy the need for automatic-signal monitor, we propose a system called 
 AutoSynch that allows gains in productivity of 
 programmers as well as gain in performance. We introduce an operation called
-$globalization$ that enables that the predicate evaluation can be performed in
+$globalization$ that enables the predicate evaluation in
 every thread. Based on this operation, AutoSynch provides $relay\ guarantee$
 that some thread waiting for a condition has been met is always signaled; 
 therefore, the signalAll call is avoidable in AutoSynch. To accelerating the 
@@ -148,9 +148,9 @@ Although there is widespread acknowledgement of difficulties
 in programming these systems, it is almost hard to believe that 
 by and large the most prevalent methods of dealing with synchronization are
 based on ideas that were developed in early 70's \cite{hoa74, bh75a}. For 
-example, the most widely used threads package in C++, 
-pthreads, and
-the most widely used package in Java, java.util.concurrent, are based
+example, the most widely used threads package in C++ \cite{stro97}, 
+pthreads \cite{bute97}, and the most widely used package in Java \cite{gjs00}, 
+java.util.concurrent \cite{lea05}, are based
 on the notion of monitors (or semaphores) developed in 60's and 70's.
 In this paper, we propose a new method called AutoSynch 
 that allows gains in productivity of the programmer as well as gain in
@@ -182,14 +182,14 @@ paper that the widely held belief is wrong.
 %in concurrent programs; automatic-signal is more straightforward in both code
 %reasoning and syntax. 
 
-To make the automatic-signal mechanism available in Java \cite{gjs00}, we proposes the 
+To make the automatic-signal mechanism available in Java, we proposes the 
 framework of AutoSynch illustrated in Fig.~\ref{fig:fw}. 
 The AutoSynch framework is composed of a 
 preprocessor and a Java condition manager library. The preprocessor translates 
 AutoSynch code into traditional Java code. Our automatic-signal mechanism and 
 developed techniques were implemented in the Java library. Although this paper 
-focuses on Java; our techniques are also applicable to other programming 
-languages and models, such as pthread\cite{bute97} in C++\cite{stro97} and C\# \cite{hwg03}.
+focuses on Java, our techniques are also applicable to other programming 
+languages and models, such as pthread in C++ and C\# \cite{hwg03}.
 
 %Fig.~\ref{fig:fw} illustrates the framework of AutoSynch, which makes 
 %the automatic-signal available with the modern high-level language, Java. 
@@ -366,14 +366,15 @@ current state of a monitor. Then we only need to check the predicates with
 those tags. 
 
 Our experimental results indicate that AutoSynch can significantly improve
-performance compared to other automatic-signal mechanisms \cite{bh05}.
-Furthermore, AutoSynch is faster than the explicit-signal mechanism in some
-cases that rely on signalAll calls. In most of the cases, AutoSynch is around 2
-times slower than the expliciti-signal mechanism. It is much better than the
-generaly belief that the automatic-signal monitor is 10-50 time slower than
-the explicit-signal montior \cite{bfc95}. Besides, the experimental resutls
-also shows that AutoSynch is scalabel; the performance of AutoSynch is steady 
-even when the number of threads increases. 
+performance compared to other automatic-signal mechanisms \cite{bh05}. It is 
+much better than the generaly belief that automatic-signal mechanism is 10-50
+times slower than the explicit-siganl mechanism \cite{bfc95}. 
+Even though AutoSynch is around 2.33 times slower than the expliciti-signal 
+mechanism in the worst case of our experiment results, AutoSynch is around 288 
+times faster than the explicit-signal mechanism in the case that rely on 
+signalAll calls. Besides, the experimental resutls also shows that AutoSynch is 
+scalabel; the performance of AutoSynch is steady even if the number of 
+threads increases. 
 
 
 Even if automatic signals are slower, they are still necessary for the following
@@ -650,6 +651,13 @@ variables \cite{bh05}.
     is a general predicate. 
 \end{definition}
 
+The automatic-signal monitor has an efficient implementation \cite{kes77} by 
+limiting the predicate of a $waituntil$ to a restricted predicate; however, 
+we do not limit the predicate of a $waituntil$ statement to a restricted 
+predicate. The reason is that this limitation will lead AutoSynch to be less
+attractive and practical since conditions including local variables cannot be 
+represented in AutoSynch.
+
 Evaluating a general predicate in all threads is unattainable 
 because the accessibility of the local variables in the predicate is limited 
 to the thread declaring them. To evaluate a general predicate in all 
@@ -924,10 +932,13 @@ true since the tags are true. So we also need to check the descendant tags.
 
 \section{AutoSynch implementation} \label{sec:imp}
 The AutoSynch implementation involves two parts, the preprocessor and the Java
-library of our condition manager. 
-The preprocessor translates a AutoSynch code to Java code. The condition 
-manager implements the signal mechanism and the condition variable maintaining. 
-
+library of our condition manager. We built the preprocessor using JavaCC
+\cite{kod04}. The preprocessor translates an AutoSynch code to a Java code. Our
+signal-mechanism is implemented in the condition manager library. 
+The condition manager creates condition variables and maintains the association 
+between predicates and condition variables. Furthermore, predicate tags are 
+also maintained by the condition mangers. It is the responsibility of this
+condition manager to decide which thread should be signaled. 
 \subsection{Preprocessor}
 The preprocessor of AutoSynch performs preprocessing in the following four 
 parts:
@@ -988,9 +999,7 @@ $L$, is declared for mutual exclusion, which should be acquired in the
 beginning of every member function and released before the return statement.
 In addition, a condition manager, $condMgr$, is declared for 
 synchronization. The details of the condition manager will be discussed in next
-section. In general, the condition manager maintains the association between 
-predicates and condition variables created by AutoSynch. The signal mechanism is
-also implemented in condition manager. 
+section.  
 
 All predicates are transformed to DNF in
 preprocessing by De Morgan's laws and distributive law. All restricted
@@ -1116,22 +1125,22 @@ compared.
         Fig.~\ref{fig:sigAll_exp}. 
     \item[Round-Robin Access Pattern (RR)] Every test thread accesses the
         monitor in round-robin order. 
-    \item[Readers/Writers (RW)\cite{chp71}] The first approach is not fifo
-        \cite{bh75b}. In the 
-        approach \cite{bh05}, a ticket is used
+    \item[Readers/Writers (RW)\cite{chp71}] The first approach is not FIFO
+        \cite{bh75b}. In the approach \cite{bh05}, a ticket is used
         to maintain the accessing order of readers and writers. Every reader
         and writer get a ticket number indicating its arrival order. Readers
-        and writers are waiting on the monitor for their turn. 
+        and writers are waiting on the monitor for their turn. Our experiments
+        are based on this approach. 
 \end{description}
 
-The computing complexity for maintaining condition variable and deciding which 
-thread should be signaled is summarized in Tab.~\ref{tab:complexity}. The $C$
+Tab.~\ref{tab:complexity} summarizes the computing complexity for maintaining 
+condition variable and deciding which thread should be signaled. The column $C$
 indicates the computing complexity for maintaining condition variable, while 
-the $S$ indicates the computing complexity for deciding which condition 
+the column $S$ indicates the computing complexity for deciding which condition 
 variable should be signaled. Note that, for producer-consumer* problem, it
-takes $O(ln(n))$ to maintain the condition variable. The reason is that we use
-heap as underlying data structure for threshold predicates. The computing
-complexity of add and remove operations is $O(ln(n))$.
+takes $O(ln(n))$ to maintain the condition variable in $AutoSync$. The reason 
+is that we use heap as underlying data structure for threshold predicates. The 
+computing complexity of add and remove operations is $O(ln(n))$.
 
 \begin{table*}[ht!]
    \centering
@@ -1143,7 +1152,7 @@ complexity of add and remove operations is $O(ln(n))$.
          & C & S & C & S & C & S & C & S \\
       \hline 
       \hline 
-      explicit & $O(1)$ & $O(1)$ & $O(1)$ & $O(n)$ & $O(1)$ & $O(1)$ & $O(1)$ &
+      explicit & $O(1)$ & $O(1)$ & $O(1)$ & $O(n^2)$ & $O(1)$ & $O(1)$ & $O(1)$ &
       $O(1)$ \\
       \hline 
       baseline & $O(1)$ & $O(n^2)$ & $O(1)$ & $O(n^2)$ & $O(1)$ & $O(n^2)$ &
@@ -1206,7 +1215,7 @@ Fig.~\ref{fig:rpc_eval} shows the results of producer-consumer* problem. Total
 consumers; the y-axis indicates the runtime in milliseconds. Only one producer
 was in this experiment. The producer put a item into the buffer a time. A 
 consumer randomly take $b/2$ ~ $b$ items a time, where $b = 128$ is the size of 
-the buffer. Fig.~\ref{fig:rpc.eps} indicates that AutoSynch and AutoSynch-T are
+the buffer. Fig.~\ref{fig:rpc_eval} indicates that AutoSynch and AutoSynch-T are
 much faster than the baseline and the explicit-signal mechanism. The reason is
 that both explicit-signal mechanism and baseline use signallAll calls. In this
 experiment setup, many unnecessary context switches were introduced since a
@@ -1341,32 +1350,58 @@ threads increases.
 %times. However, the performance of AutoSynch does not decrease as the number of
 %threads increases. 
 
+Fig.~\ref{fig:rw_eval} shows the results of readers/writers problem. The
+x-axis indicates the number of writers and readers; the y-axis indicates the
+runtime in milliseconds. The ratio of the number of writers to the number of
+readers is fixed at 1 to 5 in all cases. Total 128000 write/read operations are
+performed by each writer and reader. Note that, multiple readers can perform
+their read operations simultaneously; therefore, the performance may increases
+as the number of readers increases. In comparison with AutoSynch-T, the
+performance of AutoSynch-T is better than AutoSynch when the numbers of writers
+and readers are small. The runtime of AutoSynch-T increases significantly as 
+the number of thread increases. AutoSynch outperformed AutoSynch-T when the
+numbers of writers and readers are greater than 16 and 80 respectively. For 
+AutoSynch, the performance is slower than the explicit-signal mechanism between 
+1.5 to 1.8 times.
 
 
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/trw.eps}
-  \caption{The results of ticket readers/writers problem}
+  \caption{The results of readers/writers problem}
   \label{fig:rw_eval}
 \end{figure}
 
-\subsection{Performance under different workload}
-Conduct experiment for readers/writers problem. There is a delay between each
-read/write operation. As the length of delay increase, the workload of the
-monitor decrease. Measure the average response time of the monitor. 
+%\subsection{Performance under different workload}
+%Conduct experiment for readers/writers problem. There is a delay between each
+%read/write operation. As the length of delay increase, the workload of the
+%monitor decrease. Measure the average response time of the monitor. 
 
 \section{Conclusion} \label{sec:conclu}
 In this paper, we propose AutoSynch framework that supports 
 automatic-signal mechanism with $AtuSynch$ class and $waituntil$ statement.
-AutoSynch uses the $globalization$ operation enabling the predicate evaluation 
-to be performed in every thread. Next, it provides $relay\ guarantee$ that some
+AutoSynch uses the $globalization$ operation to enable the general predicate 
+evaluation in every thread. Next, it provides $relay\ guarantee$ that some
 thread waiting for a condition has met is always signaled to avoid signalAll
 calls. AutoSynch also uses predicate tag to accelerate the process in deciding
 which thread should be signaled. 
 
-To evaluate the effectiveness of AutoSynch, 
+To evaluate the effectiveness of AutoSynch, we built a prototype implementation
+using JavaCC \cite{kod04}, Java Compiler Compiler,  and applied it to four
+conditional synchronization problems. The experimental results indicate that 
+AutoSynch implementations of these problems perform significantly better than
+other automatic-signal monitor. Even though AutoSynch is around 2.3 times 
+slower than the explicit in the worse case of our experiments, AutoSynch is
+around 288 times faster than the explicit-signal in the bounded-buffer* problem 
+that relies on signalAll calls. 
 
-Using architecture info.
+In the future, we plan to optimize our framework through using the information 
+of architecture. For example, we can get the number of cores of a machine; we
+can limit the number of executing threads to avoid unnecessary competition by
+using this information. Another area for future work is relaxing the mutual
+exclusion when we perform predicate evaluations of waituntil statements. Let
+multiple threads can evaluate predicate simultaneously may increase the
+performance. 
 
 % use section* for acknowledgement
 
@@ -1645,7 +1680,7 @@ Using architecture info.
 
 \bibitem {chp71}
     P. J. Courtois, F. Heymans, D. L. Parnars, \emph{Concurrent control with
-    “``readers'' and “``writers''}. Commun.~ACM, 14(10), 667--668, Oct. 1971.
+    “``readers'' and “``writers''}. Commun.~ACM, 14(10), 667--668, Oct.~1971.
 
 \bibitem {gjs00}
     J. Gosling, B. Joy, and G. Steele, \emph{The Java Language Specification}.
@@ -1657,11 +1692,24 @@ Using architecture info.
 
 \bibitem {hoa74}
   C. A. R. Hoare, \emph{Monitors: an operating system structuring concept}. 
-  Commun.~ACM, 17(10), 549--557, Oct. 1974. 
+  Commun.~ACM, 17(10), 549--557, Oct.~1974. 
+
+\bibitem{kes77} 
+    J. L. W. Kessels. \emph{An alternative to event queues for synchronization 
+    in monitors}. Commun.~ACM, 20(7), 500--503, July 1977.
+  
+\bibitem{kod04}
+    V. Kodaganallur, \emph{Incorporating language processing into Java 
+    applications: a JavaCC tutorial}. IEEE Software, 21(4), 70--77,
+    July--Aug.~2004. 
+
+\bibitem{lea05}
+    D. Lea, \emph{The java.util.concurrent synchronizer framework}. Science of 
+    Computer Programming, 58(3), 293 -- 309, Dec.~2005.
 
 \bibitem{stro97}
     B. Stroustrup, \emph{The C++ Programming Language}. 3rd ed. Addison-Wesley,
     MA, 1997.
-      
+
 \end{thebibliography}
 \end{document}

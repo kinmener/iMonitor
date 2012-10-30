@@ -1,0 +1,30 @@
+{
+  "exp_info": {
+    "name": "SameRoundRobinMonitor",
+    "main_class": "examples.RoundRobinMonitor.Test",
+    "main_dir": "../build",
+    "result_base_dir": "results",
+    "num_times": 10,
+    "params_order": [
+      "num_proc", "num_tasks", "monitor_type", "delay"
+    ],
+    "group_by": "num_proc",
+    "stat_by": "monitor_type",
+    "fig_dir": "../doc/tex/fig"
+  },
+  "exp_params": {
+    "num_tasks": [ 
+      512000
+    ],
+    "monitor_type": [
+      "tag",
+      "project"
+    ],
+    "num_proc": [
+      2, 4, 8, 16, 32, 64, 128, 256
+    ],
+    "delay": [
+      0
+    ]
+  }
+}

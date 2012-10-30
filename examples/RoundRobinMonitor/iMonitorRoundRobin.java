@@ -7,14 +7,15 @@ import util.Common;
 public class iMonitorRoundRobin extends RoundRobinMonitor {
     private final AbstractImplicitMonitor monitor;
     private final int numProc;
-    private int numAccess;
+    private volatile int numAccess;
+    private volatile int numTrueAccess;
     private final char type;
 
     public iMonitorRoundRobin(int numProc, char type) {
         this.numProc = numProc;
         this.type = type;
         numAccess = 0;
-
+        numTrueAccess = 0;
         switch (type) {
             case 'n':
                 monitor = new NaiveImplicitMonitor();
@@ -24,6 +25,16 @@ public class iMonitorRoundRobin extends RoundRobinMonitor {
                 break;
             case 'm':
                 monitor = new MapMonitor();
+                break;
+            case 'p':
+                monitor = new SameMonitor();
+                ((SameMonitor) monitor).registerGlobalVariable(
+                    new GlobalVariable("numAccess") {
+                        public int getValue() {
+                            return numAccess;
+                        }
+                    } 
+                    );
                 break;
             case 't':
                 monitor = new TagMonitor();
@@ -73,6 +84,30 @@ public class iMonitorRoundRobin extends RoundRobinMonitor {
                                 },
                                 "numAccess == myId_dummy" + "_" + myId_dummy);
                             break;
+                        case 'p':
+                            PredicateSame[] sames = new PredicateSame[1];
+                            sames[0] = ((SameMonitor) monitor).makeSame(
+                                    "numAccess==myId_dummy" + "_" + myId_dummy,
+                                    "numAccess", myId_dummy, 
+                                    PredicateSame.OperationType.EQ,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return numAccess == myId_dummy;
+                                        }
+                                    }
+                            );
+                            cond = ((SameMonitor) monitor).makeCondition(
+                                    "numAccess==myId_dummy" + "_" + myId_dummy,
+                                    new Assertion() {
+                                        public boolean isTrue() {
+                                            return numAccess == myId_dummy;
+                                        }
+                                    },
+                                    false,
+                                    sames 
+                            );
+
+                            break;
                         case 't':
                             PredicateTag[] tags = new PredicateTag[1];
                             tags[0] = ((TagMonitor) monitor).makeTag(
@@ -116,9 +151,10 @@ public class iMonitorRoundRobin extends RoundRobinMonitor {
                 }
 
                 Common.println("myId: " + myId_dummy + 
-                        " numAccess: " + numAccess);
+                        " numAccess: " + numTrueAccess);
                 ++numAccess;
                 numAccess %= numProc;
+                numTrueAccess++;
             }
         });
     }
