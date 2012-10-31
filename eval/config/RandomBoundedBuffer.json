@@ -13,9 +13,20 @@
         "num_context_switch"
     ],
     "group_by": "num_proc",
-    "stat_by": "monitor_type",
+    "stat_by": "monitor_type"
+  },
+  "fig_setup": {
     "fig_dir": "../doc/tex/fig",
-    "fig_data": "runtime"
+    "fig_data": [
+        {
+            "source": "runtime",
+            "name": "RandomBoundedBuffer"
+        },
+        {
+            "source": "num_context_switch",
+            "name": "CSRandomBoundedBuffer"
+        }
+    ]
   },
   "exp_params": {
     "buf_size": [

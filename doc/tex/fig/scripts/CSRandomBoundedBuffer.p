@@ -9,7 +9,7 @@ set xlabel "# consumers" font "Times-New-Roman, 16"
 set ylabel "# context switches" font "Times-New-Roman, 16"
 set key left top
 set xr [2:128]
-plot  "RandomBoundedBuffer/explicit.dat" using 1:2 title 'explicit' with linespoints, \
-      "RandomBoundedBuffer/naive.dat" using 1:2 title 'baseline' with linespoints, \
-      "RandomBoundedBuffer/set.dat" using 1:2 title 'iMonitor-T' with linespoints, \
-      "RandomBoundedBuffer/tag.dat" using 1:2 title 'iMonitor' with linespoints
+plot  "CSRandomBoundedBuffer/explicit.dat" using 1:2 title 'explicit' with linespoints, \
+      "CSRandomBoundedBuffer/naive.dat" using 1:2 title 'baseline' with linespoints, \
+      "CSRandomBoundedBuffer/set.dat" using 1:2 title 'iMonitor-T' with linespoints, \
+      "CSRandomBoundedBuffer/tag.dat" using 1:2 title 'iMonitor' with linespoints

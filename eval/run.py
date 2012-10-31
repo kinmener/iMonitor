@@ -1,5 +1,5 @@
-#! /home/ecelrc/students/whung1/local/bin/python3
-# /opt/local/bin/python3.3
+#! /opt/local/bin/python3.3
+# /home/ecelrc/students/whung1/local/bin/python3
 from subprocess import check_call, Popen, PIPE
 from time import sleep, localtime, strftime
 from optparse import OptionParser
@@ -173,9 +173,11 @@ if __name__ == "__main__":
         stat_file[i].close()
 
     # generate fig
-    os.chdir(exp_info["fig_dir"])
-    check_call(["rm", "-f", exp_info["name"]])
-    check_call(["ln", "-s", exp_dir + "/" + exp_info["fig_data"] + "/stat", \
-            exp_info["name"]])
-    check_call(["gnuplot", "scripts/" + exp_info["name"] + ".p"])
+    fig_setup = exp_config["fig_setup"]
+    os.chdir(fig_setup["fig_dir"])
+    for fig in fig_setup["fig_data"]:
+        check_call(["rm", "-f", fig["name"]])
+        check_call(["ln", "-s", exp_dir + "/" + fig["source"] + "/stat", \
+                fig["name"]])
+        check_call(["gnuplot", "scripts/" + fig["name"] + ".p"])
 
