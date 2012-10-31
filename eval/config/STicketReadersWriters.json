@@ -1,6 +1,6 @@
 {
   "exp_info": {
-    "name": "TicketReadersWriters",
+    "name": "STicketReadersWriters",
     "main_class": "examples.TicketReadersWriters.TestTicketReadersWriters",
     "main_dir": "../build",
     "result_base_dir": "results",
