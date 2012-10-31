@@ -9,9 +9,13 @@
       "monitor_type", "num_proc", "total_tasks",
       "max_read_time", "max_write_time", "delay"
     ],
+    "output_order": [
+         "runtime"
+    ],
     "group_by": "delay",
     "stat_by": "monitor_type",
-    "fig_dir": "../doc/tex/fig"
+    "fig_dir": "../doc/tex/fig",
+    "fig_data": "runtime"
   },
   "exp_params": {
     "total_tasks": [ 
