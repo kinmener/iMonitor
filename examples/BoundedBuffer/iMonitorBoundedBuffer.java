@@ -74,7 +74,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                             return count;
                         }
                     } 
-                );
+                    );
                 notEmpty = ((TagMonitor) monitor).makeCondition(
                         "count > 0",
                         new Assertion() {
@@ -84,7 +84,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                         },
                         true,
                         null 
-                );
+                        );
                 notFull = ((TagMonitor) monitor).makeCondition(
                         "count < items.length",
                         new Assertion() {
@@ -94,7 +94,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                         },
                         true,
                         null 
-                );
+                        );
                 break;
             default:            
                 monitor = new iMonitor(); //auto-gen
@@ -132,7 +132,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                 if (++putPtr == items.length) putPtr = 0;
                 ++count;
                 Common.println("Producer " + Thread.currentThread() 
-                        + " puts, #obj: " + count) ; 
+                    + " puts, #obj: " + count) ; 
             }} ) ;
     }
 
@@ -144,7 +144,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                 if (++takePtr == items.length) takePtr = 0;
                 --count;
                 Common.println("Consumer " + Thread.currentThread() 
-                        + " takes, #obj: " + count) ; 
+                    + " takes, #obj: " + count) ; 
                 return x;
             }} ) ;
     }
@@ -187,7 +187,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                                             return (n + count) <= items.length;
                                         }
                                     }
-                            );
+                                    );
                             cond = ((TagMonitor) monitor).makeCondition(
                                     "(n+count)<=items.length" + "_" + n,
                                     new Assertion() {
@@ -197,7 +197,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                                     },
                                     false,
                                     tags
-                            );
+                                    );
                             break;
                         default:
                             cond = ((iMonitor) monitor).makeCondition(
@@ -270,7 +270,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                                             return n <= count;
                                         }
                                     }
-                            );
+                                    );
                             cond = ((TagMonitor) monitor).makeCondition(
                                     "n<=count" + "_" + n,
                                     new Assertion() {
@@ -280,9 +280,9 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                                     },
                                     false,
                                     tags
-                            );
+                                    );
                             break;
-                     
+
                         default:
                             cond = ((iMonitor) monitor).makeCondition(
                                     "n <= count" + "_" + n,
@@ -316,5 +316,8 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                         + " takes " + n + " objs, remaining #obj: " + count) ; 
                 return ret;
             }} ) ;
+    }
+    public long getNumContextSwitch() {
+                return AbstractCondition.getNumContextSwitch();
     }
 }

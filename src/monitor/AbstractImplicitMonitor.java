@@ -25,14 +25,16 @@ public abstract class AbstractImplicitMonitor {
             leave() ; 
         }
     }
-    public<T extends Exception> void DoWithin( RunnableWithException<T> runnable ) throws T {
+    public<T extends Exception> void DoWithin( 
+            RunnableWithException<T> runnable ) throws T {
       enter() ;
       try {
         runnable.run() ; }
       finally {
        leave() ; }
     }
-    public<T1, T2 extends Exception> T1 DoWithin( RunnableWithResultAndException<T1, T2> runnable ) throws T2 {
+    public<T1, T2 extends Exception> T1 DoWithin( 
+            RunnableWithResultAndException<T1, T2> runnable ) throws T2 {
       enter() ;
       try {
         return runnable.run() ; }

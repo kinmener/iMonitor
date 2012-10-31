@@ -1,5 +1,5 @@
-#! /home/ecelrc/students/whung1/local/bin/python3
-# /opt/local/bin/python3.3
+#! /opt/local/bin/python3.3
+# /home/ecelrc/students/whung1/local/bin/python3
 from subprocess import check_call, Popen, PIPE
 from time import sleep, localtime, strftime
 from optparse import OptionParser
@@ -44,6 +44,7 @@ if __name__ == "__main__":
         params_idx.append(0)
         total_num_comb *= len(exp_params[param])
 
+
     if(group_by_idx != len(params_idx) - 1):
         map_list_idx[group_by_idx] = len(params_idx) - 1
         map_list_idx[len(params_idx) - 1] = group_by_idx
@@ -51,12 +52,18 @@ if __name__ == "__main__":
     if not os.path.exists(exp_info["result_base_dir"]):
         os.makedirs(exp_info["result_base_dir"])
 
+    # results directory
     exp_dir = working_dir + "/" + exp_info["result_base_dir"] + "/" \
             +  exp_info["name"] + "_" + strftime("%Y%m%d_%H%M%S", localtime())
+
     os.makedirs(exp_dir)
-    os.makedirs(exp_dir + "/raw")
-    os.makedirs(exp_dir + "/stat")
-    os.makedirs(exp_dir + "/fig")
+
+    outputs = exp_info["output_order"]
+    for output in outputs:
+        os.makedirs(exp_dir + "/" + output)
+        os.makedirs(exp_dir + "/" + output + "/raw")
+        os.makedirs(exp_dir + "/" + output + "/stat")
+        os.makedirs(exp_dir + "/" + output + "/fig")
 
     os.chdir(exp_info["main_dir"])
     for i in range(0, total_num_comb):
@@ -77,8 +84,11 @@ if __name__ == "__main__":
                 raw_file.close()
                 stat_file.close()
             except: 
-                raw_file = None
-                stat_file = None
+                raw_file = []
+                stat_file = []
+                for j in range(0, len(outputs)):
+                    raw_file.append(None)
+                    stat_file.append(None)
 
             file_name = ""
 
@@ -88,46 +98,65 @@ if __name__ == "__main__":
                 if j != len(params_idx) - 1:
                     file_name += "_"
 
-            raw_file = open(exp_dir + "/raw/" + file_name + ".csv", "w")
-            stat_file = open(exp_dir + "/stat/" \
-                    + str(params_list[stat_by_idx][params_idx[stat_by_idx]]) \
-                    + ".dat", "w")
-            raw_file.write(exp_info["group_by"] + ", ")
-            for i in range(0, exp_info["num_times"]):
-                raw_file.write(str(i + 1) + ", ")
+            for j in range(0, len(outputs)):
 
-            raw_file.write("max, min, avg. w/o max and min\n")
-            raw_file.flush()
+                raw_file[j] = open(exp_dir + "/" + outputs[j] \
+                        + "/raw/" + file_name + ".csv", "w")
+
+                stat_param = params_list[stat_by_idx][params_idx[stat_by_idx]]
+                stat_file[j] = open(exp_dir + "/" + outputs[j] + "/stat/" \
+                        + str(stat_param) + ".dat", "w")
+
+                raw_file[j].write(exp_info["group_by"] + ", ")
+
+                for k in range(0, exp_info["num_times"]):
+                    raw_file[j].write(str(k + 1) + ", ")
+
+                raw_file[j].write("max, min, avg. w/o max and min\n")
+                raw_file[j].flush()
 
         # perform experiments num of times
-        max = -1
-        min = sys.maxsize
-        sum = 0
-        raw_file.write(\
-                str(params_list[group_by_idx][params_idx[group_by_idx]]) \
-                + ", ")
+        max = []
+        min = []
+        sum = []
+
+        for j in range(0, len(outputs)):
+            group_param = params_list[group_by_idx][params_idx[group_by_idx]]
+            raw_file[j].write(str(group_param) + ", ")
+            max.append(-1)
+            min.append(sys.maxsize)
+            sum.append(0)
+
         for j in range(0, exp_info["num_times"]):
             exp_thread = Popen(cmd, stdout=PIPE)
 
-            for line in exp_thread.stdout:
-                run_time = float(line)
-                sum += run_time
-                if max < run_time: 
-                    max = run_time
-                if min > run_time:
-                    min = run_time
+            for k in range(0, len(outputs)):
+                line = exp_thread.stdout.readline()
+                ret = float(line)
+                sum[k] += ret 
+                if max[k] < ret: 
+                    max[k] = ret 
+                if min[k] > ret:
+                    min[k] = ret 
 
-                raw_file.write(str(run_time) + ", ")
+                for k in range(0, len(outputs)):
+                    raw_file[k].write(str(ret) + ", ")
 
-        sum -= max
-        sum -= min
-        avg = sum/(exp_info["num_times"] - 2)
-        raw_file.write(str(max) + ", " + str(min) + ", " + str(avg) + "\n")
-        raw_file.flush()
+        for j in range(0, len(outputs)):
+            if exp_info["num_times"] < 5:
+                avg = sum[j]/(exp_info["num_times"])
+            else:
+                sum[j] -= max[j]
+                sum[j] -= min[j]
+                avg = sum[j]/(exp_info["num_times"] - 2)
 
-        stat_file.write(\
-                str(params_list[group_by_idx][params_idx[group_by_idx]]) \
-                + " " + str(round(avg/2, 1)) + "\n")
+            raw_file[j].write(str(max[j]) + ", " + str(min[j]) + ", " \
+                    + str(avg) + "\n")
+            raw_file[j].flush()
+
+            stat_file[j].write(\
+                    str(params_list[group_by_idx][params_idx[group_by_idx]]) \
+                    + " " + str(round(avg, 1)) + "\n")
 
 
         # maintain the params idx
@@ -139,12 +168,14 @@ if __name__ == "__main__":
             else:
                 break
 
-    raw_file.close()
-    stat_file.close()
+    for i in range(0, len(outputs)):
+        raw_file[i].close()
+        stat_file[i].close()
 
     # generate fig
     os.chdir(exp_info["fig_dir"])
     check_call(["rm", "-f", exp_info["name"]])
-    check_call(["ln", "-s", exp_dir + "/stat", exp_info["name"]])
+    check_call(["ln", "-s", exp_dir + "/" + exp_info["fig_data"] + "/stat", \
+            exp_info["name"]])
     check_call(["gnuplot", "scripts/" + exp_info["name"] + ".p"])
 

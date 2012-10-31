@@ -167,7 +167,7 @@ public class TestTicketReadersWriters {
         //    totalResponseTime += w[i].getAvgResponseTime();
         //}
         long execTime = System.currentTimeMillis() - startTime;
-        System.out.println( execTime );
-        //System.out.println( totalResponseTime / (READERS + WRITERS));
+        //System.out.println( execTime );
+        System.out.println( totalResponseTime / (READERS + WRITERS));
     }
 }

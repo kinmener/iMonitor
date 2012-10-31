@@ -8,6 +8,7 @@ public class SetCondition extends AbstractCondition {
     final private AssertionConditionPair self;
     final private HashSet<SetCondition> setCondition;
 
+
     public SetCondition(ReentrantLock mutex, Assertion assertion, 
             HashSet<SetCondition> setCondition) {
 
@@ -32,6 +33,7 @@ public class SetCondition extends AbstractCondition {
             }
             do {
                 try {
+                    numContextSwitch++;
                     self.await();
                 } catch (InterruptedException e) {
                     e.printStackTrace();

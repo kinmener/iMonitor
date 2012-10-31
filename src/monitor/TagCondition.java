@@ -49,6 +49,7 @@ public class TagCondition extends AbstractCondition {
             numWaiters++;
             do {
                 try {
+                    numContextSwitch++;
                     cond.await();
                 } catch (InterruptedException e) {
                     e.printStackTrace();

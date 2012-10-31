@@ -14,16 +14,21 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
     final Condition notEmpty = mutex.newCondition(); 
 
     int putPtr, takePtr, count;
-
+    private long numContextSwitch = 0;
     public ExplicitBoundedBuffer(int n) {
         items = new Object[n];
         putPtr = takePtr = count = 0;
+    }
+
+    public long getNumContextSwitch() {
+        return numContextSwitch;
     }
 
     public void put(Object x) throws InterruptedException {
         mutex.lock();
         try {
             while (count == items.length) {
+                numContextSwitch++;
                 notEmpty.signal();
                 notFull.await();
             }
@@ -41,6 +46,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
         mutex.lock();
         try {
             while (count == 0) {
+                numContextSwitch++;
                 notFull.signal();
                 notEmpty.await();
             }
@@ -60,6 +66,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
         mutex.lock();
         try {
             while ((n + count) > items.length) {
+                numContextSwitch++;
                 notEmpty.signal();
                 notFull.await();
             }
@@ -79,6 +86,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
         mutex.lock();
         try {
             while (count < n) {
+                numContextSwitch++;
                 notFull.signal();
                 notEmpty.await();
             }

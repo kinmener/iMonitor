@@ -55,11 +55,13 @@ public class TestBoundedBuffer {
         long startTime = System.currentTimeMillis();
         //System.out.println("Please wait. This takes a while");
         for( int k=0 ; k < CONSUMERS ; ++k ) {
-            TestThread w = new ObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS, delay) ;
+            TestThread w = new ObjectConsumer( rw_controller, doneCounter, 
+                    totalNumActions/CONSUMERS, delay) ;
             threads[k] = w;
             w.start(); }
             for( int k=0 ; k < PRODUCERS ; ++k ) {
-                TestThread r = new ObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS, delay) ;
+                TestThread r = new ObjectProducer( rw_controller, doneCounter, 
+                        totalNumActions/PRODUCERS, delay) ;
                 threads[k + CONSUMERS] = r;
                 r.start(); }
                 doneCounter.waitForDone() ;

@@ -16,6 +16,7 @@ public class NaiveCondition extends AbstractCondition {
             condition.signalAll();
             do {
                 try {
+                    numContextSwitch++;
                     condition.await();
                 } catch (InterruptedException e) {
                     e.printStackTrace();

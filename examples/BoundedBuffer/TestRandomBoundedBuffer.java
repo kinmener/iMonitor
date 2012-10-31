@@ -56,17 +56,20 @@ public class TestRandomBoundedBuffer {
         long startTime = System.currentTimeMillis();
         //System.out.println("Please wait. This takes a while");
         for( int k=0 ; k < CONSUMERS ; ++k ) {
-            TestThread w = new RandomObjectConsumer( rw_controller, doneCounter, totalNumActions/CONSUMERS, delay ) ;
+            TestThread w = new RandomObjectConsumer( rw_controller, 
+                    doneCounter, totalNumActions/CONSUMERS, delay ) ;
             threads[k] = w;
             w.start(); }
             for( int k=0 ; k < PRODUCERS ; ++k ) {
-                TestThread r = new RandomObjectProducer( rw_controller, doneCounter, totalNumActions/PRODUCERS, delay) ;
+                TestThread r = new RandomObjectProducer( rw_controller, 
+                        doneCounter, totalNumActions/PRODUCERS, delay) ;
                 threads[k + CONSUMERS] = r;
                 r.start(); }
                 doneCounter.waitForDone() ;
                 long execTime = System.currentTimeMillis() - startTime;
 
                 System.out.println( execTime );
+                System.out.println(rw_controller.getNumContextSwitch());
     }
 }
 
