@@ -160,14 +160,14 @@ public class TestTicketReadersWriters {
         doneCounter.waitForDone() ;
        
         double totalResponseTime = 0.0f;
-        for (int i = 0; i < READERS; i++) {
-            totalResponseTime += r[i].getAvgResponseTime();
-        }
+        //for (int i = 0; i < READERS; i++) {
+        //    totalResponseTime += r[i].getAvgResponseTime();
+        //}
         for (int i = 0; i < WRITERS; i++) {
             totalResponseTime += w[i].getAvgResponseTime();
         }
         long execTime = System.currentTimeMillis() - startTime;
         //System.out.println( execTime );
-        System.out.println( totalResponseTime / (READERS + WRITERS));
+        System.out.println( totalResponseTime / (WRITERS * 1000));
     }
 }
