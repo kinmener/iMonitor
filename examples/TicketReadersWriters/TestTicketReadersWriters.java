@@ -7,16 +7,16 @@ class Reader extends Thread {
     ReadersWritersMonitor monitor;
     int numRead;
     int maxReadTime;
-    int delay;
+    int maxDelay;
     long responseTime;
 
     public Reader(ReadersWritersMonitor monitor, int numRead, int maxReadTime,
-            DoneCounter doneCounter, int delay) {
+            DoneCounter doneCounter, int maxDelay) {
         this.monitor = monitor;
         this.numRead = numRead;
         this.maxReadTime = maxReadTime;
         this.doneCounter = doneCounter;
-        this.delay = delay;
+        this.maxDelay = maxDelay;
         responseTime = 0;
     }
 
@@ -36,6 +36,7 @@ class Reader extends Thread {
             }
             monitor.endRead();
             responseTime += (System.nanoTime() - startTime);
+            int delay = (int) (maxDelay * Math.random());
             if (delay != 0) {
                 try {
                     if (delay >= 1000000) {
@@ -47,12 +48,12 @@ class Reader extends Thread {
                 }
 
                 /*
-                 *long startDelay = System.nanoTime();
+                 *long startmaxDelay = System.nanoTime();
                  *while (true) {
                  *    int tmp = 0;
                  *    tmp += 1;
                  *    tmp *= 2;
-                 *    if ((System.nanoTime() - startDelay > delay)) {
+                 *    if ((System.nanoTime() - startmaxDelay > maxDelay)) {
                  *        break; 
                  *    }
                  *}
@@ -71,16 +72,16 @@ class Writer extends Thread {
     ReadersWritersMonitor monitor; 
     int numWrite;
     int maxWriteTime;
-    int delay;
+    int maxDelay;
     long responseTime;
 
     public Writer(ReadersWritersMonitor monitor, int numWrite, 
-            int maxWriteTime, DoneCounter doneCounter, int delay) {
+            int maxWriteTime, DoneCounter doneCounter, int maxDelay) {
         this.monitor = monitor;
         this.numWrite = numWrite;
         this.maxWriteTime = maxWriteTime;
         this.doneCounter = doneCounter;
-        this.delay = delay;
+        this.maxDelay = maxDelay;
         responseTime = 0;
     }
     public void run() {
@@ -99,22 +100,23 @@ class Writer extends Thread {
             }
             monitor.endWrite();
             responseTime += (System.nanoTime() - startTime);
+            int delay = (int) (maxDelay * Math.random());
             if (delay != 0) {
                 try {
                     if (delay >= 1000000) {
                         Thread.sleep(delay / 1000000, delay % 1000000);
                     } else {
-                        Thread.sleep(0, delay);
+                        Thread.sleep(0, delay );
                     }
                 } catch(InterruptedException e) {
                 }
                 /*
-                 *long startDelay = System.nanoTime();
+                 *long startmaxDelay = System.nanoTime();
                  *while (true) {
                  *    int tmp = 0;
                  *    tmp += 1;
                  *    tmp *= 2;
-                 *    if ((System.nanoTime() - startDelay > delay)) {
+                 *    if ((System.nanoTime() - startmaxDelay > maxDelay)) {
                  *        break; 
                  *    }
                  *}   
@@ -137,7 +139,7 @@ public class TestTicketReadersWriters {
         int totalNumWrite = 10; 
         int maxReadTime = 100;
         int maxWriteTime = 100;
-        int delay = 0;
+        int maxDelay = 0;
 
         ReadersWritersMonitor monitor = null; 
         try {
@@ -154,7 +156,7 @@ public class TestTicketReadersWriters {
             totalNumWrite = totalNumRead = Integer.parseInt(args[2]);
             maxReadTime = Integer.parseInt(args[3]);
             maxWriteTime = Integer.parseInt(args[4]);
-            delay = Integer.parseInt(args[5]) * 1000;
+            maxDelay = Integer.parseInt(args[5]) * 1000;
         } catch (Exception e) { /* use defaults */ 
             e.printStackTrace();
             if(monitor == null) {
@@ -169,14 +171,14 @@ public class TestTicketReadersWriters {
         Reader[] r = new Reader[READERS];
         for( int k = 0 ; k < READERS; ++k ) {
             r[k] = new Reader(monitor, totalNumRead/READERS, maxReadTime, 
-                    doneCounter, delay) ;
+                    doneCounter, maxDelay) ;
             r[k].start(); 
         }
 
         Writer[] w = new Writer[WRITERS];
         for( int k = 0 ; k < WRITERS; ++k ) {
             w[k] = new Writer(monitor, totalNumWrite/WRITERS, maxWriteTime, 
-                    doneCounter, delay) ;
+                    doneCounter, maxDelay) ;
             w[k].start(); 
         }
 

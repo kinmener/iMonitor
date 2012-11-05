@@ -14,12 +14,26 @@ public class ExplicitBarberShop extends BarberShop {
             while (maxFreeSeat == numFreeSeat) {
                 custReady.await(); 
             }
-            numFreeSeat--;
+            numFreeSeat++;
 
         } catch(InterruptedException e) {
         }
+        barberReady.signal();
         mutex.unlock();
     } 
-    public void waitToCut() {
+    public boolean waitToCut() {
+        mutex.lock();
+        boolean ret = false;
+        if (numFreeSeat > 0) {
+            numFreeSeat--;
+            custReady.signal(); 
+            try {
+                barberReady.await();
+            } catch(InterruptedException e) {
+            }
+            ret = true;
+        } 
+        mutex.unlock();
+        return ret;
     }
 }
