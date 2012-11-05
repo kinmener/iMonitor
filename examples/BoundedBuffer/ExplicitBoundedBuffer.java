@@ -29,7 +29,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
         try {
             while (count == items.length) {
                 numContextSwitch++;
-                notEmpty.signal();
+                //notEmpty.signal();
                 notFull.await();
             }
             items[putPtr] = x; 
@@ -47,7 +47,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
         try {
             while (count == 0) {
                 numContextSwitch++;
-                notFull.signal();
+                //notFull.signal();
                 notEmpty.await();
             }
 
@@ -67,7 +67,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
         try {
             while ((n + count) > items.length) {
                 numContextSwitch++;
-                notEmpty.signal();
+                //notEmpty.signal();
                 notFull.await();
             }
             for (int i = 0; i < n; i++) {
@@ -87,7 +87,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
         try {
             while (count < n) {
                 numContextSwitch++;
-                notFull.signal();
+                //notFull.signal();
                 notEmpty.await();
             }
 

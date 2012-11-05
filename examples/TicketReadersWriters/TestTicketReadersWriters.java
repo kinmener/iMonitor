@@ -37,24 +37,26 @@ class Reader extends Thread {
             monitor.endRead();
             responseTime += (System.nanoTime() - startTime);
             if (delay != 0) {
-                //try {
-                //    if (delay >= 1000000) {
-                //        Thread.sleep(delay / 1000000, delay % 1000000);
-                //    } else {
-                //        Thread.sleep(0, delay);
-                //    }
-                //} catch(InterruptedException e) {
-                //}
-
-                long startDelay = System.nanoTime();
-                while (true) {
-                    int tmp = 0;
-                    tmp += 1;
-                    tmp *= 2;
-                    if ((System.nanoTime() - startDelay > delay)) {
-                        break; 
+                try {
+                    if (delay >= 1000000) {
+                        Thread.sleep(delay / 1000000, delay % 1000000);
+                    } else {
+                        Thread.sleep(0, delay);
                     }
+                } catch(InterruptedException e) {
                 }
+
+                /*
+                 *long startDelay = System.nanoTime();
+                 *while (true) {
+                 *    int tmp = 0;
+                 *    tmp += 1;
+                 *    tmp *= 2;
+                 *    if ((System.nanoTime() - startDelay > delay)) {
+                 *        break; 
+                 *    }
+                 *}
+                 */
             }
         }
         doneCounter.increment() ;
@@ -98,25 +100,25 @@ class Writer extends Thread {
             monitor.endWrite();
             responseTime += (System.nanoTime() - startTime);
             if (delay != 0) {
-                /*
-                 *try {
-                 *    if (delay >= 1000000) {
-                 *        Thread.sleep(delay / 1000000, delay % 1000000);
-                 *    } else {
-                 *        Thread.sleep(0, delay);
-                 *    }
-                 *} catch(InterruptedException e) {
-                 *}
-                 */
-                long startDelay = System.nanoTime();
-                while (true) {
-                    int tmp = 0;
-                    tmp += 1;
-                    tmp *= 2;
-                    if ((System.nanoTime() - startDelay > delay)) {
-                        break; 
+                try {
+                    if (delay >= 1000000) {
+                        Thread.sleep(delay / 1000000, delay % 1000000);
+                    } else {
+                        Thread.sleep(0, delay);
                     }
-                }   
+                } catch(InterruptedException e) {
+                }
+                /*
+                 *long startDelay = System.nanoTime();
+                 *while (true) {
+                 *    int tmp = 0;
+                 *    tmp += 1;
+                 *    tmp *= 2;
+                 *    if ((System.nanoTime() - startDelay > delay)) {
+                 *        break; 
+                 *    }
+                 *}   
+                 */
             }
         }
         doneCounter.increment() ;

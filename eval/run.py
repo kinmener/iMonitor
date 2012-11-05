@@ -1,5 +1,5 @@
-#! /home/ecelrc/students/whung1/local/bin/python3
-# /opt/local/bin/python3.3
+#! /opt/local/bin/python3.3
+# /home/ecelrc/students/whung1/local/bin/python3
 from subprocess import check_call, Popen, PIPE
 from time import sleep, localtime, strftime
 from optparse import OptionParser

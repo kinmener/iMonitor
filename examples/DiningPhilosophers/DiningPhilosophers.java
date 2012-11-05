@@ -180,6 +180,10 @@ public class DiningPhilosophers {
                 case 'm':
                     ds = MapDiningServerImpl.newInstance(numPhilosophers);
                     break;
+                case 't': 
+                    ds = TagDiningServerImpl.newInstance(numPhilosophers);
+                    break;
+
                 default:
                     ds = ExplicitDiningServerImpl.newInstance(numPhilosophers);
                     break;

@@ -4,13 +4,24 @@
     "main_class": "examples.RoundRobinMonitor.Test",
     "main_dir": "../build",
     "result_base_dir": "results",
-    "num_times": 10,
+    "num_times": 1,
     "params_order": [
       "num_proc", "num_tasks", "monitor_type", "delay"
     ],
+    "output_order": [
+      "runtime"
+    ],
     "group_by": "num_proc",
-    "stat_by": "monitor_type",
-    "fig_dir": "../doc/tex/fig"
+    "stat_by": "monitor_type"
+  },
+  "fig_setup": {
+    "fig_dir": "../doc/tex/fig",
+    "fig_data": [
+        {
+            "source": "runtime",
+            "name": "RoundRobinMonitor"
+        }
+    ]
   },
   "exp_params": {
     "num_tasks": [ 

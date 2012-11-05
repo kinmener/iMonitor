@@ -8,9 +8,20 @@
     "params_order": [
       "buf_size", "monitor_type", "num_proc", "num_tasks", "delay"
     ],
+    "output_order": [
+      "runtime"
+    ],
     "group_by": "num_proc",
-    "stat_by": "monitor_type",
-    "fig_dir": "../doc/tex/fig"
+    "stat_by": "monitor_type"
+  },
+  "fig_setup": {
+    "fig_dir": "../doc/tex/fig",
+    "fig_data": [
+        {
+            "source": "runtime",
+            "name": "BoundedBuffer"
+        }
+    ]
   },
   "exp_params": {
     "buf_size": [

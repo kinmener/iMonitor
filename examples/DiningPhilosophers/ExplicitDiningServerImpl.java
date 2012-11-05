@@ -28,7 +28,7 @@ public class ExplicitDiningServerImpl extends DiningServer {
      */
    private ExplicitDiningServerImpl(int numPhils) {
       super(numPhils);
-      mutex = new ReentrantLock();
+      mutex = new ReentrantLock(true);
       self = new Condition[numPhils];
       for (int i = 0; i < numPhils; i++)
          self[i] = mutex.newCondition();
