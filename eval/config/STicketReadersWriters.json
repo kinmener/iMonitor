@@ -13,9 +13,16 @@
          "runtime"
     ],
     "group_by": "delay",
-    "stat_by": "monitor_type",
+    "stat_by": "monitor_type"
+  },
+  "fig_setup": {
     "fig_dir": "../doc/tex/fig",
-    "fig_data": "runtime"
+    "fig_data": [
+        {
+            "source": "runtime",
+            "name": "STicketReadersWriters"
+	}
+    ]
   },
   "exp_params": {
     "total_tasks": [ 
