@@ -410,7 +410,7 @@ performance compared to other automatic-signal mechanisms \cite{bh05}. In \cite{
 the automatic-signal mechanism is 10-50 times
 slower than the explicit-signal mechanism; however, AutoSynch is 
 only 2.33 times slower than the explicit-signal mechanism even in the worst 
-case of our experiment results. Furthermore, AutoSynch is 288 
+case of our experiment results. Furthermore, AutoSynch is 31
 %YYY: 288 => new number
 times faster than the explicit-signal mechanism in the case that rely on 
 $signalAll$ calls. Besides, the experimental results also shows that AutoSynch 
@@ -722,7 +722,7 @@ $waituntil$ statement in all thread can be achieved through the globalization.
     $waituntil$ statement.  
 \end{proposition}
 \begin{proof}
-    Only the thread invoking the $waituntil$ statement is able to access the
+    Only the thread invoking the $waituntil$ statement can access the
     local variables of the predicate; all other threads are unable to change
     the values of those local variables. Therefore, the value of $\vec{y}$
     cannot be changed 
@@ -740,11 +740,9 @@ statement. The predicate can be evaluated in all other threads during the
 $waituntil$ period. 
 
 \subsection{Relay invariance} \label{sec:relay}
-As mentioned in Section ~\ref{sec:sigAll}, $signalAll$ calls are unavoidable in
-the explicit-signal mechanism sometimes; however, $signalAll$ calls may decrease
-performance by introducing redundant context switches. 
-In
-AutoSynch, $signalAll$ calls are avoided by providing the following invariance. 
+As mentioned in Section ~\ref{sec:sigAll}, $signalAll$ calls are unavoidable
+sometimes in the explicit-signal mechanism. In AutoSynch, $signalAll$ calls are 
+avoided by providing the following invariance. 
 %should be reduced. Before a waiting thread is signaled, the 
 %predicate of the waiting thread is ensured to be true. In addition, at most 
 %one waiting thread is signaled at any time. The reason is that threads are 
@@ -752,17 +750,19 @@ AutoSynch, $signalAll$ calls are avoided by providing the following invariance.
 %not increase parallelism but redundant context switches. 
 
 \begin{definition}[Active thread] 
-    A thread is active for a monitor if it has 
+    A thread is active for a monitor if it is trying to access the monitor or
+    has accessed the monitor but not been in waiting state. 
 \end{definition}
 
 \begin{definition}[Relay invariance]
     If there is a thread waiting a predicate that is true, then there is at
-    least one active thread. 
-    %\[
-    %    W_T \ne \phi \Rightarrow \exists T \in W_T\ s.t.\ \Diamond T\ 
-    %    is\ signaled.  
-    %\]
-    
+    least one active thread; i.e., suppose $W_T$ is the set of waiting threads
+    that their conditions has been true, $A_T$ is the set of active threads,
+    then
+    \[
+        W_T \ne \phi \Rightarrow A_T \ne \phi 
+    \]
+    is always held. 
 \end{definition}
 \begin{proposition} \label{pro:one}
     Relay signaling rule: when a thread exits a monitor or goes into waiting 
@@ -794,9 +794,12 @@ AutoSynch, $signalAll$ calls are avoided by providing the following invariance.
 
 The concept behind relay invariance is that, the privilege of a monitor control
 is transmitted from one thread to another thread waiting a condition that is
-true.
-Relay invariance never introduces deadlock; consequently, {\it signalAll} calls
-are avoidable by providing relay invariance. 
+true. For example, in Fig.~\ref{fig:sigAll_exp}, a consumer $C$ tries to take
+$32$ items; however, only $24$ items are in the buffer at this moment. Then $C$
+goes into waiting state. A producer, $D$, becomes active after $C$; $D$ puts
+$24$ items to the buffer and then leave the monitor. Before leaving, $D$
+signals $C$ since the number of items are $48$ now. 
+{\it signalAll} calls are avoidable since relay invariance holds. 
 Proposition \ref{pro:one} lays the theoretical foundation that the relay
 invariance can be provided in our automatic-signaling mechanism. 
 The remaining problem is how to find a thread waiting for a condition that is 
@@ -807,7 +810,9 @@ In order to find an appropriate thread waiting for a predicate that has been
 true efficiently, every predicate acquires different tags according to its 
 semantics. Those tags depict the properties of a predicate; therefore, tags
 help us prune predicates that are unable to be true through examining the state 
-of a monitor. Before going through the details, two particular types of 
+of a monitor. The idea behind predicate tag is that, local variables cannot be
+changed during the $waituntil$ period; thus the values of local variables are
+used as keys when we do evaluation. Before going through the details, two particular types of 
 predicates are defined as follows according to their semantics. 
 \begin{definition}[Local and general expression]
     Consider an expression $E(\vec{x}): X \rightarrow \mathbb{D}$, where
