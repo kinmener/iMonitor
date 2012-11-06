@@ -20,6 +20,9 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
         putPtr = takePtr = count = 0;
     }
 
+    public int getNumFreeSlot() {
+        return items.length - count;
+    }
     public long getNumContextSwitch() {
         return numContextSwitch;
     }

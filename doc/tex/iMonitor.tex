@@ -765,10 +765,10 @@ AutoSynch, $signalAll$ calls are avoided by providing the following invariance.
     
 \end{definition}
 \begin{proposition} \label{pro:one}
-    Relay invariance can be provided by the following procedure. When a thread 
-    exits a monitor or goes into waiting state, it checks whether there 
-    is some thread waiting on a condition that has been true. If
-    at least one such waiting thread exists, it signals the thread.
+    Relay signaling rule: when a thread exits a monitor or goes into waiting 
+    state, it checks whether there is some thread waiting on a condition that 
+    has been true. If at least one such waiting thread exists, it signals the 
+    thread. Relay invariance can be provided by this rule. 
 \end{proposition}
 \begin{proof}
     Suppose $T$ is a thread waiting on the predicate $P$ that is true. If $T$ 

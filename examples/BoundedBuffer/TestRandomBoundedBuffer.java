@@ -84,12 +84,17 @@ class RandomObjectProducer extends TestThread {
         boundedBuffer = bb ; doneCounter = d ; numActions = n; delayT = dt;}
 
     public void run() {
-        for(int i=0 ; i < numActions ; ++i ) {
+        //for(int i=0 ; i < numActions ; ++i ) {
+        while (numActions > 0) {
+
            if (delayT != 0) {
                delay(delayT);
            }
 
             try {
+                int n = boundedBuffer.getNumFreeSlot();
+                n *= Math.random();
+                n += 1;
                 boundedBuffer.put(1) ; }
             catch(InterruptedException e ) { }
         }

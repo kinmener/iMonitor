@@ -14,6 +14,10 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
     private AbstractCondition notFull;
 
 
+    public int getNumFreeSlot() {
+        return items.length - count;
+    }
+
     public iMonitorBoundedBuffer(int n, char type) {
         items = new Object[n];
         putPtr = takePtr = count = 0;
