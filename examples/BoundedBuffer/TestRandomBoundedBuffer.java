@@ -95,7 +95,9 @@ class RandomObjectProducer extends TestThread {
                 int n = boundedBuffer.getNumFreeSlot();
                 n *= Math.random();
                 n += 1;
-                boundedBuffer.put(1) ; }
+                boundedBuffer.put(n) ; 
+                numActions -= n;
+            }
             catch(InterruptedException e ) { }
         }
         doneCounter.increment() ;
