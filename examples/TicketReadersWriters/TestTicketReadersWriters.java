@@ -188,11 +188,11 @@ public class TestTicketReadersWriters {
         //for (int i = 0; i < READERS; i++) {
         //    totalResponseTime += r[i].getAvgResponseTime();
         //}
-        //for (int i = 0; i < WRITERS; i++) {
-        //    totalResponseTime += w[i].getAvgResponseTime();
-        //}
+        for (int i = 0; i < WRITERS; i++) {
+            totalResponseTime += w[i].getAvgResponseTime();
+        }
         long execTime = System.currentTimeMillis() - startTime;
-        System.out.println( execTime );
-        //System.out.println( totalResponseTime / (WRITERS * 1000));
+        //System.out.println( execTime );
+        System.out.println( totalResponseTime / (WRITERS * 1000));
     }
 }
