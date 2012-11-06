@@ -78,12 +78,12 @@ as explicit-signal monitor or even more efficient for some cases.
 To satisfy the need for automatic-signal monitor, we propose a system called 
 AutoSynch that allows gains in productivity of 
 programmers as well as gain in performance. We introduce an operation called
-$globalization$ that enables the predicate evaluation in
-every thread. Based on this operation, AutoSynch provides $relay\ guarantee$
+{\em globalization} that enables the predicate evaluation in
+every thread. Based on this operation, AutoSynch provides {\em relay invariance}
 that some thread waiting for a condition has been met is always signaled; 
 therefore, the $signalAll$ call is avoidable in AutoSynch. For efficiency in 
 deciding which thread should be signaled, AutoSynch uses 
-$predicate\ tagging$, in which tags are assigned to every predicate according
+{\em predicate tagging}, in which tags are assigned to every predicate according
 to its semantics. AutoSynch can find and signal an appropriate condition 
 variable efficiently by examining the state of a monitor and tags. 
 
@@ -151,9 +151,9 @@ developed in early 70's \cite{dijk68, hoa74, bh75a}. For
 example, the most widely used threads package in C++ \cite{stro97}, 
 pthreads \cite{bute97}, and the most widely used package in Java \cite{gjs00}, 
 java.util.concurrent \cite{lea05}, are based
-on the notion of monitors \cite{hoa74, bh75a}(or semaphores \cite{dijk68}) 
-developed in 60's and 70's.
-In this paper, we propose a new method called AutoSynch 
+on the notion of monitors \cite{hoa74, bh75a}(or semaphores \cite{dijk68}). 
+%developed in 60's and 70's.
+In this paper, we propose a new method called {\em AutoSynch} 
 that allows gains in productivity of the programmer as well as gain in
 performance of the system.
 
@@ -166,80 +166,68 @@ Using the wrong notification ($signal$ versus $signalAll$) is a frequent
 source of bugs. In AutoSynch there is no notion of condition variables
 and it is the responsibility of the system to signal appropriate threads.
 This feature in AutoSynch significantly reduces the program size and complexity.
-Note that the idea of automatic signaling has been proposed 
-in the original paper by Hoare as \cite{hoa74}. Buhr and Harji use implicit
-signal an alternative to automatic signaling \cite{bh05}. 
-However, it is generally believed that automatic 
-signaling is extremely inefficient compared to explicit signaling. 
-For example, Buhr, Fortier, and Coffin claim that automatic monitors are 10-50 times
-slower than explicit signals \cite{bfc95}. The reason for the slowdown is that
-previous implementations of automatic monitor are based on the
-evaluation of all conditions, whenever monitor is available. We show in this
-paper that the widely held belief is wrong. 
-%\subsection{AutoSynch Example}
-%The concurrent programs are more difficult to be written and debugged than the 
-%sequential programs. Although explicit-signal monitor already provides an 
-%elegant mechanism for programmers to maintain mutual exclusion and synchronization 
-%in concurrent programs; automatic-signal is more straightforward in both code
-%reasoning and syntax. 
+In addition, it allows us to completely eliminate signaling more than 
+one thread resulting in reduced context switches and better performance.
+The idea of automatic signaling was initially explored by Hoare in \cite{hoa74},
+but rejected in favor of condition variables due to efficiency considerations.
+The belief that automatic signaling is extremely inefficient compared to
+explicit signaling is widely held since then and
+all prevalent concurrent languages based on monitors use
+explict signaling.
+%Buhr and Harji use implicit
+%signal an alternative to automatic signaling \cite{bh05}. 
+%However, it is generally believed that automatic 
+%signaling is extremely inefficient compared to explicit signaling. 
+For example, Buhr, Fortier, and Coffin claim that automatic monitors are $10$ to $50$ times
+slower than explicit signals \cite{bfc95}. The reason for this drastic slowdown in 
+previous implementations of automatic monitor  is that they evaluate
+all possible conditions on which threads are waiting for whenever the monitor
+becomes available. We show in this
+paper that the widely held belief is wrong.
 
-To make the automatic-signal mechanism available in Java, we proposes the 
-framework of AutoSynch illustrated in Fig.~\ref{fig:fw}. 
-The AutoSynch framework is composed of a 
-preprocessor and a Java condition manager library. The preprocessor translates 
-AutoSynch code into traditional Java code. Our automatic-signal mechanism and 
-developed techniques were implemented in the Java library. Although this paper 
-focuses on Java, our techniques are also applicable to other programming 
-languages and models, such as pthread and C\# \cite{hwg03}.
+ With careful analysis of the conditions on which
+the threads are waiting and evaluating as few conditions as possible, automatic signaling can be as efficient 
+as explicit signaling.
+% In fact, for many examples, automatic signaling can be faster as it avoids
+%{\em signalAll} which is 
+In AutoSynch, the programmer simply specifies the predicate $P$ on which the thread is 
+waiting using a {\em waituntil(P)} statement. 
+When a thread reaches the statement, it checks whether $P$ is true. If it is true, the thread can continue; 
+otherwise, the thread must wait for the system to signal it. The AutoSynch system has a condition manager that is responsible for determining
+which thread to signal by analyzing the predicates and the state of the object. 
+%and release the privilege of the monitor control temporarily. 
 
-%Fig.~\ref{fig:fw} illustrates the framework of AutoSynch, which makes 
-%the automatic-signal available with the modern high-level language, Java. 
-%The AutoSynch takes a Java-extension program providing the automatic-signal 
-%mechanism through supporting the monitor class and the waituntil statement. The 
-%AutoSynch preprocessor transfers an AutoSynch code into the tradition Java code 
-%that can be compiled with AutoSynch library. The AutoSynch 
-%Java library implements our automatic-signal monitor mechanism.  
-%
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/flow.eps}
-  \caption{The framework of AutoSynch}
-  \label{fig:fw}
-\end{figure}
+%YYY: add somewhere 
+%The 
+%AutoSynch extends Java with supporting the $AutoSynch$ class and the
+%$waituntil$ statement. In an $AutoSynch$ class, every member 
+%function can be executed by 
+%only one thread at any time; i.e., an $AutoSynch$ class provides  
+%mutual exclusion by default. The $AutoSynch$ is reserved as a modifier, 
+%indicating a $AutoSynch$ class. 
 
-
-AutoSynch extends Java with supporting the $AutoSynch$ class and the
-$waituntil$ statement \cite{gm05}. In an $AutoSynch$ class, every member 
-function can be executed by 
-only one thread at any time; i.e., an $AutoSynch$ class provides  
-mutual exclusion by default. The $AutoSynch$ is reserved as a modifier, 
-indicating a $AutoSynch$ class. A $waituntil$ statement, appearing in 
-only member functions of a $AutoSynch$ class, has a predicate as its parameter. 
-When a thread is executing a $waituntil$ statement, it checks whether or not the 
-predicate is true. The thread can continue to execute only when the predicate
-is true. Otherwise, if the predicate is false, the executing thread must wait 
-and release the privilege of the monitor control temporarily. 
-
-Fig.~\ref{fig:bb_exp} shows an example demonstrating the difference between 
-the Java implementation and the AutoSynch implementation for the 
-bounded-buffer problem, also known as the producer-consumer problem. 
-In the problem, two kinds of threads, producers and consumers, tries to obtain 
-access to the shared resources. Producers put items 
-into the buffer, while consumers take items out from the buffer. Every 
-operation should be under mutual exclusion. Furthermore, a producer must wait  
-when the buffer is full, while a consumer has to wait when the 
+Fig.~\ref{fig:bb_exp} shows the difference between 
+the Java and the AutoSynch implementation for the 
+bounded-buffer problem (also known as the producer-consumer problem). 
+In this problem, two kinds of threads, producers and consumers, try to 
+access  the shared resources. Producers put items 
+into the buffer, while consumers take items out of the buffer. There are two requirements for synchronization.
+First, every 
+operation on a shared variable, such as $items$, should be done under mutual exclusion. Second, we need {\em conditional synchronization};
+a producer must wait  
+when the buffer is full, and a consumer must wait when the 
 buffer is empty. The explicit-signal bounded buffer is written in Java. A 
-lock variable and two condition variables are needed to maintain mutual exclusion 
+lock variable and two associated condition variables are used to maintain mutual exclusion 
 and conditional synchronization. A thread needs to acquire the lock before entering member
 functions. In addition, programmers need to explicitly associate conditional 
-assertions with condition variables and call signal or await function manually.
-On the contrary, 
-the automatic-signal bounded buffer is written in our AutoSynch framework.
-Programmers use $AutoSynch$ modifier to indicate the class is a monitor as line 
-1. Besides, programmers use only $waituntil$ as in line 9 for conditional
-synchronization. As can be expected, the automatic-signal monitor is
-more straightforward and simpler than the explicit-signal monitor to
-programmers. 
+predicates with condition variables and call signal or await function manually.
+The automatic-signal bounded buffer is written in our AutoSynch framework.
+We use $AutoSynch$ modifier to indicate that the class is a monitor as in line 
+1. For conditional synchronization,  we use $waituntil$ as in line 9. There are no
+{\em signal} or {\em signalAll} calls in the AutoSynch program.
+As can be expected, the automatic-signal monitor is
+much simpler than the explicit-signal monitor. 
+
 \begin{figure*}[ht!]
 \begin{multicols}{2}
     \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
@@ -318,89 +306,163 @@ programmers.
   \label{fig:bb_exp}
 \end{figure*}
 
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/flow.eps}
+  \caption{The framework of AutoSynch}
+  \label{fig:fw}
+\end{figure}
+
+
+To make the signal mechanism automatic in Java, we have implemented the 
+framework of AutoSynch illustrated in Fig.~\ref{fig:fw}. 
+%The programmer is expected to write 
+The AutoSynch framework is composed of a 
+preprocessor and a Java condition manager library. The preprocessor translates 
+AutoSynch code into traditional Java code. 
+Our automatic-signal mechanism and 
+developed techniques were implemented in the Java condition manager library. 
+The Java condition library is responsible for monitoring the state of the monitor object
+and signaling an appropriate thread.
+
+
+%Fig.~\ref{fig:fw} illustrates the framework of AutoSynch, which makes 
+%the automatic-signal available with the modern high-level language, Java. 
+%The AutoSynch takes a Java-extension program providing the automatic-signal 
+%mechanism through supporting the monitor class and the waituntil statement. The 
+%AutoSynch preprocessor transfers an AutoSynch code into the tradition Java code 
+%that can be compiled with AutoSynch library. The AutoSynch 
+%Java library implements our automatic-signal monitor mechanism.  
+%
+
+
+%YYY: need better transition
 %\subsection{Design Principles}
-In this paper we argue that automatic signaling is generally as fast as explicit 
-and even faster for some examples. In Section \ref{sec:sigAll}, we give reasons
+%It is quite clear that eliminating the need for signals simplifies concurrent programming significantly.
+In this paper, we argue that automatic signaling is generally as fast as explicit 
+signaling (and even faster for some examples). In Section \ref{sec:sigAll}, we give reasons
 for the efficiency in automatic signaling. In short, the explicit signaling has 
 to resort to $signalAll$ in some examples; however, our automatic signaling never 
-uses $signalAll$. We have built AutoSynch that is almost always as 
-fast as explicit and considerably faster for synchronization problems with 
+uses $signalAll$. We have built AutoSynch that is 
+%almost always as 
+%fast as explicit and 
+considerably faster for synchronization problems with 
 $signalAll$. The design principles underlying AutoSynch are as follows.
 
 \begin{description}
-    \item{\bf Reduce context switches.} Context switch requires a certain 
+    \item{\bf Reduce the number of context switches.} A context switch requires a certain 
         amount of time to save and load registers and update various tables and
-        lists. Reducing unnecessary context switches boosts the performance.
+        lists. Reducing unnecessary context switches boosts the performance of the system.
         A $signalAll$ call introduces unnecessary context switches; therefore,
-        $signalAll$ calls are forbidden in AutoSynch. 
+        $signalAll$ calls are never used in AutoSynch. 
     \item {\bf Reduce the number of unnecessary predicate evaluation.} In the 
-        automatic-signal mechanism, automatically signaling a thread is the 
-        responsibility of our system. The number of predicate evaluations is 
+        automatic-signal mechanism, signaling a thread is the 
+        responsibility of the system. The number of predicate evaluations is 
         crucial for efficiency in deciding which thread should be signaled. 
-        Lower the number, better the performance.
+        By analyzing the structure of the predicate, our system reduces the number of predicate evaluations.
+  %      Lower the number, better the performance.
 \end{description}
 
 
 %\subsection{Contributions}
-The starting point in the design of AutoSynch is how to evaluate predicates of
-$waituntil$ statements. Any thread that can access a monitor should be able
-to check all predicates of $waituntil$ statements of the monitor. Therefore, a 
-thread can decide which thread should be signaled according to the results of
-predicate evaluations before the thread waits or exits the monitor. We 
-investigated globalization operation to enable predicate evaluations in any 
-thread. Based on this operation, our framework can provide relay guarantee and 
-predicate tagging. 
+There are three important new ideas in AutoSynch that enables efficient automatic
+signaling --- {\em globalization of predicates, relay invariance}, and {\em predicate
+tagging}.
 
-To avoid using $signalAll$ call, AutoSynch 
-provides relay guarantee, which ensures that some thread waiting for a
-condition has met is always signaled. With this guarantee, the $signalAll$ call 
-is unnecessary in our automatic-signal mechanism. Therefore, AutoSynch reduces 
+The technique of {\em globalization} of a predicate $P$ is used to reduce the number of 
+context switches for its evaluation. In the current systems, only the thread that is waiting
+for the predicate $P$ can evaluate it. When the thread is signaled, it wakes up, acquires the
+lock to the monitor and then evaluates the predicate $P$. If the predicate $P$ is false, it
+goes back to sleep resulting in an additional context switch. In AutoSynch system, the thread
+that is in the monitor evaluates the condition for the waiting thread and wakes it only
+if the condition is true. Since the predicate $P$ may use variables local to the thread
+waiting on it, AutoSynch system derives a globalization of predicate $P'$ that
+can be evaluated by other threads. The details of globalization are in Section \ref{sec:globalization}.
+
+%The starting point in the design of AutoSynch is how to evaluate predicates of
+%$waituntil$ statements. Any thread that can access a monitor should be able
+%to check all predicates of $waituntil$ statements of the monitor. Therefore, a 
+%thread can decide which thread should be signaled according to the results of
+%predicate evaluations before the thread waits or exits the monitor. We 
+%investigated globalization operation to enable predicate evaluations in any 
+%thread. Based on this operation, our framework can provide relay invariance and 
+%predicate tagging. 
+
+The idea of {\em relay invariance} is used to avoid $signalAll$ calls in AutoSynch.
+The relay invariance ensures if there is any thread whose waiting condition is true, then
+there exists at least one thread whose waiting condition is  true and is signaled by the system.
+With this invariance, the $signalAll$ call 
+is unnecessary in our automatic-signal mechanism. This mechanism reduces 
 the number of context switches by avoiding $signalAll$ calls. 
+The details of relay invariance are in Section \ref{sec:relay}.
 
-To accelerate the process in deciding which thread to be signaled, predicate 
-tags are used for classifying predicates. Tags are assigned to every predicate
-according to the semantics of the predicate. In deciding which thread should be 
+
+The idea of {\em predicate tagging} is used to accelerate the process of deciding which thread to signal.
+All the waiting conditions are analyzed and tags are assigned to every predicate
+according to its semantics. To decide which thread should be 
 signaled, we identify tags that are most likely to be true after examining the 
-current state of a monitor. Then we only need to check the predicates with 
+current state of the monitor. Then we only evaluate the predicates with 
 those tags. 
+The details of predicate tagging are in Section \ref{sec:tag}.
 
 Our experimental results indicate that AutoSynch can significantly improve
-performance compared to other automatic-signal mechanisms \cite{bh05}. It is
-the generally believed that the automatic-signal mechanism is 10-50 times
-slower than the explicit-signal mechanism \cite{bfc95}; however, AutoSynch is 
-only 2.33 times slower than the explicit-signal mechanism in the worst 
+performance compared to other automatic-signal mechanisms \cite{bh05}. In \cite{bfc95,bh05}
+the automatic-signal mechanism is 10-50 times
+slower than the explicit-signal mechanism; however, AutoSynch is 
+only 2.33 times slower than the explicit-signal mechanism even in the worst 
 case of our experiment results. Furthermore, AutoSynch is 288 
+%YYY: 288 => new number
 times faster than the explicit-signal mechanism in the case that rely on 
 $signalAll$ calls. Besides, the experimental results also shows that AutoSynch 
 is scalable; the performance of AutoSynch is stable even if the number of 
 threads increases. 
 
-
-The relationship between the automatic-signal and explicit-signal monitor can be 
-depicted by analogy with the relationship between the garbage collection and 
-manual memory management. Although garbage collection leads to decreased
+Although the experiment results shows that AutoSynch is 2.33 times slower than 
+the explicit-signal mechanism in the worst case, it is still desirable to have automatic signaling.
+First, automatic signaling simplifies the task of concurrent programming.
+            In explicit-signal monitor, it is the responsibility of programmers to 
+        explicitly invoke a $signal$ call on some condition variable for
+        conditional synchronization. Using the wrong notification or signaling
+        a wrong condition variable are frequent source of bugs.  The idea is analogous to automatic
+        garbage collection.
+Although garbage collection leads to decreased
 performance because of the overhead in deciding which memory to free; programmers 
 avoid manual memory deallocation. As a consequence, memory leaks and certain 
 bugs, such as dangling pointer bugs and double free bugs, are reduced and 
 eradicated. Similarly, automatic-signal mechanism consumes computing resources 
 in deciding which thread to be signaled; programmers avoid explicitly invoking 
 $signal$ calls. As a result, some bugs, such as using wrong notification and
-signaling a wrong condition variable, are diminished and eliminated. 
+signaling a wrong condition variable, are eliminated.  Secondly,
+ In explicit-signal monitor, the principle of separation of concerns is violated.
+    Any method that changes the state of the monitor must be aware of all the conditions that other threads could be waiting for 
+    in other methods of the monitor. 
+     The intricate relation between
+        threads for conditional synchronization breaks the modularity and 
+        encapsulation of programming.  
+   Finally,
+  $AutoSynch$ can provide  
+        rapid prototyping  in developing programs and accelerating 
+        products time to market. Moreover, 
+        a correct
+        automatic-signal implementation is helpful in debugging an
+        explicit-signal implementation. 
 
-Our main contributions are as follows.
-\begin{enumerate} 
-    \item We present the globalization, relay guarantee, and predicate tagging
-        techniques that make automatic-signaling efficient. Experimental 
-        evaluation of AutoSynch shows significant improvements in performance 
-        and scalability with predicate tagging and relay guarantee. 
-    \item We propose the design and implementation of the AutoSynch framework,
-        which supports concurrent programs with automatic-signal mechanism.
-    \item We show that the $signalAll$ call may introduce unnecessary context
-        switches that decrease the performance. 
-    \item We give experimental evidence indicating that AutoSynch's automatic-signal
-        mechanism is almost as efficient as explicit-signal mechanism or even 
-        more efficient with much simpler code.
-\end{enumerate} 
+
+
+%Our main contributions are as follows.
+%\begin{enumerate} 
+%    \item We present the globalization, relay invariance, and predicate tagging
+%        techniques that make automatic-signaling efficient. Experimental 
+%        evaluation of AutoSynch shows significant improvements in performance 
+%        and scalability with predicate tagging and relay invariance. 
+%    \item We propose the design and implementation of the AutoSynch framework,
+%        which supports concurrent programs with automatic-signal mechanism.
+%    \item We show that the $signalAll$ call may introduce unnecessary context
+%        switches that decrease the performance. 
+%    \item We give experimental evidence indicating that AutoSynch's automatic-signal
+%        mechanism is almost as efficient as explicit-signal mechanism or even 
+%        more efficient with much simpler code.
+%\end{enumerate} 
 
 %In this project, we are developing multiple such features. 
 %Our second goal for SuperSynch is that the performance of the system
@@ -424,6 +486,11 @@ Our main contributions are as follows.
 %via transactional memories
 %\section{Design of AutoSynch} \label{sec:fw}
 
+Although this paper 
+focuses on Java, our techniques are also applicable to other programming 
+languages and models, such as pthread and C\# \cite{hwg03}.
+
+
 This paper is organized as follows. Section \ref{sec:bg} gives the background
 of montior. 
 Section \ref{sec:sigAll} explains why $signalAll$ is required for
@@ -431,17 +498,16 @@ explicit-signal monitor but not automatic-signal monitor. The concepts of
 AutoSynch are presented in Section \ref{sec:concept} and the practical 
 implementation details are discussed in Section  \ref{sec:imp}. The proposed 
 methods are then evaluated with experiments in Section \ref{sec:eval}.  
-Section \ref{sec:dis} and Section \ref{sec:conclu} give the discussions and the 
-concluding remarks.
+Section \ref{sec:conclu} give the concluding remarks.
 
 \section{Background: monitor} \label{sec:bg} 
 %\subsection{Monitor}
 Monitor is an abstract object or module containing shared data to be used safely
 by multiple member functions and threads in concurrent programming. Monitor can
 be defined by two characteristics, mutual exclusion and conditional 
-synchronization. Mutual exclusion guarantees that at most one thread can 
-execute any member function of a monitor at any time.  In general, threads need to acquire the lock of a monitor 
-to acquire the privilege for accessing the monitor. Conditional synchronization 
+synchronization. Mutual exclusion invariances that at most one thread can 
+execute any member function of a monitor at any time.  Threads  acquire the lock of the monitor 
+to acquire the privilege for accessing it. Conditional synchronization 
 maintains the executing order between threads. Threads may wait for some 
 condition to be met and release the monitor lock temporarily. After the 
 condition has been met, threads then re-acquire the lock and continue to 
@@ -452,10 +518,9 @@ synchronization.
     \item{\bf Explicit-signal monitor} In this type of monitor, condition
     variables, signal and await functions are used for synchronization. 
     Programmers need to associate assertions with condition variables manually.
-    This mechanism involves two threads. One thread checks if some
-    assertion is met or not, and then explicitly waits on some condition variable 
-    if the assertion is not met. When another thread detects that the state has 
-    changed and the assertion is met, it explicitly signals the 
+    This mechanism involves two threads. A thread  waits on some condition variable 
+    if its predicate is not true. When another thread detects that the state has 
+    changed and the predicate is true, it explicitly signals the 
     appropriate condition variable.
     \item{\bf Automatic-signal (implicit-signal) monitor} This kind of monitor 
     uses $waituntil$
@@ -469,14 +534,14 @@ synchronization.
     the system rather than of the programmers. 
 \end{description}
 
-Obviously, the explicit-signal is more complex than the automatic-signal monitor 
-for programmers. The explicit-signal requires that programmers
-have to write their conditional synchronization manually, which increases the 
-chance of writing incorrect code. It is generally believed that that 
-explicit-signal 
-monitor is much faster than the automatic-signal monitor. In this paper, we 
-argue that the automatic-signal monitor could be as efficient as the
-explicit-signal or ever faster in some cases. 
+%Obviously, the explicit-signal is more complex than the automatic-signal monitor 
+%for programmers. The explicit-signal requires that programmers
+%have to write their conditional synchronization manually, which increases the 
+%chance of writing incorrect code. It is generally believed that that 
+%explicit-signal 
+%monitor is much faster than the automatic-signal monitor. In this paper, we 
+%argue that the automatic-signal monitor could be as efficient as the
+%explicit-signal or ever faster in some cases. 
 
 \section{Why is signalAll required in the explicit-signal mechanism?} 
 \label{sec:sigAll}
@@ -574,7 +639,7 @@ reduced.
 \section{AutoSynch concepts} \label{sec:concept}
 
 
-\subsection{Predicate evaluation}
+\subsection{Predicate evaluation} \label{sec:globalization}
 %In order to allow any thread that can access a monitor to evaluation all
 %predicates of waiting threads, an operation called globalization is defined as 
 %replacing all local variables of
@@ -674,58 +739,70 @@ all the local variables with their values immediately before invoking the
 statement. The predicate can be evaluated in all other threads during the
 $waituntil$ period. 
 
-\subsection{Relay guarantee}
+\subsection{Relay invariance} \label{sec:relay}
 As mentioned in Section ~\ref{sec:sigAll}, $signalAll$ calls are unavoidable in
 the explicit-signal mechanism sometimes; however, $signalAll$ calls may decrease
 performance by introducing redundant context switches. 
 In
-AutoSynch, $signalAll$ calls are avoided by providing the following guarantee. 
+AutoSynch, $signalAll$ calls are avoided by providing the following invariance. 
 %should be reduced. Before a waiting thread is signaled, the 
 %predicate of the waiting thread is ensured to be true. In addition, at most 
 %one waiting thread is signaled at any time. The reason is that threads are 
 %forbidden to access a monitor simultaneously. Signaling multiple threads does 
 %not increase parallelism but redundant context switches. 
 
-\begin{definition}[Relay guarantee]
-    Some thread waiting for a condition has met is eventually signaled; i.e., 
-    suppose $W_T$ represents the set of waiting threads that their conditions 
-    has become true, then
-    \[
-        W_T \ne \phi \Rightarrow \exists T \in W_T\ s.t.\ \Diamond T\ 
-        is\ signaled.  
-    \]
+\begin{definition}[Active thread] 
+    A thread is active for a monitor if it has 
+\end{definition}
+
+\begin{definition}[Relay invariance]
+    If there is a thread waiting a predicate that is true, then there is at
+    least one active thread. 
+    %\[
+    %    W_T \ne \phi \Rightarrow \exists T \in W_T\ s.t.\ \Diamond T\ 
+    %    is\ signaled.  
+    %\]
     
 \end{definition}
 \begin{proposition} \label{pro:one}
-    Relay guarantee can be provided by the following procedure. When a thread 
-    exits a monitor or goes into waiting state, it checks whether or not there 
-    is some thread waiting on a condition that has been met. If
-    at least one such waiting thread exists, the thread is signaled.
+    Relay invariance can be provided by the following procedure. When a thread 
+    exits a monitor or goes into waiting state, it checks whether there 
+    is some thread waiting on a condition that has been true. If
+    at least one such waiting thread exists, it signals the thread.
 \end{proposition}
 \begin{proof}
-    Suppose not. All threads waiting for conditions have met are blocked and 
-    no other thread can signal them. Consider a condition $P$ that has been 
-    true. Since some thread goes into waiting state with $P$, $P$ is false
-    initially. Some other threads must enter the monitor and change the status 
-    of the monitor to make $P$ true. Suppose thread $T$ is the last thread 
-    active in the monitor. According to the procedure, $T$ must signal one 
-    thread waiting on $P$ or another thread waiting on another predicate that
-    has been true before leaving or going into waiting state. It contradicts
-    the assumption that all threads waiting for conditions have met are
-    blocked and no other thread can signal them.   
+    Suppose $T$ is a thread waiting on the predicate $P$ that is true. If $T$ 
+    is active, then the relay invariance holds. Otherwise, since $T$ is waiting 
+    on $P$, $P$ must be false before $T$ went to waiting state. There must 
+    exist another active thread $R$ after $T$ such that $R$ changed the state 
+    of the monitor and made  $P$ true. According the procedure, $R$ must signal
+    $T$ or another thread waiting a condition that is true before leaving the
+    monitor or going into waiting state. The thread signaled by $R$ then become 
+    active. The relay invariance holds. 
+ 
+    %All threads waiting for conditions have met are blocked and 
+    %no other thread can signal them. Consider a condition $P$ that has been 
+    %true. Since some thread goes into waiting state with $P$, $P$ is false
+    %initially. Some other threads must enter the monitor and change the status 
+    %of the monitor to make $P$ true. Suppose thread $T$ is the last thread 
+    %active in the monitor. According to the procedure, $T$ must signal one 
+    %thread waiting on $P$ or another thread waiting on another predicate that
+    %has been true before leaving or going into waiting state. It contradicts
+    %the assumption that all threads waiting for conditions have met are
+    %blocked and no other thread can signal them.   
  \end{proof}
 
-The concept behind relay guarantee is that, the privilege of a monitor control
-is transmitted from one thread to another thread waiting for a condition that 
-has been met.
-Relay guarantee never introduces deadlock; consequently, {\it signalAll} calls
-are avoidable by providing relay guarantee. 
+The concept behind relay invariance is that, the privilege of a monitor control
+is transmitted from one thread to another thread waiting a condition that is
+true.
+Relay invariance never introduces deadlock; consequently, {\it signalAll} calls
+are avoidable by providing relay invariance. 
 Proposition \ref{pro:one} lays the theoretical foundation that the relay
-guarantee can be provided in our automatic-signaling mechanism. 
-The remaining problem is how to find a thread waiting for a condition that has 
-been met efficiently. 
+invariance can be provided in our automatic-signaling mechanism. 
+The remaining problem is how to find a thread waiting for a condition that is 
+true efficiently. 
 
-\subsection{Predicate tag} 
+\subsection{Predicate tag} \label{sec:tag}
 In order to find an appropriate thread waiting for a predicate that has been
 true efficiently, every predicate acquires different tags according to its 
 semantics. Those tags depict the properties of a predicate; therefore, tags
@@ -759,11 +836,11 @@ example, the variable $a$ and $b$ in $x = (y - b) / a$ can be moved as
 $ax + b = y$. These two types of predicates can represent a wide range of
 conditions in synchronization problems. 
 
-The $globalization$ operation can also be applied to any general and local 
-expression. Note that, applying the $globalization$ to a local expression
+The {\em globalization} operation can also be applied to any general and local 
+expression. Note that, applying the {\em globalization} to a local expression
 derives a constant value. For example, consider a local expression 
 $E = a \times b + c$, $a = 2$, $b = 4$, and $c = 8$ at time $t$, $E$ is $16$
-after applying the $globalization$ at time $t$. 
+after applying the {\em globalization} at time $t$. 
 
 In general, tags are assigned to predicates according to their types. In 
 AutoSynch, there are three types of tags, $Equivalence$, $Threshold$, and 
@@ -855,7 +932,7 @@ predicates with $None$ tags.
 \paragraph{Equivalence tag signaling}
 Observes that, an equivalence predicate becomes true only when its general
 expression equals the specific value of its local expression after applying
-$globalization$. For distinct equivalence tags related to a same general 
+{\em globalization}. For distinct equivalence tags related to a same general 
 expression, at most one tag can be true at a time because the value of its
 local expression is deterministic and unique at any time. By 
 observing the value of the its local expression, the appropriate tag can be 
@@ -972,7 +1049,7 @@ parts:
   \item Monitor-waituntil statement: including declarations of additional
     variables and signal/await statements to implement the waituntil.
   \item Monitor-function exit: executed before the return statement of 
-    each member function, involving code to guarantee mutual exclusion and 
+    each member function, involving code to invariance mutual exclusion and 
     synchronization of monitor. 
 \end{enumerate}
 \begin{figure}[ht!]
@@ -1036,7 +1113,7 @@ the predicate derives a new predicate. Then we query the condition manager
 whether or not the derived predicate has been added. If not, we add the 
 predicate to the condition manager. Then the corresponding condition variable
 can be obtained by calling $getCondition$ function of condition manager. The
-$signalOneAvailable$ function provides relay guarantee and signal an
+$signalOneAvailable$ function provides relay invariance and signal an
 appropriate thread. Then the thread goes into the waiting state until the
 predicate becomes true. After exiting waiting state, if the predicate is
 general predicate and the corresponding condition has no other waiting thread,
@@ -1428,6 +1505,20 @@ AutoSynch, the performance is slower than the explicit-signal mechanism between
   \label{fig:rw_eval}
 \end{figure}
 
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/sb.eps}
+  \caption{The results of sleeping barber problem}
+  \label{fig:sb_eval}
+\end{figure}
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/dp.eps}
+  \caption{The results of dining philosophers problem}
+  \label{fig:sb_eval}
+\end{figure}
+
 %\subsection{Performance under different workload}
 %Conduct experiment for readers/writers problem. There is a delay between each
 %read/write operation. As the length of delay increase, the workload of the
@@ -1440,37 +1531,7 @@ AutoSynch, the performance is slower than the explicit-signal mechanism between
   \label{fig:srw_eval}
 \end{figure}
 
-\section{Discussions} \label{sec:dis}
-Although the experiment results shows that AutoSynch is 2.33 times slower than 
-the explicit-signal mechanism in the worst case, it is still necessary for the 
-following reasons: 
-\begin{enumerate}
-%    \item Potentially gaining performance through optimizing system based on
-%        architecture information and avoiding $signalAll$ calls. A $signalAll$ 
-%        call introduces unnecessary context switches and decreases performance. 
-%        We show that
-%        automatic signal monitor can be implemented with almost same efficiency
-%        as explicit signals. In fact, in our implementation automatic monitor
-%        are sometimes faster than explicit signals. 
-    \item Less work for programmers, which implies fewer bugs in programs.
-        In explicit-signal monitor, it is the responsibility of programmers to 
-        explicitly invoke a $signal$ call on some condition variable for
-        conditional synchronization. Using the wrong notification or signaling
-        a wrong condition variable are frequent source of bugs. 
-    \item Violating separation of concerns. In explicit-signal monitor, the
-        conditional synchronization is composed of two parts. A thread checks
-        whether or not a condition has met and explicitly waits on a
-        condition variable. Another thread detects the condition has met and
-        explicit signal the condition variable. The intricate relation between
-        threads for conditional synchronization breaks the modularity and 
-        encapsulation of programming.  
-    \item Mitigating the debugging of explicit-signal programs. It is easier to
-        reason a automatic-signal code than a explicit-signal code. A correct
-        automatic-signal implementation is helpful in debugging with a 
-        explicit-signal implementation. Therefore, $AutoSynch$ can provide  
-        rapid prototyping for speedup in developing process and accelerating 
-        products time to market.
-\end{enumerate}
+
 
 %fair? FIFO not discussed. performance 
 
@@ -1481,8 +1542,8 @@ following reasons:
 \section{Conclusion} \label{sec:conclu}
 In this paper, we propose AutoSynch framework that supports 
 automatic-signal mechanism with $AtuSynch$ class and $waituntil$ statement.
-AutoSynch uses the $globalization$ operation to enable the general predicate 
-evaluation in every thread. Next, it provides $relay\ guarantee$ that some
+AutoSynch uses the {\em globalization} operation to enable the general predicate 
+evaluation in every thread. Next, it provides {\em relay invariance} that some
 thread waiting for a condition has met is always signaled to avoid $signalAll$
 calls. AutoSynch also uses predicate tag to accelerate the process in deciding
 which thread should be signaled. 

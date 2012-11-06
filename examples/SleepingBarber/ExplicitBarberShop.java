@@ -9,8 +9,11 @@ public class ExplicitBarberShop extends BarberShop {
     Condition custReady = mutex.newCondition();
     Condition barberReady = mutex.newCondition();
 
+    int numAvailableBarber;
+
     public ExplicitBarberShop(int maxFreeSeat) {
         super(maxFreeSeat);
+        numAvailableBarber = 0;
     }
     public void cutHair() {
         mutex.lock();
@@ -19,10 +22,12 @@ public class ExplicitBarberShop extends BarberShop {
                 Common.println("baber wait for consumer");
                 custReady.await(); 
             }
-            numFreeSeat++;
 
         } catch(InterruptedException e) {
         }
+
+        numFreeSeat++;
+        numAvailableBarber++;
         barberReady.signal();
         Common.println("Barber " + Thread.currentThread() + " cut hair");
         mutex.unlock();
@@ -35,11 +40,15 @@ public class ExplicitBarberShop extends BarberShop {
             custReady.signal(); 
             try {
                 Common.println("consumer wait for a barber");
-                barberReady.await();
+
+                while (numAvailableBarber == 0) {
+                    barberReady.await();
+                }
             } catch(InterruptedException e) {
             }
             ret = true;
         } 
+        numAvailableBarber--;
         Common.println("Consumer " + Thread.currentThread() + "been cut");
         mutex.unlock();
         return ret;
