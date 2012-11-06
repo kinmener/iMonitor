@@ -1,0 +1,47 @@
+{
+  "exp_info": {
+    "name": "SleepingBarber",
+    "main_class": "examples.SleepingBarber.TestSleepingBarber",
+    "main_dir": "../build",
+    "result_base_dir": "results",
+    "num_times": 1,
+    "params_order": [
+      "num_seat", "monitor_type", "num_barber", "num_consumers", 
+      "num_tasks"
+    ],
+    "output_order": [
+      "runtime"
+    ],
+    "group_by": "num_consumers",
+    "stat_by": "monitor_type"
+  },
+  "fig_setup": {
+    "fig_dir": "../doc/tex/fig",
+    "fig_data": [
+        {
+            "source": "runtime",
+            "name": "SleepingBarber"
+        }
+    ]
+  },
+  "exp_params": {
+    "num_seat": [
+        16
+    ],
+    "num_tasks": [ 
+      512
+    ],
+    "monitor_type": [
+      "explicit",
+      "set",
+      "tag",
+      "naive"
+    ],
+    "num_barber": [
+        8
+    ],
+    "num_consumers": [
+      2, 4, 8, 16, 32, 64, 128
+    ]
+  }
+}
