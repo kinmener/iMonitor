@@ -29,10 +29,10 @@
       12800
     ],
     "max_read_time": [
-      1 
+      0 
     ],
     "max_write_time": [
-      2
+      0
     ],
     "monitor_type": [
       "explicit",
