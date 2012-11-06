@@ -110,16 +110,22 @@ class RandomObjectConsumer extends TestThread {
     public void run() {
 
         while (numActions > 0) {
+            if (delayT != 0) {
+                delay(delayT);
+            }
+            //if (boundedBuffer.size() > numActions) {
+            //    n += numActions/2;
+            //    n += Math.random() * (numActions / 2); 
+            //} else {
+            //    n += boundedBuffer.size()/2;
+            //    n += Math.random() * (boundedBuffer.size() / 2); 
+            //}
+
             int n = 1;
-           if (delayT != 0) {
-               delay(delayT);
-           }
             if (boundedBuffer.size() > numActions) {
-                n += numActions/2;
-                n += Math.random() * (numActions / 2); 
+                n += numActions * Math.random();    
             } else {
-                n += boundedBuffer.size()/2;
-                n += Math.random() * (boundedBuffer.size() / 2); 
+                n += boundedBuffer.size() * Math.random();
             }
 
             numActions -= n;
