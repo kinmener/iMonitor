@@ -26,13 +26,13 @@
   },
   "exp_params": {
     "total_tasks": [ 
-      128000
+      12800
     ],
     "max_read_time": [
-      0 
+      1 
     ],
     "max_write_time": [
-      0
+      2
     ],
     "monitor_type": [
       "explicit",
