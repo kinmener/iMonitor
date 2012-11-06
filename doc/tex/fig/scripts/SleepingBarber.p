@@ -1,5 +1,5 @@
 set term post eps
-set output 'rpc.eps'
+set output 'sb.eps'
 set size 0.5, 0.5
 set logscale x 2                         # log scale y axes 
 unset label                            # remove any previous labels
@@ -9,7 +9,7 @@ set xlabel "# consumers" font "Times-New-Roman, 16"
 set ylabel "runtime(milliseconds)" font "Times-New-Roman, 16"
 set key left top
 set xr [2:128]
-plot  "RandomBoundedBuffer/explicit.dat" using 1:2 title 'explicit' with linespoints, \
-      "RandomBoundedBuffer/naive.dat" using 1:2 title 'baseline' with linespoints, \
-      "RandomBoundedBuffer/set.dat" using 1:2 title 'AutoSynch-T' with linespoints, \
-      "RandomBoundedBuffer/tag.dat" using 1:2 title 'AutoSynch' with linespoints
+plot  "SleepingBarber/explicit.dat" using 1:2 title 'explicit' with linespoints, \
+      "SleepingBarber/naive.dat" using 1:2 title 'baseline' with linespoints, \
+      "SleepingBarber/set.dat" using 1:2 title 'AutoSynch-T' with linespoints, \
+      "SleepingBarber/tag.dat" using 1:2 title 'AutoSynch' with linespoints
