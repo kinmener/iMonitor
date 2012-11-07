@@ -799,7 +799,7 @@ true. For example, in Fig.~\ref{fig:sigAll_exp}, a consumer $C$ tries to take
 $32$ items; however, only $24$ items are in the buffer at this moment. Then $C$
 waits predicate $P:  (count \ge 24)$. A producer, $D$, becomes active after 
 $C$; $D$ puts $16$ items into the buffer and then leaves the monitor. Before 
-leaving, $D$ finds that $P$ is true and then signals $C$. Therefore, $C
+leaving, $D$ finds  that $P$ is true and then signals $C$. Therefore, $C
 $ becomes active again and takes $32$ items of the buffer.
 {\it signalAll} calls are avoidable since relay invariance holds. 
 Proposition \ref{pro:one} lays the theoretical foundation that the relay
