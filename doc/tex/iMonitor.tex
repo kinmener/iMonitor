@@ -261,7 +261,7 @@ much simpler than the explicit-signal monitor.
             while (count == 0) {
               notEmpty.await();
             }
-            int x = items[takePtr];
+            int x = items[takePtr++];
             if (takePtr == items.length) {
               takePtr = 0;
             }
@@ -797,24 +797,27 @@ The concept behind relay invariance is that, the privilege of a monitor control
 is transmitted from one thread to another thread waiting a condition that is
 true. For example, in Fig.~\ref{fig:sigAll_exp}, a consumer $C$ tries to take
 $32$ items; however, only $24$ items are in the buffer at this moment. Then $C$
-waits predicate $P:  (count \ge 24)$. A producer, $D$, becomes active after 
+waits predicate $P:  (count \ge 24)$ to be true. A producer, $D$, becomes active after 
 $C$; $D$ puts $16$ items into the buffer and then leaves the monitor. Before 
-leaving, $D$ finds that $P$ is true and then signals $C$. Therefore, $C
-$ becomes active again and takes $32$ items of the buffer.
-{\it signalAll} calls are avoidable since relay invariance holds. 
+leaving, $D$ finds that $P$ is true and then signals $C$. Therefore, $C$ 
+becomes active again and takes $32$ items of the buffer.
 Proposition \ref{pro:one} lays the theoretical foundation that the relay
 invariance can be provided in our automatic-signaling mechanism. 
+Then $signalAll$ calls are avoidable in AutoSynch since relay invariance holds. 
 The remaining problem is how to find a thread waiting for a condition that is 
 true efficiently. 
 
 \subsection{Predicate tag} \label{sec:tag}
 In order to find an appropriate thread waiting for a predicate that has been
-true efficiently, every predicate acquires different tags according to its 
-semantics. Those tags depict the properties of a predicate; therefore, tags
+true efficiently, we analyze every waiting condition and assign different tags 
+to every predicate according to its semantics. Those tags depict the properties 
+of a predicate; therefore, tags
 help us prune predicates that are unable to be true through examining the state 
 of a monitor. The idea behind predicate tag is that, local variables cannot be
 changed during the $waituntil$ period; thus the values of local variables are
-used as keys when we do evaluation. Before going through the details, two particular types of 
+used as keys when we do evaluation. 
+Before going through the details, two 
+particular types of 
 predicates are defined as follows according to their semantics. 
 \begin{definition}[Local and general expression]
     Consider an expression $E(\vec{x}): X \rightarrow \mathbb{D}$, where
@@ -849,9 +852,13 @@ derives a constant value. For example, consider a local expression
 $E = a \times b + c$, $a = 2$, $b = 4$, and $c = 8$ at time $t$, $E$ is $16$
 after applying the {\em globalization} at time $t$. 
 
-In general, tags are assigned to predicates according to their types. In 
-AutoSynch, there are three types of tags, $Equivalence$, $Threshold$, and 
-$None$. The formal definition of the tag is as follows. 
+In AutoSynch, there are three types of tags, $Equivalence$, $Threshold$, and 
+$None$. In general, tags are assigned to predicates according to their types.
+If a predicate is neither equivalence nor threshold, it acquires the $None$
+tags. Every $Equivalence$ or $Threshold$ tag represents a equivalence predicate 
+or threshold predicate respectively. For example, the predicate $x + 8 > 11$ is
+represented by the tag $(Threshold,\ x + 8,\ 11,\ >)$. The formal definition of
+tag is as follows. 
 \begin{definition}
    A tag is a four-tuple $(M,\ expr,\ key,\ op)$, where  
    \begin{itemize}
@@ -865,11 +872,9 @@ $None$. The formal definition of the tag is as follows.
          $op = \perp$.
    \end{itemize}
 \end{definition}
-Every $Equivalence$ or $Threshold$ tag represents a equivalence predicate or 
-threshold predicate respectively. For example, the tag 
-$(Threshold,\ x + 8,\ 11,\ >)$ represents the predicate $x + 8 > 11$. 
-We say a tag is true if the predicate represented by the tag is true; 
-otherwise, we say the tag is false. 
+Note that, we say a tag is true if the predicate representing the tag is 
+true; otherwise, we say the tag is false. 
+ 
 \subsubsection{Predicate tagging}
 Tags are given to every predicate by the algorithm shown in
 Fig.~\ref{fig:tagging}. A tag is assigned to every conjunction. The tags of 
@@ -882,11 +887,11 @@ For example, consider an equivalence
 predicate $x = 8$ and a threshold predicate $x > 3$. $x = 8$ is true only when 
 the value of $x$ is $8$. On the contrary, $x > 3$ is true for every value of 
 $x$ is greater than $3$. Therefore, the $Equivalence$ tags can help us to prune
-predicates that are unable to be true more efficiently than other kinds of
+predicates that cannot be true more efficiently than other kinds of
 tags. Thus, we say $Equivalence$ predicates are more dominate than other
 predicates in pruning predicates.  
 If a conjunction does not 
-include any equivalence predicate, then we check whether or not it 
+include any equivalence predicate, then we check whether it 
 includes any threshold predicate. If yes, then a $Threshold$ tag is assigned 
 to the conjunction; otherwise, the conjunction has a $None$ tag. 
 
@@ -1117,7 +1122,7 @@ In the waituntil statement, the predicate expression is checked initially. If
 the expression is true, then the thread can continue. Otherwise, the type of
 predicate is checked. If the predicate is general, applying globalization to 
 the predicate derives a new predicate. Then we query the condition manager 
-whether or not the derived predicate has been added. If not, we add the 
+whether the derived predicate has been added. If not, we add the 
 predicate to the condition manager. Then the corresponding condition variable
 can be obtained by calling $getCondition$ function of condition manager. The
 $signalOneAvailable$ function provides relay invariance and signal an

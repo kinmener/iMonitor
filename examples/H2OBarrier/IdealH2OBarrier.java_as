@@ -1,0 +1,27 @@
+public class IdealH2OBarrier extends H2OBarrier {
+
+    public void OReady() {
+        wO++;
+        waituntil((aO > 0) || (wH >= 2));
+        if (aO == 0) {
+            wH -= 2;
+            aH += 2;
+            wO -= 1;
+        } else {
+            aO -= 1;
+        }
+    } 
+
+    public void HReady() {
+        wH++;
+        waituntil((aH > 0) || (wO >= 1 && wH >= 2)); 
+        if (aH == 0) {
+            wH -= 2;
+            aH += 1;
+            wO -= 1;
+            aO += 1;
+        } else {
+            aH -= 1;
+        }
+    }
+}
