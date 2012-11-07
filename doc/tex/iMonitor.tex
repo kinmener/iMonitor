@@ -742,16 +742,17 @@ $waituntil$ period.
 \subsection{Relay invariance} \label{sec:relay}
 As mentioned in Section ~\ref{sec:sigAll}, $signalAll$ calls are unavoidable
 sometimes in the explicit-signal mechanism. In AutoSynch, $signalAll$ calls are 
-avoided by providing the following invariance. 
+avoided by providing the {\em relay invariance}. 
 %should be reduced. Before a waiting thread is signaled, the 
 %predicate of the waiting thread is ensured to be true. In addition, at most 
 %one waiting thread is signaled at any time. The reason is that threads are 
 %forbidden to access a monitor simultaneously. Signaling multiple threads does 
 %not increase parallelism but redundant context switches. 
 
-\begin{definition}[Active thread] 
-    A thread is active for a monitor if it is trying to access the monitor or
-    has accessed the monitor but not been in waiting state. 
+\begin{definition}[Active and inactive thread] 
+    Consider a thread tries to access a monitor. If it is waiting in a
+    $waituntil$ statement and has not been signaled, then it is an inactive 
+    thread for the monitor. Otherwise, it is an active thread. 
 \end{definition}
 
 \begin{definition}[Relay invariance]
@@ -762,7 +763,7 @@ avoided by providing the following invariance.
     \[
         W_T \ne \phi \Rightarrow A_T \ne \phi 
     \]
-    is always held. 
+    holds at any time. 
 \end{definition}
 \begin{proposition} \label{pro:one}
     Relay signaling rule: when a thread exits a monitor or goes into waiting 
@@ -771,14 +772,14 @@ avoided by providing the following invariance.
     thread. Relay invariance can be provided by this rule. 
 \end{proposition}
 \begin{proof}
-    Suppose $T$ is a thread waiting on the predicate $P$ that is true. If $T$ 
-    is active, then the relay invariance holds. Otherwise, since $T$ is waiting 
+    Suppose $T$ is a thread waiting on the predicate $P$ that is true. Since 
+    $T$ is waiting 
     on $P$, $P$ must be false before $T$ went to waiting state. There must 
     exist another active thread $R$ after $T$ such that $R$ changed the state 
-    of the monitor and made  $P$ true. According the procedure, $R$ must signal
+    of the monitor and made  $P$ true. According to the rule, $R$ must signal
     $T$ or another thread waiting a condition that is true before leaving the
-    monitor or going into waiting state. The thread signaled by $R$ then become 
-    active. The relay invariance holds. 
+    monitor or going into waiting state. The thread signaled by $R$ then
+    becomes active. The relay invariance holds. 
  
     %All threads waiting for conditions have met are blocked and 
     %no other thread can signal them. Consider a condition $P$ that has been 
@@ -796,9 +797,10 @@ The concept behind relay invariance is that, the privilege of a monitor control
 is transmitted from one thread to another thread waiting a condition that is
 true. For example, in Fig.~\ref{fig:sigAll_exp}, a consumer $C$ tries to take
 $32$ items; however, only $24$ items are in the buffer at this moment. Then $C$
-goes into waiting state. A producer, $D$, becomes active after $C$; $D$ puts
-$24$ items to the buffer and then leave the monitor. Before leaving, $D$
-signals $C$ since the number of items are $48$ now. 
+waits predicate $P:  (count \ge 24)$. A producer, $D$, becomes active after 
+$C$; $D$ puts $16$ items into the buffer and then leaves the monitor. Before 
+leaving, $D$ finds that $P$ is true and then signals $C$. Therefore, $C
+$ becomes active again and takes $32$ items of the buffer.
 {\it signalAll} calls are avoidable since relay invariance holds. 
 Proposition \ref{pro:one} lays the theoretical foundation that the relay
 invariance can be provided in our automatic-signaling mechanism. 
