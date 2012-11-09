@@ -140,18 +140,19 @@ parallel
 %our contribution
 
 
-The multicore hardware is now ubiquitous. Even the cell phones have
+Multicore hardware is now ubiquitous. Even cell phones have
 multicore processors. Programming these multicore processors is
 still a challenging task due to
 bugs resulting from concurrency and synchronization.
 Although there is widespread acknowledgement of difficulties 
-in programming these systems, it is hard to believe that by and large the most 
+in programming these systems, it is surprising that by and large the most 
 prevalent methods of dealing with synchronization are based on ideas that were 
 developed in early 70's \cite{dijk68, hoa74, bh75a}. For 
 example, the most widely used threads package in C++ \cite{stro97}, 
 pthreads \cite{bute97}, and the most widely used package in Java \cite{gjs00}, 
 java.util.concurrent \cite{lea05}, are based
-on the notion of monitors \cite{hoa74, bh75a}(or semaphores \cite{dijk68}). 
+on the notion of monitors \cite{hoa74, bh75a}(or semaphores 
+\cite{dijk65, dijk68}). 
 %developed in 60's and 70's.
 In this paper, we propose a new method called {\em AutoSynch} 
 that allows gains in productivity of the programmer as well as gain in
@@ -207,24 +208,27 @@ which thread to signal by analyzing the predicates and the state of the object.
 %indicating a $AutoSynch$ class. 
 
 Fig.~\ref{fig:bb_exp} shows the difference between 
-the Java and the AutoSynch implementation for the 
-bounded-buffer problem (also known as the producer-consumer problem). 
+the Java and the AutoSynch implementation for the variant bounded-buffer
+problem (also known as the producer-consumer problem) \cite{dijk65, dijk71}. 
 In this problem, two kinds of threads, producers and consumers, try to 
-access  the shared resources. Producers put items 
-into the buffer, while consumers take items out of the buffer. There are two requirements for synchronization.
-First, every 
-operation on a shared variable, such as $items$, should be done under mutual exclusion. Second, we need {\em conditional synchronization};
-a producer must wait  
-when the buffer is full, and a consumer must wait when the 
-buffer is empty. The explicit-signal bounded buffer is written in Java. A 
-lock variable and two associated condition variables are used to maintain mutual exclusion 
-and conditional synchronization. A thread needs to acquire the lock before entering member
+access  the shared resources. Producers put items into the buffer, while 
+consumers take items out of the buffer. Both $put$ and $take$
+function have a parameter, $num$, indicating the number of items is put or 
+taken. There are two requirements for synchronization.
+First, every operation on a shared variable, such as $items$, should be done 
+under mutual exclusion. Second, we need {\em conditional synchronization};
+a producer must wait when the buffer has no sufficient space, and a consumer 
+must wait when the buffer has no sufficient items. The explicit-signal 
+bounded-buffer is written in Java. A lock variable and two associated condition 
+variables are used to maintain mutual exclusion and conditional 
+synchronization. A thread needs to acquire the lock before entering member
 functions. In addition, programmers need to explicitly associate conditional 
-predicates with condition variables and call signal or await function manually.
-The automatic-signal bounded buffer is written in our AutoSynch framework.
+predicates with condition variables and call signal (signalAll) or await 
+function manually.
+The automatic-signal bounded-buffer is written in our AutoSynch framework.
 We use $AutoSynch$ modifier to indicate that the class is a monitor as in line 
-1. For conditional synchronization,  we use $waituntil$ as in line 9. There are no
-{\em signal} or {\em signalAll} calls in the AutoSynch program.
+1. For conditional synchronization,  we use $waituntil$ as in line 9. There are 
+no {\em signal} or {\em signalAll} calls in the AutoSynch program.
 As can be expected, the automatic-signal monitor is
 much simpler than the explicit-signal monitor. 
 
@@ -237,38 +241,43 @@ much simpler than the explicit-signal monitor.
           Object[] items;  
           int putPtr, takePtr, count;
           Lock mutex = new ReentrantLock();
-          Condition notFull = mutex.newCondition();
-          Condition notEmpty = mutex.newCondition();
+          Condition insufficientSpace = mutex.newCondition();
+          Condition insufficientItem = mutex.newCondition();
           public BoundedBuffer(int n) {
             items = new Object[n];
             putPtr = takePtr = count = 0;
           }
-          public void put(Object x) {
+          public void put(int num) {
             mutex.lock();
-            while (count == items.length) {
-              notFull.await();
+            while (num + count > items.length) {
+              insufficientSpace.await();
             }
-            items[putPtr++] = x;
-            if (putPtr == items.length) {
-              putPtr = 0;
+            for (int i = 0; i < num; ++i) {
+              items[putPtr++] = new Object();
+              if (putPtr == items.length) {
+                putPtr = 0;
+              }
             }
-            ++count;
-            notEmpty.signal();
+            count += num;
+            insufficientItem.signalAll();
             mutex.unlock();
           }
-          public Object take() {
+          public Object[] take(int num) {
             mutex.lock();
-            while (count == 0) {
-              notEmpty.await();
+            while (count < num) {
+              insufficientItem.await();
             }
-            int x = items[takePtr++];
-            if (takePtr == items.length) {
-              takePtr = 0;
+            Object[] ret = new Object[n];
+            for (int i = 0; i < num; ++i) {
+              ret[i] = items[takePtr++];
+              if (takePtr == items.length) {
+                takePtr = 0;
+              }
             }
-            --count;
-            notFull.signal();
+            count -= num;
+            insufficientSpace.signalAll();
             mutex.unlock();
-            return x;
+            return ret;
           }
         }
     \end{Verbatim}
@@ -282,29 +291,113 @@ much simpler than the explicit-signal monitor.
             items = new Object[n];
             putPtr = takePtr = count = 0;
           }
-          public void put(Object x) { 
-            waituntil(count < items.length); 
-            items[putPtr++] = x; 
-            if (putPtr == items.length) { 
-              putPtr = 0; 
-            } 
-            ++count; 
-          } 
-          public Object take() { 
-            waituntil(count > 0); 
-            Object x = items[takePtr++]; 
-            if (takePtr == items.length) { 
-              takePtr = 0; 
+          public void put(int num) { 
+            waituntil(count + num <= items.length); 
+            for (int i = 0; i < num; ++i) {
+              items[putPtr++] = new Object(); 
+              if (putPtr == items.length) { 
+                putPtr = 0; 
+              } 
             }
-            --count;
-            return x;
+            count += num; 
+          } 
+          public Object[] take(int num) { 
+            waituntil(count >= num);
+            Object[] ret = new Object[num];
+            for (int i = 0; i < n; ++i) {
+              ret[i] = items[takePtr++]; 
+              if (takePtr == items.length) { 
+                takePtr = 0; 
+              }
+            }
+            count -= num;
+            return ret;
           }
         }
     \end{Verbatim}
 \end{multicols}
-  \caption{Bounded-buffer example}
-  \label{fig:bb_exp}
+    \caption{Bounded-buffer* example}
+    \label{fig:bb_exp}
 \end{figure*}
+
+
+%\begin{figure*}[ht!]
+%\begin{multicols}{2}
+    %\begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
+            %framesep=5mm,numbers=left,numbersep=2pt,
+            %label=\fbox{\small\emph{Explicit-Signal}}]
+        %class BoundedBuffer {
+          %Object[] items;  
+          %int putPtr, takePtr, count;
+          %Lock mutex = new ReentrantLock();
+          %Condition notFull = mutex.newCondition();
+          %Condition notEmpty = mutex.newCondition();
+          %public BoundedBuffer(int n) {
+            %items = new Object[n];
+            %putPtr = takePtr = count = 0;
+          %}
+          %public void put(Object x) {
+            %mutex.lock();
+            %while (count == items.length) {
+              %notFull.await();
+            %}
+            %items[putPtr++] = x;
+            %if (putPtr == items.length) {
+              %putPtr = 0;
+            %}
+            %++count;
+            %notEmpty.signal();
+            %mutex.unlock();
+          %}
+          %public Object take() {
+            %mutex.lock();
+            %while (count == 0) {
+              %notEmpty.await();
+            %}
+            %int x = items[takePtr++];
+            %if (takePtr == items.length) {
+              %takePtr = 0;
+            %}
+            %--count;
+            %notFull.signal();
+            %mutex.unlock();
+            %return x;
+          %}
+        %}
+    %\end{Verbatim}
+    %\begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,framesep=5mm,
+            %numbers=left,numbersep=2pt,
+            %label=\fbox{\small\emph{Automatic-Signal}}]
+        %AutoSynch class BoundedBuffer { 
+          %Object[] items; 
+          %int putPtr, takePtr, count; 
+          %public BoundedBuffer(int n) {
+            %items = new Object[n];
+            %putPtr = takePtr = count = 0;
+          %}
+          %public void put(Object x) { 
+            %waituntil(count < items.length); 
+            %items[putPtr++] = x; 
+            %if (putPtr == items.length) { 
+              %putPtr = 0; 
+            %} 
+            %++count; 
+          %} 
+          %public Object take() { 
+            %waituntil(count > 0); 
+            %Object x = items[takePtr++]; 
+            %if (takePtr == items.length) { 
+              %takePtr = 0; 
+            %}
+            %--count;
+            %return x;
+          %}
+        %}
+    %\end{Verbatim}
+%\end{multicols}
+  %\caption{Bounded-buffer example}
+  %\label{fig:bb_exp}
+%\end{figure*}
 
 \begin{figure}[ht!]
   \centering
@@ -546,22 +639,24 @@ synchronization.
 \section{Why is signalAll required in the explicit-signal mechanism?} 
 \label{sec:sigAll}
 The $signalAll$ call is essential in explicit-signal mechanism when programmers
-do not know which thread should be signaled. Fig.~\ref{fig:sigAll_exp}
-illustrates an example. This example is also a bounded-buffer problem but 
-different from Fig.~\ref{fig:bb_exp}. In this example, both $put$ and $take$
-function have a parameter, $num$, indicating how many items are put or taken. 
-Every producer and consumer can put and take a different number of items
-every time.  Furthermore, a producer must wait if there is no space to put
-$num$ items, while a consumer has to hold when the buffer has insufficient items.
-Note that, since the parameter $num$ may be different every time, every 
-consumer and producer may wait on a different condition to be met; programmers 
+do not know which thread should be signaled. In Fig.~\ref{fig:bb_exp}, a 
+producer must wait if there is no space to put $num$ items, while a consumer 
+has to hold when the buffer has insufficient items.
+Since producers and consumers can put and take different numbers of items
+every time, they may wait on different conditions to be met. Programmers 
 do not know which producer or consumer should be signaled at runtime. 
-Therefore, the $signalAll$ calls should be used instead of $signal$ calls in
+Therefore, the $signalAll$ call is used instead of $signal$ calls in
 line 23 and 39.
 Although programmers can avoid using $signalAll$ calls by writing
 complicated code that associates different conditions to different condition 
 variables; the complicated code makes the maintenance of the program
 unsustainable. 
+
+%Fig.~\ref{fig:bb_exp} illustrates an example. 
+%This example is also a bounded-buffer problem but 
+%different from Fig.~\ref{fig:bb_exp}. In this example, both $put$ and $take$
+%function have a parameter, $num$, indicating how many items are put or taken. 
+
 
 The $signalAll$ call is bad; it may decreases the performance because 
 it introduces redundant context switches, requiring a certain 
@@ -570,11 +665,11 @@ Furthermore, $signalAll$ calls cannot increase parallelism because threads
 are forbidden to access a monitor simultaneously. Although multiple threads are
 signaled at a time, only one thread is able to acquire the monitor. Other 
 threads may need to go back to waiting state since another thread may change 
-the status of the monitor. For example, in Fig.~\ref{fig:sigAll_exp}, the 
+the status of the monitor. For example, in Fig.~\ref{fig:bb_exp}, the 
 buffer has 64 items after a producer finishes a put call. The producer calls 
 $insufficientItem.signalAll()$ in line 23 before completing the call. 10  
 waiting consumers are signaled; each of them is waiting to take $48$ items.
-Suppose the consumer $C_1$ re-acquires the lock first and takes $48$ items. The
+Suppose the consumer $C$ re-acquires the lock first and takes $48$ items. The
 remaining items, $16$, are insufficient for the other threads; they
 make context switches, re-evaluate their predicates, and go back to waiting 
 state. Theses context switches are redundant since the 9 threads do not 
@@ -583,57 +678,6 @@ Therefore, if we avoid using the $signalAll$ call and only signal a thread that
 is most likely to make progress, the unnecessary context switches can be
 reduced.
 
-\begin{figure}[ht!]
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
-            framesep=5mm,numbers=left,numbersep=2pt,
-            label=\fbox{\small\emph{Explicit-Signal}}]
-        class BoundedBuffer {
-          Object[] items;  
-          int putPtr, takePtr, count;
-          Lock mutex = new ReentrantLock();
-          Condition insufficientSpace = mutex.newCondition();
-          Condition insufficientItem = mutex.newCondition();
-          public BoundedBuffer(int n) {
-            items = new Object[n];
-            putPtr = takePtr = count = 0;
-          }
-          public void put(int num) {
-            mutex.lock();
-            while (num + count > items.length) {
-              insufficientSpace.await();
-            }
-            for (int i = 0; i < num; ++i) {
-              items[putPtr++] = new Object();
-              if (putPtr == items.length) {
-                putPtr = 0;
-              }
-            }
-            count += num;
-            insufficientItem.signalAll();
-            mutex.unlock();
-          }
-          public Object[] take(int num) {
-            mutex.lock();
-            while (count < num) {
-              insufficientItem.await();
-            }
-            Object[] ret = new Object[n];
-            for (int i = 0; i < num; ++i) {
-              ret[i] = items[takePtr++];
-              if (takePtr == items.length) {
-                takePtr = 0;
-              }
-            }
-            count -= num;
-            insufficientSpace.signalAll();
-            mutex.unlock();
-            return ret;
-          }
-        }
-    \end{Verbatim}
-    \caption{Bounded-buffer* example}
-    \label{fig:sigAll_exp}
-\end{figure}
 
 
 \section{AutoSynch concepts} \label{sec:concept}
@@ -707,10 +751,10 @@ globalization as follows.
 \end{definition}
 
 The globalization can be applied to any general predicate; a shared 
-predicate is derived form the globalization. For example, consider a 
-general predicate $(x = v)$, where $x$ is a shared variable and $v$ is a local
-variable. Suppose at runtime $t$, the value of $v$ is $6$; i.e., $v_t=6$. We
-apply the globalization at $t$ and derive a shared predicate $(x = 6)$. 
+predicate is derived from the globalization. For example, in
+Fig.~\ref{fig:bb_exp}, the consumer $C$ wants to take $48$ items at this 
+moment. Applying the globalization to the general predicate $(count \ge num)$
+in line 19, we derive the shared predicate $(count \ge 48)$.
 
 The following proposition shows that the general predicate evaluation of
 $waituntil$ statement in all thread can be achieved through the globalization. 
@@ -750,36 +794,41 @@ avoided by providing the {\em relay invariance}.
 %not increase parallelism but redundant context switches. 
 
 \begin{definition}[Active and inactive thread] 
-    Consider a thread tries to access a monitor. If it is waiting in a
-    $waituntil$ statement and has not been signaled, then it is an inactive 
-    thread for the monitor. Otherwise, it is an active thread. 
+    Consider a thread that tries to access a monitor. If it is waiting in a
+    $waituntil$ statement and has not been signaled, then it is an {\em inactive} 
+    thread for the monitor. Otherwise, it is an {\em active} thread. 
 \end{definition}
 
 \begin{definition}[Relay invariance]
-    If there is a thread waiting a predicate that is true, then there is at
+    If there is a thread waiting for a predicate that is true, then there is at
     least one active thread; i.e., suppose $W_T$ is the set of waiting threads
-    that their conditions has been true, $A_T$ is the set of active threads,
+    whose conditions have become true, $A_T$ is the set of active threads,
     then
     \[
         W_T \ne \phi \Rightarrow A_T \ne \phi 
     \]
-    holds at any time. 
+    holds at all time. 
 \end{definition}
-\begin{proposition} \label{pro:one}
-    Relay signaling rule: when a thread exits a monitor or goes into waiting 
+
+AutoSynch uses the following rule for signaling.
+
+{\em Relay signaling rule}: When a thread exits a monitor or goes into waiting 
     state, it checks whether there is some thread waiting on a condition that 
-    has been true. If at least one such waiting thread exists, it signals the 
-    thread. Relay invariance can be provided by this rule. 
+    has been true. If at least one such waiting thread exists, it signals that 
+    thread.
+    
+\begin{proposition} \label{pro:one}
+     The Relay signaling rule guarantees Relay invariance. 
 \end{proposition}
 \begin{proof}
-    Suppose $T$ is a thread waiting on the predicate $P$ that is true. Since 
+    Suppose a thread $T$ is waiting on the predicate $P$ that is true. Since 
     $T$ is waiting 
     on $P$, $P$ must be false before $T$ went to waiting state. There must 
     exist another active thread $R$ after $T$ such that $R$ changed the state 
     of the monitor and made  $P$ true. According to the rule, $R$ must signal
-    $T$ or another thread waiting a condition that is true before leaving the
+    $T$ or another thread waiting for a condition that is true before leaving the
     monitor or going into waiting state. The thread signaled by $R$ then
-    becomes active. The relay invariance holds. 
+    becomes active. Therefore, the relay invariance holds. 
  
     %All threads waiting for conditions have met are blocked and 
     %no other thread can signal them. Consider a condition $P$ that has been 
@@ -793,42 +842,42 @@ avoided by providing the {\em relay invariance}.
     %blocked and no other thread can signal them.   
  \end{proof}
 
-The concept behind relay invariance is that, the privilege of a monitor control
-is transmitted from one thread to another thread waiting a condition that is
-true. For example, in Fig.~\ref{fig:sigAll_exp}, a consumer $C$ tries to take
-$32$ items; however, only $24$ items are in the buffer at this moment. Then $C$
-waits predicate $P:  (count \ge 24)$ to be true. A producer, $D$, becomes active after 
+The concept behind relay invariance is that, the privilege to enter the monitor
+is transmitted from one thread to another thread whose condition has become true. 
+For example, in Fig.~\ref{fig:bb_exp}, the consumer $C$ tries to take
+$32$ items; however, only $24$ items are in the buffer at this moment. Then, $C$
+waits for the predicate $P:  (count \ge 32)$ to be true. A producer, $D$, becomes 
+active after 
 $C$; $D$ puts $16$ items into the buffer and then leaves the monitor. Before 
 leaving, $D$ finds that $P$ is true and then signals $C$. Therefore, $C$ 
 becomes active again and takes $32$ items of the buffer.
-Proposition \ref{pro:one} lays the theoretical foundation that the relay
-invariance can be provided in our automatic-signaling mechanism. 
-Then $signalAll$ calls are avoidable in AutoSynch since relay invariance holds. 
-The remaining problem is how to find a thread waiting for a condition that is 
-true efficiently. 
+Proposition \ref{pro:one} shows that the relay
+invariance holds in our automatic-signaling mechanism. 
+Thus, $signalAll$ calls are avoidable in AutoSynch. 
+The remaining problem is how to efficiently find a thread waiting for a condition that is 
+true. 
 
 \subsection{Predicate tag} \label{sec:tag}
-In order to find an appropriate thread waiting for a predicate that has been
-true efficiently, we analyze every waiting condition and assign different tags 
-to every predicate according to its semantics. Those tags depict the properties 
-of a predicate; therefore, tags
-help us prune predicates that are unable to be true through examining the state 
-of a monitor. The idea behind predicate tag is that, local variables cannot be
+In order to efficiently find an appropriate thread waiting for a predicate that is
+true, we analyze every waiting condition and assign different tags 
+to every predicate according to its semantics. These  tags
+help us prune predicates that are not true by examining the state 
+of the monitor. The idea behind the predicate tag is that, local variables cannot be
 changed during the $waituntil$ period; thus the values of local variables are
 used as keys when we do evaluation. 
-Before going through the details, two 
-particular types of 
-predicates are defined as follows according to their semantics. 
+First, we define two types of 
+predicates according to their semantics. 
 \begin{definition}[Local and general expression]
     Consider an expression $E(\vec{x}): X \rightarrow \mathbb{D}$, where
     $\mathbb{D}$ represents one of the primitive data types in Java. If $X
-    \subseteq L$, $E$ is a local expression. Otherwise, if $X \not\subseteq L$,
+    \subseteq L$, then $E$ is a local expression. Otherwise, ($X \not\subseteq L$,)
     $E$ is a general expression.  
 \end{definition}
+We use $GE$ to denote a
+    general expression, and $LE$ to denote a local expression.
 
 \begin{definition}[Equivalence predicate]
-    A predicate $P: (GE = LE)$ is an equivalence predicate, where $GE$ is a
-    general expression, and $LE$ is a local expression.
+    A predicate $P: (GE = LE)$ is an equivalence predicate.
 \end{definition}
 %\begin{definition}
 %    A predicate $P: (v \neq c)$ is a non-equivalence predicate, where $v$ is the
@@ -838,26 +887,27 @@ predicates are defined as follows according to their semantics.
 \begin{definition}[Threshold predicate]
    A predicate $P: (GE\ \boldsymbol{op}\ LE)$ is a threshold predicate, where 
    $\boldsymbol{op}
-    \in \{<,\ \le,\ >,\ \ge\}$, $GE$ is a general expression, and $LE$ is a
-    local expression.
-\end{definition}
-Note that, many variables can be moved from one side to another side. For
-example, the variable $a$ and $b$ in $x = (y - b) / a$ can be moved as 
-$ax + b = y$. These two types of predicates can represent a wide range of
+    \in \{<,\ \le,\ >,\ \ge\}$.
+    \end{definition}
+Note that, many predicates that are not equivalence or threshold predicates can be transformed into
+them. Consider the predicate $x = (y - b) / a$ 
+where $x, y \in L$ and $a,b \in S$. This predicate is equivalent to 
+$ax + b = y$ which is an equivalence predicate. Thus, these two types of predicates can represent a wide range of
 conditions in synchronization problems. 
 
-The {\em globalization} operation can also be applied to any general and local 
-expression. Note that, applying the {\em globalization} to a local expression
-derives a constant value. For example, consider a local expression 
-$E = a \times b + c$, $a = 2$, $b = 4$, and $c = 8$ at time $t$, $E$ is $16$
-after applying the {\em globalization} at time $t$. 
-
+Given an Equivalence or a Threshold predicate, we can apply the {\em globalization} operation 
+to get a constant value on the right hand side of the predicate. 
+%For example, consider a local expression 
+%$E = a \times b + c$, $a = 2$, $b = 4$, and $c = 8$ at time $t$, $E$ is $16$
+%after applying the {\em globalization} at time $t$. 
+%
 In AutoSynch, there are three types of tags, $Equivalence$, $Threshold$, and 
-$None$. In general, tags are assigned to predicates according to their types.
-If a predicate is neither equivalence nor threshold, it acquires the $None$
-tags. Every $Equivalence$ or $Threshold$ tag represents a equivalence predicate 
-or threshold predicate respectively. For example, the predicate $x + 8 > 11$ is
-represented by the tag $(Threshold,\ x + 8,\ 11,\ >)$. The formal definition of
+$None$. Every $Equivalence$ or $Threshold$ tag represents an equivalence predicate 
+or a threshold predicate, respectively. 
+If the predicate is neither equivalence nor threshold, it acquires the $None$
+tag. For example, consider the predicate $x + b*y > a$ where $a$ and $b$ are local variables with values $11$ and $2$.
+We first use the globalization to convert it to $(x+2*y > 11)$ and is
+represented by the tag $(Threshold,\ x + 2*y,\ 11,\ >)$. The formal definition of
 tag is as follows. 
 \begin{definition}
    A tag is a four-tuple $(M,\ expr,\ key,\ op)$, where  
@@ -872,24 +922,25 @@ tag is as follows.
          $op = \perp$.
    \end{itemize}
 \end{definition}
-Note that, we say a tag is true if the predicate representing the tag is 
-true; otherwise, we say the tag is false. 
+We say that a tag is true (false) if the predicate representing the tag is 
+true (false).
  
 \subsubsection{Predicate tagging}
 Tags are given to every predicate by the algorithm shown in
 Fig.~\ref{fig:tagging}. A tag is assigned to every conjunction. The tags of 
 conjunctions of a predicate constitute the set of tags of the predicate. 
 When assigning a tag to a conjunction, the equivalence tag has the highest 
-priority than others. The reason is that an equivalence predicate is more
-difficult to be true than other kinds of predicates since it is true only when 
-its general expression equals a specific value. 
+priority. The reason is that the set of values to make an equivalence predicate
+true is smaller than the set of values to make a threshold predicate true. The equivalence predicate is true 
+only when its general expression equals a specific value. 
 For example, consider an equivalence 
-predicate $x = 8$ and a threshold predicate $x > 3$. $x = 8$ is true only when 
-the value of $x$ is $8$. On the contrary, $x > 3$ is true for every value of 
-$x$ is greater than $3$. Therefore, the $Equivalence$ tags can help us to prune
+predicate $x = 8$ and a threshold predicate $x > 3$. The predicate $x = 8$ is true only when 
+the value of $x$ is $8$, whereas $x > 3$ is true for a much larger set of values.
+Therefore, the $Equivalence$ tags can help us prune
 predicates that cannot be true more efficiently than other kinds of
-tags. Thus, we say $Equivalence$ predicates are more dominate than other
-predicates in pruning predicates.  
+tags. 
+%Thus, we say $Equivalence$ predicates are more dominate than other
+%predicates in pruning predicates.  
 If a conjunction does not 
 include any equivalence predicate, then we check whether it 
 includes any threshold predicate. If yes, then a $Threshold$ tag is assigned 
@@ -920,22 +971,25 @@ multiple equivalence predicates or threshold predicates, only one arbitrary
 $Equivalence$ tag or $Threshold$ tag is assigned to the conjunction. 
 If there are a large number of tags, then the performance may decrease
 because of the cost of maintaining tags. As a result, we assign only one tag to
-every conjunction. Furthermore, the motivation behind the predicate tag is to 
-accelerate the searching process by pruning predicates that are unable to be
-true but not exhaustive search for each tag.  Assigning multiple tags to a 
+every conjunction.
+% Furthermore, the motivation behind the predicate tag is to 
+%accelerate the searching process by pruning predicates that are false
+%but not exhaustive search for each tag.  
+Assigning multiple tags to a 
 conjunction cannot accelerate the searching process. For example, consider a 
 conjunction $(x = 8) \wedge (y = 9)$. If only a tag 
 $(Equivalence,\ x,\ 8,\ null)$
 is assigned to the conjunction, we check the predicate when the tag is
 true. Adding another tag $(Equivalence,\ y,\ 9,\ null)$ cannot accelerate the
-searching process since we need to check both tags. Hence, we create only one 
-tag for each conjunction.
+searching process since we need to check both the tags. 
+%Hence, we create only one 
+%tag for each conjunction.
  
 
 
 \subsubsection{Tag signaling}
 Signaling mechanism is based on tags in AutoSynch. 
-Since the equivalence tag is more dominate than the threshold tag, the
+Since the equivalence tag is more efficient in pruning the search space than the threshold tag, the
 predicates with equivalence are checked prior to the predicates with other 
 tags. If no predicate that is true can be found after checking $Equivalence$ 
 tags and $Threshold$ tags, our algorithm does the exhaustive search for the 
@@ -947,10 +1001,10 @@ expression equals the specific value of its local expression after applying
 {\em globalization}. For distinct equivalence tags related to a same general 
 expression, at most one tag can be true at a time because the value of its
 local expression is deterministic and unique at any time. By 
-observing the value of the its local expression, the appropriate tag can be 
-identified. For example, there are three $Equivalence$ tags for
-predicates $x = 3$, $x = 6$, and $x = 8$. We examine $x$ and figure out that
-its value is $8$. Then we know that only $x = 8$ is true. Based on this 
+observing the value of its local expression, the appropriate tag can be 
+identified. For example, suppose there are three $Equivalence$ tags for
+predicates $x = 3$, $x = 6$, and $x = 8$. We examine $x$ and find that
+its value is $8$. Then we know that only the third predicate $x = 8$ is true. Based on this 
 observation, for each unique general expression of an equivalence tag, we 
 create a hash table, where the value of the local expression is used as the 
 key. By using this 
@@ -968,23 +1022,24 @@ with the tag.
 %linked list, at least one predicate is true. 
 
 \paragraph{Threshold tag signaling}
-For threshold tag, we consider the following situation. Suppose there are two 
-predicates, $x > 5$ and $x > 3$, we know that if $x > 3$ is false, and then 
-$x > 5$ cannot be true. That is, we only need to check the predicate with the 
+Consider the following example. Suppose there are two 
+predicates, $x > 5$ and $x > 3$. We know that if $x > 3$ is false, then 
+$x > 5$ cannot be true. Hence, we only need to check the predicate with the 
 smallest local expression value for $>$ and $\ge$ operations. Furthermore, 
 consider the predicates with the same local expression value but different 
 operations, $x > 3$ and $x \ge 3$. The predicate $x > 3$ cannot be true when 
 $x \ge 3$ is false; i.e., we only need to check the predicate $x \ge 3$. We use
 a min-heap data structure for storing the threshold tags related to a same 
 general expression with $\boldsymbol{op} \in \{>, \ge\}$. If two predicates 
-have a same local expression value but different operations, then the predicate 
-with $\boldsymbol{op}=\ge$ is considered that it has the smaller value than the 
-predicate with $\boldsymbol{op}=>$ in the min-heap.
+have the same local expression value but different operations, then the predicate 
+with $\ge$ is considered to have a smaller value than the 
+predicate with $>$ in the min-heap.
 Similarly, the max-heap can be used for threshold tags with $\boldsymbol{op}
-\in \{<, \le\}$. Note that, if two predicates have a same local expression 
-value but different operations, then the predicate 
-with $\boldsymbol{op}=\le$ is considered that it has the larger value than the 
-predicate with $\boldsymbol{op}= <$ in the max-heap.
+\in \{<, \le\}$. 
+%Note that, if two predicates have a same local expression 
+%value but different operations, then the predicate 
+%with $\le$ is considered that it has the larger value than the 
+%predicate with $<$ in the max-heap.
 
 %Def.~\ref{def:th_order} gives the formal definition of the 
 %order for threshold tags. 
@@ -1031,10 +1086,10 @@ true since the tags are true. So we also need to check the descendant tags.
 
 
 Suppose there are $n$ $Threshold$ tags for a general expression with different 
-keys. In addition, those tags are assigned to $m$ predicates. The computation
+keys. Suppose that these tags are assigned to $m$ predicates. The computation
 complexity for maintaining the heap is $O(n\ ln(n))$ since each $insert$ 
-operation takes $ln(n)$. However, the performance can be boost because we only
-need to check the predicates of the tags in the root in the most case; finding
+operation takes $ln(n)$. However, the performance is generally much better because we only
+need to check the predicates of the tags in the root in the most cases; finding
 a root takes $O(1)$. The worst case is that we need to check all predicates;
 thus, the computation complexity is $O(n\ ln(n) + m)$. However, this situation
 is very rare. 
@@ -1118,8 +1173,8 @@ predicates are identified in the preprocessing and added in the constructor.
 %access the shared variables and the constant variables representing the local 
 %variable at runtime in the predicate. A $isTrue()$ function  
 
-In the waituntil statement, the predicate expression is checked initially. If 
-the expression is true, then the thread can continue. Otherwise, the type of
+In the waituntil statement, the predicate is checked initially. If 
+the is true, then the thread can continue. Otherwise, the type of
 predicate is checked. If the predicate is general, applying globalization to 
 the predicate derives a new predicate. Then we query the condition manager 
 whether the derived predicate has been added. If not, we add the 
@@ -1236,7 +1291,7 @@ compared.
     \item[Producer-Consumer (PC)] The traditional producer-consumer shown in 
         Fig.~\ref{fig:bb_exp}.
     \item[Producer-Consumer* (PC*)] The producer-consumer* problem shown in
-        Fig.~\ref{fig:sigAll_exp}. 
+        Fig.~\ref{fig:bb_exp}. 
     \item[Round-Robin Access Pattern (RR)] Every test thread accesses the
         monitor in round-robin order. 
     \item[Readers/Writers (RW)\cite{chp71}] The first approach is not FIFO
@@ -1352,7 +1407,7 @@ Fig.~\ref{fig:rpc_eval} shows the results of producer-consumer* problem. Total
 512000 items are $put$ and then $taken$. The x-axis indicates the number of 
 consumers; the y-axis indicates the runtime in milliseconds. Only one producer
 was in this experiment. The producer put a item into the buffer a time. A 
-consumer randomly take $b/2$ ~ $b$ items a time, where $b = 128$ is the size of 
+consumer randomly take $b/2$ to $b$ items a time, where $b = 128$ is the size of 
 the buffer. Fig.~\ref{fig:rpc_eval} indicates that AutoSynch and AutoSynch-T are
 much faster than the baseline and the explicit-signal mechanism. The reason is
 that both explicit-signal mechanism and baseline use signallAll calls. In this
@@ -1383,13 +1438,13 @@ much more scalable with this slight performance sacrifice.
   \label{fig:csrpc_eval}
 \end{figure}
 
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/rpch.eps}
-  \caption{The results of producer-consumer* problem comparing AutoSynch and
-  AutoSynch-T}
-  \label{fig:rpch_eval}
-\end{figure}
+%\begin{figure}[ht!]
+%  \centering
+%  \includegraphics[width=80mm]{fig/rpch.eps}
+%  \caption{The results of producer-consumer* problem comparing AutoSynch and
+%  AutoSynch-T}
+%  \label{fig:rpch_eval}
+%\end{figure}
 
 %Fig.~\ref{fig:rw_eval} shows the results of reader-writer problem. The
 %x-axis indicates the number of readers and writers; the y-axis indicates the
@@ -1531,6 +1586,13 @@ AutoSynch, the performance is slower than the explicit-signal mechanism between
   \label{fig:sb_eval}
 \end{figure}
 
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=80mm]{fig/h2o.eps}
+  \caption{The results of $H_2O$ problem}
+  \label{fig:h2o_eval}
+\end{figure}
+
 %\subsection{Performance under different workload}
 %Conduct experiment for readers/writers problem. There is a delay between each
 %read/write operation. As the length of delay increase, the workload of the
@@ -1553,7 +1615,7 @@ AutoSynch, the performance is slower than the explicit-signal mechanism between
 
 \section{Conclusion} \label{sec:conclu}
 In this paper, we propose AutoSynch framework that supports 
-automatic-signal mechanism with $AtuSynch$ class and $waituntil$ statement.
+automatic-signal mechanism with $AutoSynch$ class and $waituntil$ statement.
 AutoSynch uses the {\em globalization} operation to enable the general predicate 
 evaluation in every thread. Next, it provides {\em relay invariance} that some
 thread waiting for a condition has met is always signaled to avoid $signalAll$
@@ -1569,12 +1631,12 @@ slower than the explicit in the worse case of our experiments, AutoSynch is
 around 288 times faster than the explicit-signal in the bounded-buffer* problem 
 that relies on $signalAll$ calls. 
 
-In the future, we plan to optimize our framework through using the information 
-of architecture. For example, we can get the number of cores of a machine, and
+In the future, we plan to optimize our framework through using the architecture
+information. For example, we can get the number of cores of a machine, and
 then limit the number of executing threads to avoid unnecessary competition by
 using this information. Another area for future work is relaxing the mutual
 exclusion when we perform predicate evaluations of $waituntil$ statements. Let
-multiple threads can evaluate predicate simultaneously may increase the
+multiple threads evaluate predicate simultaneously may increase the
 performance. 
 
 % use section* for acknowledgement
@@ -1841,7 +1903,7 @@ performance.
 \bibitem {bfc95}
   P. A. Buhr, M. Fortier, and M. H. Coffin, \emph{Monitor Classification}. ACM 
   Computing Surveys, ACM, 27(1), 63--107, 
-  Nov. 2005.
+  Mar.~1995.
   
 \bibitem {bh05}
   P. A. Buhr and A. S. Harji, \emph{Implicit-signal monitors}. ACM 
@@ -1856,9 +1918,17 @@ performance.
     P. J. Courtois, F. Heymans, D. L. Parnars, \emph{Concurrent control with
     “``readers'' and “``writers''}. Commun.~ACM, 14(10), 667--668, Oct.~1971.
 
+\bibitem{dijk65} 
+    E. W. Dijkstra, \emph{Cooperating Sequential Processes}.  Technical Report
+    EWD-123. 
+    
 \bibitem{dijk68} 
     E. W. Dijkstra, \emph{The structure of the “``THE''-multiprogramming
     system}. Commun.~ACM, 11(5), 341 -- 346, May 1968. 
+
+\bibitem{dijk71}
+    E. W. Dijkstra, \emph{Hierarchical Ordering of Sequential Processes}. Acta
+    Informatica, 1, 115 -- 138, 1971.
 
 \bibitem {gjs00}
     J. Gosling, B. Joy, and G. Steele, \emph{The Java Language Specification}.

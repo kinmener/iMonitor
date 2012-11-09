@@ -10,7 +10,6 @@ public class ExplicitH2OBarrier extends H2OBarrier {
     Condition HWait = mutex.newCondition();
     Condition OWait = mutex.newCondition();
 
-
     public void OReady() {
         mutex.lock();
         wO++;
