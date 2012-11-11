@@ -2,10 +2,10 @@ set term post eps
 set output 'trw.eps'
 set size 0.5, 0.5
 unset label                            # remove any previous labels
-set xtic font "Times-New-Roman, 16"
-set ytic font "Times-New-Roman, 16"
-set xlabel "# writers/ # readers" font "Times-New-Roman, 16"
-set ylabel "runtime(milliseconds)" font "Times-New-Roman, 16"
+set xtic font "Times-New-Roman, 12"
+set ytic font "Times-New-Roman, 12"
+set xlabel "# writers/ # readers" font "Times-New-Roman, 12"
+set ylabel "runtime(seconds)" font "Times-New-Roman, 12"
 set key left top
 #plot  "TicketReadersWriters/explicit.dat" using 2:xticlabels(1) title 'explicit' with linespoints, \
 #      "TicketReadersWriters/set.dat" using 2:xticlabels(1) title 'baseline' with linespoints, \

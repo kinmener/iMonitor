@@ -329,13 +329,13 @@
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
 
-\f1\fs48 \cf0 Equivalence Tag for pivot variable 
+\f1\fs48 \cf0 Equivalence Tag for the share expression 
 \i x}</string>
 			</dict>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{122.00008392333984, 327.75}, {278.99990844726562, 222.125}}</string>
+			<string>{{107.50005340576172, 326.5}, {297.99990844726562, 222.125}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>ID</key>
@@ -382,15 +382,15 @@
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
 
-\f1\fs48 Threshold Tag for pivot variable 
+\f1\fs48 \cf0 Threshold Tag for the shared expression 
 \i x
 \i0  with 
 \i\b op
 \i0\b0  
 \f2 \uc0\u8712 
 \f1 \{
-\i \cf0 \uc0\u8805 , &gt;
-\i0 \cf0 \}}</string>
+\i \uc0\u8805 , &gt;
+\i0 \}}</string>
 			</dict>
 		</dict>
 		<dict>
@@ -2814,7 +2814,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{786.50002288818359, 332.1875}, {278.99990844726562, 222.125}}</string>
+			<string>{{780.50002288818359, 332.1875}, {297.99990844726562, 222.125}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>ID</key>
@@ -2861,7 +2861,7 @@
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
 
-\f1\fs48 \cf0 Threshold Tag for pivot variable 
+\f1\fs48 \cf0 Threshold Tag for the shared expression 
 \i x
 \i0  with 
 \i\b op
@@ -2920,7 +2920,7 @@
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2012-10-14 20:10:46 +0000</string>
+	<string>2012-11-09 16:18:11 +0000</string>
 	<key>Modifier</key>
 	<string>Wei-Lun Hung</string>
 	<key>NotesVisible</key>
@@ -3001,7 +3001,7 @@
 			</dict>
 		</array>
 		<key>Frame</key>
-		<string>{{233, 435}, {1862, 872}}</string>
+		<string>{{634, 446}, {1862, 872}}</string>
 		<key>ListView</key>
 		<true/>
 		<key>OutlineWidth</key>

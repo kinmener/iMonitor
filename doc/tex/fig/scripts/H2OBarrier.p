@@ -6,7 +6,7 @@ unset label                            # remove any previous labels
 set xtic font "Times-New-Roman, 12"
 set ytic font "Times-New-Roman, 12"
 set xlabel "# H-Atom" font "Times-New-Roman, 12"
-set ylabel "runtime(milliseconds)" font "Times-New-Roman, 12"
+set ylabel "runtime(seconds)" font "Times-New-Roman, 12"
 set key left top
 set xr [2:256]
 plot  "H2OBarrier/explicit.dat" using 1:2 title 'explicit' with linespoints, \

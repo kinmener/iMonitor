@@ -67,30 +67,30 @@
 For more than forty years, monitor has been used by the parallel programming 
 community as the main mechanism for mutual exclusion and conditional 
 synchronization. An 
-automatic-signal monitor uses the $waituntil$ statement for conditional 
+automatic-signal monitor uses the {\em waituntil} statement for conditional 
 synchronization, while the explicit-signal monitor uses condition variables and 
-$signal/wait$ statements. Despite the simplicity of the automatic-signal monitor, 
+{\em signal/await} statements. Despite the simplicity of the automatic-signal monitor, 
 most of the modern programming languages support only the explicit-signal 
 monitor but not the automatic-signal monitor because of the performance issues. 
 In this paper, we argue that the automatic-signal monitor can be as efficient 
 as explicit-signal monitor or even more efficient for some cases.
 
 To satisfy the need for automatic-signal monitor, we propose a system called 
-AutoSynch that allows gains in productivity of 
+{\em AutoSynch} that allows gains in productivity of 
 programmers as well as gain in performance. We introduce an operation called
 {\em globalization} that enables the predicate evaluation in
-every thread. Based on this operation, AutoSynch provides {\em relay invariance}
+every thread. Based on this operation, {\em AutoSynch} provides {\em relay invariance}
 that some thread waiting for a condition has been met is always signaled; 
-therefore, the $signalAll$ call is avoidable in AutoSynch. For efficiency in 
-deciding which thread should be signaled, AutoSynch uses 
+therefore, the {\em signalAll} call is avoidable in AutoSynch. For efficiency in 
+deciding which thread should be signaled, {\em AutoSynch} uses 
 {\em predicate tagging}, in which tags are assigned to every predicate according
-to its semantics. AutoSynch can find and signal an appropriate condition 
-variable efficiently by examining the state of a monitor and tags. 
+to its semantics. {\em AutoSynch} can efficiently find and signal an appropriate 
+condition variable by examining the state of a monitor and tags. 
 
-To evaluate the efficiency of AutoSynch, we implemented many different 
+To evaluate the efficiency of {\em AutoSynch}, we implemented many different 
 well-known synchronization problems such as the producers/consumers problem,
 the readers/writers problems, and the dining philosophers problem. The results
-suggest that AutoSynch is almost as efficient as the explicit-signal monitor
+suggest that {\em AutoSynch} is almost as efficient as the explicit-signal monitor
 and even more efficient for some cases. 
 
 \end{abstract}
@@ -149,7 +149,7 @@ in programming these systems, it is surprising that by and large the most
 prevalent methods of dealing with synchronization are based on ideas that were 
 developed in early 70's \cite{dijk68, hoa74, bh75a}. For 
 example, the most widely used threads package in C++ \cite{stro97}, 
-pthreads \cite{bute97}, and the most widely used package in Java \cite{gjs00}, 
+pthreads \cite{bute97}, and the most widely used threads package in Java \cite{gjs00}, 
 java.util.concurrent \cite{lea05}, are based
 on the notion of monitors \cite{hoa74, bh75a}(or semaphores 
 \cite{dijk65, dijk68}). 
@@ -163,10 +163,11 @@ Both pthreads and Java require programmers to explicitly
 signal threads that may be waiting on certain condition. The programmer
 has to explicitly declare condition variables and then signal one
 or all of the threads when the associated condition becomes true.
-Using the wrong notification ($signal$ versus $signalAll$) is a frequent
-source of bugs. In AutoSynch there is no notion of condition variables
+Using the wrong waiting notification ({\em signal} versus {\em signalAll} or notify
+versus notifyAll) is a frequent source of bugs in Java multithreaded
+programs. In our proposed approach, {\em AutoSynch}, there is no notion of condition variables
 and it is the responsibility of the system to signal appropriate threads.
-This feature in AutoSynch significantly reduces the program size and complexity.
+This feature significantly reduces the program size and complexity.
 In addition, it allows us to completely eliminate signaling more than 
 one thread resulting in reduced context switches and better performance.
 The idea of automatic signaling was initially explored by Hoare in \cite{hoa74},
@@ -191,31 +192,31 @@ the threads are waiting and evaluating as few conditions as possible, automatic 
 as explicit signaling.
 % In fact, for many examples, automatic signaling can be faster as it avoids
 %{\em signalAll} which is 
-In AutoSynch, the programmer simply specifies the predicate $P$ on which the thread is 
-waiting using a {\em waituntil(P)} statement. 
-When a thread reaches the statement, it checks whether $P$ is true. If it is true, the thread can continue; 
-otherwise, the thread must wait for the system to signal it. The AutoSynch system has a condition manager that is responsible for determining
-which thread to signal by analyzing the predicates and the state of the object. 
+In {\em AutoSynch}, the programmer simply specifies the predicate $P$ on which the thread is 
+waiting using a new construct {\em waituntil(P)} statement. 
+When a thread executes the statement, it checks whether $P$ is true. If it is true, the thread can continue; 
+otherwise, the thread must wait for the system to signal it. The {\em
+AutoSynch} system has a condition manager that is responsible for determining
+which thread to signal by analyzing the predicates and the state of the shared object. 
 %and release the privilege of the monitor control temporarily. 
 
 %YYY: add somewhere 
 %The 
-%AutoSynch extends Java with supporting the $AutoSynch$ class and the
-%$waituntil$ statement. In an $AutoSynch$ class, every member 
+%AutoSynch extends Java with supporting the {\em AutoSynch} class and the
+%{\em waituntil} statement. In an {\em AutoSynch} class, every member 
 %function can be executed by 
-%only one thread at any time; i.e., an $AutoSynch$ class provides  
-%mutual exclusion by default. The $AutoSynch$ is reserved as a modifier, 
-%indicating a $AutoSynch$ class. 
+%only one thread at any time; i.e., an {\em AutoSynch} class provides  
+%mutual exclusion by default. The {\em AutoSynch} is reserved as a modifier, 
+%indicating a {\em AutoSynch} class. 
 
 Fig.~\ref{fig:bb_exp} shows the difference between 
-the Java and the AutoSynch implementation for the variant bounded-buffer
-problem (also known as the producer-consumer problem) \cite{dijk65, dijk71}. 
-In this problem, two kinds of threads, producers and consumers, try to 
-access  the shared resources. Producers put items into the buffer, while 
-consumers take items out of the buffer. Both $put$ and $take$
-function have a parameter, $num$, indicating the number of items is put or 
-taken. There are two requirements for synchronization.
-First, every operation on a shared variable, such as $items$, should be done 
+the Java and the {\em AutoSynch} implementation for the parameterized bounded-buffer
+problem, a variant bounded-buffer problem (also known as the producer-consumer problem) \cite{dijk65, dijk71}. 
+In this problem, producers put items into the shared buffer, while 
+consumers take items out of the buffer. The {\em put} function has a parameter
+$items$; the {\em take} function has a parameter, {\em num}, 
+indicating the number of items taken. There are two requirements for synchronization.
+First, every operation on a shared variable, such as {\em buff}, should be done 
 under mutual exclusion. Second, we need {\em conditional synchronization};
 a producer must wait when the buffer has no sufficient space, and a consumer 
 must wait when the buffer has no sufficient items. The explicit-signal 
@@ -223,13 +224,14 @@ bounded-buffer is written in Java. A lock variable and two associated condition
 variables are used to maintain mutual exclusion and conditional 
 synchronization. A thread needs to acquire the lock before entering member
 functions. In addition, programmers need to explicitly associate conditional 
-predicates with condition variables and call signal (signalAll) or await 
+predicates with condition variables and call {\em signal} ({\em signalAll}) or
+{\em await} 
 function manually.
-The automatic-signal bounded-buffer is written in our AutoSynch framework.
-We use $AutoSynch$ modifier to indicate that the class is a monitor as in line 
-1. For conditional synchronization,  we use $waituntil$ as in line 9. There are 
-no {\em signal} or {\em signalAll} calls in the AutoSynch program.
-As can be expected, the automatic-signal monitor is
+The automatic-signal bounded-buffer is written using {\em AutoSynch} framework.
+We use {\em AutoSynch} modifier to indicate that the class is a monitor as in line 
+1. For conditional synchronization,  we use {\em waituntil} as in line 9. There are 
+no {\em signal} or {\em signalAll} calls in the {\em AutoSynch} program.
+Evidently, the automatic-signal monitor is
 much simpler than the explicit-signal monitor. 
 
 \begin{figure*}[ht!]
@@ -238,27 +240,25 @@ much simpler than the explicit-signal monitor.
             framesep=5mm,numbers=left,numbersep=2pt,
             label=\fbox{\small\emph{Explicit-Signal}}]
         class BoundedBuffer {
-          Object[] items;  
+          Object[] buff;  
           int putPtr, takePtr, count;
           Lock mutex = new ReentrantLock();
           Condition insufficientSpace = mutex.newCondition();
           Condition insufficientItem = mutex.newCondition();
           public BoundedBuffer(int n) {
-            items = new Object[n];
+            buff = new Object[n];
             putPtr = takePtr = count = 0;
           }
-          public void put(int num) {
+          public void put(Object[] items) {
             mutex.lock();
-            while (num + count > items.length) {
+            while (items.length + count > buff.length) {
               insufficientSpace.await();
             }
-            for (int i = 0; i < num; ++i) {
-              items[putPtr++] = new Object();
-              if (putPtr == items.length) {
-                putPtr = 0;
-              }
+            for (int i = 0; i < items.length; ++i) {
+              buff[putPtr++] = items[i];
+              putPtr %= buff.length;
             }
-            count += num;
+            count += items.length;
             insufficientItem.signalAll();
             mutex.unlock();
           }
@@ -269,10 +269,8 @@ much simpler than the explicit-signal monitor.
             }
             Object[] ret = new Object[n];
             for (int i = 0; i < num; ++i) {
-              ret[i] = items[takePtr++];
-              if (takePtr == items.length) {
-                takePtr = 0;
-              }
+              ret[i] = buff[takePtr++];
+              takePtr %= buff.length;
             }
             count -= num;
             insufficientSpace.signalAll();
@@ -285,30 +283,26 @@ much simpler than the explicit-signal monitor.
             numbers=left,numbersep=2pt,
             label=\fbox{\small\emph{Automatic-Signal}}]
         AutoSynch class BoundedBuffer { 
-          Object[] items; 
+          Object[] buff; 
           int putPtr, takePtr, count; 
           public BoundedBuffer(int n) {
-            items = new Object[n];
+            buff = new Object[n];
             putPtr = takePtr = count = 0;
           }
-          public void put(int num) { 
-            waituntil(count + num <= items.length); 
-            for (int i = 0; i < num; ++i) {
-              items[putPtr++] = new Object(); 
-              if (putPtr == items.length) { 
-                putPtr = 0; 
-              } 
+          public void put(int items) { 
+            waituntil(count + items.length <= buff.length); 
+            for (int i = 0; i < items.length; ++i) {
+              buff[putPtr++] = new Object(); 
+              putPtr %= buff.length;
             }
-            count += num; 
+            count += items.length; 
           } 
           public Object[] take(int num) { 
             waituntil(count >= num);
             Object[] ret = new Object[num];
             for (int i = 0; i < n; ++i) {
-              ret[i] = items[takePtr++]; 
-              if (takePtr == items.length) { 
-                takePtr = 0; 
-              }
+              ret[i] = buff[takePtr++]; 
+              takePtr %= buff.length; 
             }
             count -= num;
             return ret;
@@ -316,7 +310,7 @@ much simpler than the explicit-signal monitor.
         }
     \end{Verbatim}
 \end{multicols}
-    \caption{Bounded-buffer* example}
+    \caption{The parameterized bounded-buffer example}
     \label{fig:bb_exp}
 \end{figure*}
 
@@ -402,53 +396,54 @@ much simpler than the explicit-signal monitor.
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/flow.eps}
-  \caption{The framework of AutoSynch}
+  \caption{The framework of {\em  AutoSynch}}
   \label{fig:fw}
 \end{figure}
 
 
-To make the signal mechanism automatic in Java, we have implemented the 
-framework of AutoSynch illustrated in Fig.~\ref{fig:fw}. 
+To facilitate the automatic-signal mechanism in Java, we have implemented the 
+framework of {\em AutoSynch} illustrated in Fig.~\ref{fig:fw}. 
 %The programmer is expected to write 
-The AutoSynch framework is composed of a 
+The framework is composed of a 
 preprocessor and a Java condition manager library. The preprocessor translates 
-AutoSynch code into traditional Java code. 
+{\em AutoSynch} code into traditional Java code. 
 Our automatic-signal mechanism and 
-developed techniques were implemented in the Java condition manager library. 
-The Java condition library is responsible for monitoring the state of the monitor object
+developed techniques were implemented in the Java condition manager library, 
+which is responsible for monitoring the state of the monitor object
 and signaling an appropriate thread.
 
 
 %Fig.~\ref{fig:fw} illustrates the framework of AutoSynch, which makes 
 %the automatic-signal available with the modern high-level language, Java. 
-%The AutoSynch takes a Java-extension program providing the automatic-signal 
+%The {\em AutoSynch} takes a Java-extension program providing the automatic-signal 
 %mechanism through supporting the monitor class and the waituntil statement. The 
-%AutoSynch preprocessor transfers an AutoSynch code into the tradition Java code 
-%that can be compiled with AutoSynch library. The AutoSynch 
+%AutoSynch preprocessor transfers an {\em AutoSynch} code into the tradition Java code 
+%that can be compiled with {\em AutoSynch} library. The {\em AutoSynch} 
 %Java library implements our automatic-signal monitor mechanism.  
 %
 
 
 %YYY: need better transition
 %\subsection{Design Principles}
-%It is quite clear that eliminating the need for signals simplifies concurrent programming significantly.
+%It is quite clear that eliminating the need for signals simplifies concurrent punnecessary rogramming significantly.
 In this paper, we argue that automatic signaling is generally as fast as explicit 
 signaling (and even faster for some examples). In Section \ref{sec:sigAll}, we give reasons
-for the efficiency in automatic signaling. In short, the explicit signaling has 
-to resort to $signalAll$ in some examples; however, our automatic signaling never 
-uses $signalAll$. We have built AutoSynch that is 
+for the efficiency of automatic signaling. In short, the explicit signaling has 
+to resort to {\em signalAll} in some examples; however, our automatic signaling never 
+uses {\em signalAll}. Thus {\em AutoSynch} is 
 %almost always as 
 %fast as explicit and 
 considerably faster for synchronization problems with 
-$signalAll$. The design principles underlying AutoSynch are as follows.
+{\em signalAll}. The design principles underling {\em AutoSynch} are to reduce 
+the number of context switches and predicate evaluations.
 
 \begin{description}
-    \item{\bf Reduce the number of context switches.} A context switch requires a certain 
+    \item{\bf Context switch:} a context switch requires a certain 
         amount of time to save and load registers and update various tables and
         lists. Reducing unnecessary context switches boosts the performance of the system.
-        A $signalAll$ call introduces unnecessary context switches; therefore,
-        $signalAll$ calls are never used in AutoSynch. 
-    \item {\bf Reduce the number of unnecessary predicate evaluation.} In the 
+        A {\em signalAll} call introduces unnecessary context switches; therefore,
+        {\em signalAll} calls are never used in {\em AutoSynch}. 
+    \item {\bf Predicate evaluation:} in the 
         automatic-signal mechanism, signaling a thread is the 
         responsibility of the system. The number of predicate evaluations is 
         crucial for efficiency in deciding which thread should be signaled. 
@@ -458,7 +453,7 @@ $signalAll$. The design principles underlying AutoSynch are as follows.
 
 
 %\subsection{Contributions}
-There are three important new ideas in AutoSynch that enables efficient automatic
+There are three important novel concepts in {\em AutoSynch} that enables efficient automatic
 signaling --- {\em globalization of predicates, relay invariance}, and {\em predicate
 tagging}.
 
@@ -466,28 +461,30 @@ The technique of {\em globalization} of a predicate $P$ is used to reduce the nu
 context switches for its evaluation. In the current systems, only the thread that is waiting
 for the predicate $P$ can evaluate it. When the thread is signaled, it wakes up, acquires the
 lock to the monitor and then evaluates the predicate $P$. If the predicate $P$ is false, it
-goes back to sleep resulting in an additional context switch. In AutoSynch system, the thread
+goes back to wait resulting in an additional context switch. In {\em AutoSynch} system, the thread
 that is in the monitor evaluates the condition for the waiting thread and wakes it only
 if the condition is true. Since the predicate $P$ may use variables local to the thread
-waiting on it, AutoSynch system derives a globalization of predicate $P'$ that
-can be evaluated by other threads. The details of globalization are in Section \ref{sec:globalization}.
+waiting on it, {\em AutoSynch} system derives a globalization predicate $P'$ of
+the predicate $P$, that $P'$ can be evaluated by other threads. 
+The details of globalization are in Section \ref{sec:globalization}.
 
-%The starting point in the design of AutoSynch is how to evaluate predicates of
-%$waituntil$ statements. Any thread that can access a monitor should be able
-%to check all predicates of $waituntil$ statements of the monitor. Therefore, a 
+%The starting point in the design of {\em AutoSynch} is how to evaluate predicates of
+%{\em waituntil} statements. Any thread that can access a monitor should be able
+%to check all predicates of {\em waituntil} statements of the monitor. Therefore, a 
 %thread can decide which thread should be signaled according to the results of
 %predicate evaluations before the thread waits or exits the monitor. We 
 %investigated globalization operation to enable predicate evaluations in any 
 %thread. Based on this operation, our framework can provide relay invariance and 
 %predicate tagging. 
 
-The idea of {\em relay invariance} is used to avoid $signalAll$ calls in AutoSynch.
-The relay invariance ensures if there is any thread whose waiting condition is true, then
+The idea of {\em relay invariance} is used to avoid {\em signalAll} calls in {\em
+AutoSynch}.
+The relay invariance ensures that if there is any thread whose waiting condition is true, then
 there exists at least one thread whose waiting condition is  true and is signaled by the system.
-With this invariance, the $signalAll$ call 
+With this invariance, the {\em signalAll} call 
 is unnecessary in our automatic-signal mechanism. This mechanism reduces 
-the number of context switches by avoiding $signalAll$ calls. 
-The details of relay invariance are in Section \ref{sec:relay}.
+the number of context switches by avoiding {\em signalAll} calls. 
+The details of this approach are in Section \ref{sec:relay}.
 
 
 The idea of {\em predicate tagging} is used to accelerate the process of deciding which thread to signal.
@@ -498,44 +495,45 @@ current state of the monitor. Then we only evaluate the predicates with
 those tags. 
 The details of predicate tagging are in Section \ref{sec:tag}.
 
-Our experimental results indicate that AutoSynch can significantly improve
+Our experimental results indicate that {\em AutoSynch} can significantly improve
 performance compared to other automatic-signal mechanisms \cite{bh05}. In \cite{bfc95,bh05}
 the automatic-signal mechanism is 10-50 times
-slower than the explicit-signal mechanism; however, AutoSynch is 
+slower than the explicit-signal mechanism; however, {\em AutoSynch} is 
 only 2.33 times slower than the explicit-signal mechanism even in the worst 
-case of our experiment results. Furthermore, AutoSynch is 31
+case of our experiment results. Furthermore, {\em AutoSynch} is 31
 %YYY: 288 => new number
-times faster than the explicit-signal mechanism in the case that rely on 
-$signalAll$ calls. Besides, the experimental results also shows that AutoSynch 
-is scalable; the performance of AutoSynch is stable even if the number of 
+times faster than the explicit-signal mechanism in the parameterized
+bounded-buffer problem that rely on 
+{\em signalAll} calls. Besides, the experimental results also show that {\em AutoSynch} 
+is scalable; the performance of {\em AutoSynch} is stable even if the number of 
 threads increases. 
 
-Although the experiment results shows that AutoSynch is 2.33 times slower than 
+Although the experiment results show that {\em AutoSynch} is 2.33 times slower than 
 the explicit-signal mechanism in the worst case, it is still desirable to have automatic signaling.
 First, automatic signaling simplifies the task of concurrent programming.
             In explicit-signal monitor, it is the responsibility of programmers to 
-        explicitly invoke a $signal$ call on some condition variable for
+        explicitly invoke a {\em signal} call on some condition variable for
         conditional synchronization. Using the wrong notification or signaling
-        a wrong condition variable are frequent source of bugs.  The idea is analogous to automatic
+        a wrong condition variable are frequent sourcesof bugs.  The idea is analogous to automatic
         garbage collection.
 Although garbage collection leads to decreased
 performance because of the overhead in deciding which memory to free; programmers 
 avoid manual memory deallocation. As a consequence, memory leaks and certain 
-bugs, such as dangling pointer bugs and double free bugs, are reduced and 
-eradicated. Similarly, automatic-signal mechanism consumes computing resources 
+bugs, such as dangling pointers and double free bugs, are reduced. 
+Similarly, automatic-signal mechanism consumes computing resources 
 in deciding which thread to be signaled; programmers avoid explicitly invoking 
-$signal$ calls. As a result, some bugs, such as using wrong notification and
+{\em signal} calls. As a result, some bugs, such as using wrong notification and
 signaling a wrong condition variable, are eliminated.  Secondly,
- In explicit-signal monitor, the principle of separation of concerns is violated.
+ in explicit-signal monitor, the principle of separation of concerns is violated.
     Any method that changes the state of the monitor must be aware of all the conditions that other threads could be waiting for 
     in other methods of the monitor. 
      The intricate relation between
         threads for conditional synchronization breaks the modularity and 
         encapsulation of programming.  
    Finally,
-  $AutoSynch$ can provide  
+  {\em AutoSynch} can provide  
         rapid prototyping  in developing programs and accelerating 
-        products time to market. Moreover, 
+        product time to market. Moreover, 
         a correct
         automatic-signal implementation is helpful in debugging an
         explicit-signal implementation. 
@@ -546,11 +544,11 @@ signaling a wrong condition variable, are eliminated.  Secondly,
 %\begin{enumerate} 
 %    \item We present the globalization, relay invariance, and predicate tagging
 %        techniques that make automatic-signaling efficient. Experimental 
-%        evaluation of AutoSynch shows significant improvements in performance 
+%        evaluation of {\em AutoSynch} shows significant improvements in performance 
 %        and scalability with predicate tagging and relay invariance. 
-%    \item We propose the design and implementation of the AutoSynch framework,
+%    \item We propose the design and implementation of the {\em AutoSynch} framework,
 %        which supports concurrent programs with automatic-signal mechanism.
-%    \item We show that the $signalAll$ call may introduce unnecessary context
+%    \item We show that the {\em signalAll} call may introduce unnecessary context
 %        switches that decrease the performance. 
 %    \item We give experimental evidence indicating that AutoSynch's automatic-signal
 %        mechanism is almost as efficient as explicit-signal mechanism or even 
@@ -586,9 +584,9 @@ languages and models, such as pthread and C\# \cite{hwg03}.
 
 This paper is organized as follows. Section \ref{sec:bg} gives the background
 of montior. 
-Section \ref{sec:sigAll} explains why $signalAll$ is required for
+Section \ref{sec:sigAll} explains why {\em signalAll} is required for
 explicit-signal monitor but not automatic-signal monitor. The concepts of 
-AutoSynch are presented in Section \ref{sec:concept} and the practical 
+{\em AutoSynch} are presented in Section \ref{sec:concept} and the practical 
 implementation details are discussed in Section  \ref{sec:imp}. The proposed 
 methods are then evaluated with experiments in Section \ref{sec:eval}.  
 Section \ref{sec:conclu} give the concluding remarks.
@@ -598,10 +596,10 @@ Section \ref{sec:conclu} give the concluding remarks.
 Monitor is an abstract object or module containing shared data to be used safely
 by multiple member functions and threads in concurrent programming. Monitor can
 be defined by two characteristics, mutual exclusion and conditional 
-synchronization. Mutual exclusion invariances that at most one thread can 
-execute any member function of a monitor at any time.  Threads  acquire the lock of the monitor 
-to acquire the privilege for accessing it. Conditional synchronization 
-maintains the executing order between threads. Threads may wait for some 
+synchronization. Mutual exclusion guarantees that at most one thread can 
+execute any member function of a monitor at any time.  Threads  acquire the 
+lock of the monitor to acquire the privilege for accessing it. Conditional synchronization 
+maintains the execution order between threads. Threads may wait for some 
 condition to be met and release the monitor lock temporarily. After the 
 condition has been met, threads then re-acquire the lock and continue to 
 execute. According to Buhr and Harji \cite{bh05}, monitors can be divided into 
@@ -609,20 +607,20 @@ two categories according to the different implementations of conditional
 synchronization. 
 \begin{description}
     \item{\bf Explicit-signal monitor} In this type of monitor, condition
-    variables, signal and await functions are used for synchronization. 
+        variables, {\em signal} and {\em await} functions are used for synchronization. 
     Programmers need to associate assertions with condition variables manually.
-    This mechanism involves two threads. A thread  waits on some condition variable 
+    This mechanism involves two or more threads. A thread  waits on some condition variable 
     if its predicate is not true. When another thread detects that the state has 
     changed and the predicate is true, it explicitly signals the 
     appropriate condition variable.
     \item{\bf Automatic-signal (implicit-signal) monitor} This kind of monitor 
-    uses $waituntil$
+    uses {\em waituntil}
     statements, such as line 9 in automatic-signal program in
     Fig.~\ref{fig:bb_exp}, instead of condition variables for
     synchronization. Programmers do not need to associate assertions with
-    variables, but use $waituntil$ statements directly. In
-    monitor, a thread will wait if the condition of a $waituntil$
-    statement is false, and execute the remaining tasks after the condition 
+    variables, but use {\em waituntil} statements directly. In
+    monitor, a thread will wait as long as the condition of a {\em waituntil}
+    statement is false, and execute the remaining tasks only after the condition 
     becomes true. The responsibility of signaling a waiting thread is that of 
     the system rather than of the programmers. 
 \end{description}
@@ -636,18 +634,19 @@ synchronization.
 %argue that the automatic-signal monitor could be as efficient as the
 %explicit-signal or ever faster in some cases. 
 
-\section{Why is signalAll required in the explicit-signal mechanism?} 
+%\section{Why is {\em signalAll} required in the explicit-signal mechanism?} 
+\section{{\em signalAll} requirement in explicit} 
 \label{sec:sigAll}
-The $signalAll$ call is essential in explicit-signal mechanism when programmers
+The {\em signalAll} call is essential in explicit-signal mechanism when programmers
 do not know which thread should be signaled. In Fig.~\ref{fig:bb_exp}, a 
 producer must wait if there is no space to put $num$ items, while a consumer 
 has to hold when the buffer has insufficient items.
 Since producers and consumers can put and take different numbers of items
 every time, they may wait on different conditions to be met. Programmers 
 do not know which producer or consumer should be signaled at runtime. 
-Therefore, the $signalAll$ call is used instead of $signal$ calls in
+Therefore, the {\em signalAll} call is used instead of {\em signal} calls in
 line 23 and 39.
-Although programmers can avoid using $signalAll$ calls by writing
+Although programmers can avoid using {\em signalAll} calls by writing
 complicated code that associates different conditions to different condition 
 variables; the complicated code makes the maintenance of the program
 unsustainable. 
@@ -658,29 +657,29 @@ unsustainable.
 %function have a parameter, $num$, indicating how many items are put or taken. 
 
 
-The $signalAll$ call is bad; it may decreases the performance because 
+The {\em signalAll} call is expensive; it may decreases the performance because 
 it introduces redundant context switches, requiring a certain 
 computing time to save and load registers and update various tables and lists.
-Furthermore, $signalAll$ calls cannot increase parallelism because threads
+Furthermore, {\em signalAll} calls cannot increase parallelism because threads
 are forbidden to access a monitor simultaneously. Although multiple threads are
 signaled at a time, only one thread is able to acquire the monitor. Other 
 threads may need to go back to waiting state since another thread may change 
-the status of the monitor. For example, in Fig.~\ref{fig:bb_exp}, the 
+the status of the monitor. Suppose in Fig.~\ref{fig:bb_exp}, the 
 buffer has 64 items after a producer finishes a put call. The producer calls 
-$insufficientItem.signalAll()$ in line 23 before completing the call. 10  
+{\em insufficientItem.signalAll()} in line 23 before completing the call. 10  
 waiting consumers are signaled; each of them is waiting to take $48$ items.
 Suppose the consumer $C$ re-acquires the lock first and takes $48$ items. The
 remaining items, $16$, are insufficient for the other threads; they
 make context switches, re-evaluate their predicates, and go back to waiting 
 state. Theses context switches are redundant since the 9 threads do not 
-make any progress but only go back to waiting. 
-Therefore, if we avoid using the $signalAll$ call and only signal a thread that 
+make any progress but only go back to waiting state. 
+Therefore, if we avoid using the {\em signalAll} call and only signal a thread that 
 is most likely to make progress, the unnecessary context switches can be
 reduced.
 
 
 
-\section{AutoSynch concepts} \label{sec:concept}
+\section{{\em AutoSynch} concepts} \label{sec:concept}
 
 
 \subsection{Predicate evaluation} \label{sec:globalization}
@@ -696,96 +695,98 @@ reduced.
 %cannot be changed by other threads after a particular thread is waiting. 
 %All other threads can check the globalized predicate safely. 
 %\subsection{Predicate}
-In AutoSynch, it is the responsibility of the system to signal appropriate 
+In {\em AutoSynch}, it is the responsibility of the system to signal appropriate 
 threads automatically. The predicate evaluation is crucial in deciding which
-thread should be signaled. We will discuss how to preform predicate evaluations
-of $waituntil$ statements. 
+thread should be signaled. We discuss how to preform predicate evaluations
+of {\em waituntil} statements. 
 
 A predicate $P(\vec{x}): X \rightarrow \mathbb{B}$ is a Boolean condition, 
 where $X$ is the space spanned by the variables $\vec{x}=(x_1, \dots, x_n)$. 
 A variable of a monitor object is a shared variable if it is accessible to every 
-threads that are accessing the monitor. The set of shared variables is denoted by 
+thread that is accessing the monitor. The set of shared variables is denoted by 
 $S$. The set of local variables, denoted by $L$, is 
 accessible only by a thread calling a function in which the variables are declared. 
 
-Predicates can be used to describe the properties of conditions. In this paper,
-every condition of $waituntil$ statement is represented by a predicate. We say
-a condition has met if its representing predicate is true; otherwise, the
+Predicates can be used to describe the properties of conditions. In our
+approach,
+every condition of {\em waituntil} statement is represented by a predicate. We say
+a condition has been met if its representing predicate is true; otherwise, the
 predicate is false. 
 Furthermore, we assume that every predicate, $P = \vee_{i=1}^nc_i$, is in 
 disjunctive normal form (DNF), where $c_i$ is defined as the conjunction of a 
 set of atomic Boolean expressions. For example, a predicate $(x = 1) \wedge 
 (y = 6) \vee (z \ne 8)$ is DNF, where $c_1 = (x = 1) \wedge (y = 6)$ and $c_2 = 
-(z \ne 8)$. Note that, every Boolean formulas can be converted into DNF using 
+(z \ne 8)$. Note that, every Boolean formula can be converted into DNF using 
 De Morgan's laws and distributive law. 
 
 Predicates can be divided into two categories based on the type of their 
 variables \cite{bh05}.
-\begin{definition}[Shared and general predicate]
+\begin{definition}[Shared and complex predicate]
     Consider a predicate $P(\vec{x}): X \rightarrow \mathbb{B}$. If $X 
     \subseteq S$, $P$ 
     is a shared predicate. Otherwise, if $X \not\subseteq S$, $P$ 
-    is a general predicate. 
+    is a complex predicate. 
 \end{definition}
 
 The automatic-signal monitor has an efficient implementation \cite{kes77} by 
-limiting the predicate of a $waituntil$ to a shared predicate; however, 
-we do not limit the predicate of a $waituntil$ statement to a shared
-predicate. The reason is that this limitation will lead AutoSynch to be less
+limiting the predicate of a {\em waituntil} to a shared predicate; however, 
+we do not limit the predicate of a {\em waituntil} statement to a shared
+predicate. The reason is that this limitation will lead {\em AutoSynch} to be less
 attractive and practical since conditions including local variables cannot be 
-represented in AutoSynch.
+represented in {\em AutoSynch}.
 
-Evaluating a general predicate in all threads is unattainable 
+Evaluating a complex predicate in all threads is unattainable 
 because the accessibility of the local variables in the predicate is limited 
-to the thread declaring them. To evaluate a general predicate in all 
+to the thread declaring them. To evaluate a complex predicate in all 
 threads, we treat local variables as constant values at runtime and define 
 globalization as follows. 
 \begin{definition}[Globalization]
-    Given a general predicate $P(\vec{x}, \vec{y}): X \times Y \rightarrow 
-    \mathbb{B}$, where $X \subseteq S$ and $Y \subseteq L$. The globalization 
-    of $P$ at runtime $t$ is the new shared predicate
+    Given a complex predicate $P(\vec{x}, \vec{a}): X \times A \rightarrow 
+    \mathbb{B}$, where $X \subseteq S$ and $A \subseteq L$. The globalization 
+    of $P$ at runtime {\textbf t} is the new shared predicate
     \[
-    G_t(\vec{x}) = P(\vec{x}, \vec{y_t}),
+    G_t(\vec{x}) = P(\vec{x}, \vec{a_t}),
     \]
-    where $\vec{y_t}$ is the values of $\vec{y}$ at runtime $t$.
+    where $\vec{a_t}$ is the values of $\vec{a}$ at runtime {\textbf t}. 
 \end{definition}
 
-The globalization can be applied to any general predicate; a shared 
-predicate is derived from the globalization. For example, in
-Fig.~\ref{fig:bb_exp}, the consumer $C$ wants to take $48$ items at this 
-moment. Applying the globalization to the general predicate $(count \ge num)$
+The globalization can be applied to any complex predicate; a shared 
+predicate can be derived from the globalization. For example, in
+Fig.~\ref{fig:bb_exp}, the consumer $C$ wants to take $48$ items at some
+instant of time. Applying the globalization to the complex predicate $(count \ge num)$
 in line 19, we derive the shared predicate $(count \ge 48)$.
 
-The following proposition shows that the general predicate evaluation of
-$waituntil$ statement in all thread can be achieved through the globalization. 
+The following proposition shows that the complex predicate evaluation of
+{\em waituntil} statement in all threads can be achieved through the globalization. 
 \begin{proposition} \label{pro:glob}
-    Consider a general predicate $P(\vec{x}, \vec{y})$ in a $waituntil$ 
-    statement. $P(\vec{x}, \vec{y})$ and its globalization 
-    $P(\vec{x}, \vec{y_t})$ are semantically equivalent during the $waituntil$ 
+    Consider a complex predicate $P(\vec{x}, \vec{a})$ in a \textbf
+    {waituntil} 
+    statement. $P(\vec{x}, \vec{a})$ and its globalization 
+    $P(\vec{x}, \vec{a_t})$ are semantically equivalent during the \textbf{waituntil} 
     period, where $t$ is the time instant immediately before invoking the 
-    $waituntil$ statement.  
+    \textbf{waituntil} statement.  
 \end{proposition}
 \begin{proof}
-    Only the thread invoking the $waituntil$ statement can access the
+    Only the thread invoking the {\em waituntil} statement can access the
     local variables of the predicate; all other threads are unable to change
-    the values of those local variables. Therefore, the value of $\vec{y}$
+    the values of those local variables. Therefore, the value of $\vec{a}$
     cannot be changed 
-    during the $waituntil$ period. Since $\vec{y_t}$ is the value of $\vec{y}$
-    immediately before invoking the $waituntil$ statement, $P(\vec{x}, \vec{y})$
-    and $P(\vec{x}, \vec{y_t})$ are semantic equivalent during the $waituntil$
+    during the {\em waituntil} period. Since $\vec{a_t}$ is the value of $\vec{a}$
+    immediately before invoking the {\em waituntil} statement, $P(\vec{x}, \vec{a})$
+    and $P(\vec{x}, \vec{a_t})$ are semantic equivalent during the {\em waituntil}
     period. 
 \end{proof}
 
-Proposition \ref{pro:glob} enables the general predicate evaluation of
-$waituntil$ statement in all threads. 
-Given a general predicate in a $waituntil$ statement, in the sequel we substitute
+Proposition \ref{pro:glob} enables the complex predicate evaluation of
+{\em waituntil} statement in all threads. 
+Given a complex predicate in a {\em waituntil} statement, in the sequel we substitute
 all the local variables with their values immediately before invoking the
-statement. The predicate can be evaluated in all other threads during the
-$waituntil$ period. 
+statement. The predicate can now be evaluated in all other threads during the
+{\em waituntil} period. 
 
 \subsection{Relay invariance} \label{sec:relay}
-As mentioned in Section ~\ref{sec:sigAll}, $signalAll$ calls are unavoidable
-sometimes in the explicit-signal mechanism. In AutoSynch, $signalAll$ calls are 
+As mentioned in Section ~\ref{sec:sigAll}, {\em signalAll} calls are sometimes unavoidable
+in the explicit-signal mechanism. In {\em AutoSynch}, {\em signalAll} calls are 
 avoided by providing the {\em relay invariance}. 
 %should be reduced. Before a waiting thread is signaled, the 
 %predicate of the waiting thread is ensured to be true. In addition, at most 
@@ -795,7 +796,7 @@ avoided by providing the {\em relay invariance}.
 
 \begin{definition}[Active and inactive thread] 
     Consider a thread that tries to access a monitor. If it is waiting in a
-    $waituntil$ statement and has not been signaled, then it is an {\em inactive} 
+    {\em waituntil} statement and has not been signaled, then it is an {\em inactive} 
     thread for the monitor. Otherwise, it is an {\em active} thread. 
 \end{definition}
 
@@ -810,18 +811,18 @@ avoided by providing the {\em relay invariance}.
     holds at all time. 
 \end{definition}
 
-AutoSynch uses the following rule for signaling.
+{\em AutoSynch} uses the following mechanism for signaling.
 
 {\em Relay signaling rule}: When a thread exits a monitor or goes into waiting 
     state, it checks whether there is some thread waiting on a condition that 
     has been true. If at least one such waiting thread exists, it signals that 
     thread.
     
-\begin{proposition} \label{pro:one}
-     The Relay signaling rule guarantees Relay invariance. 
+\begin{proposition} \label{pro:relay_signal}
+     The relay signaling rule guarantees relay invariance. 
 \end{proposition}
 \begin{proof}
-    Suppose a thread $T$ is waiting on the predicate $P$ that is true. Since 
+    Suppose a thread $T$ is waiting on the predicate $P$ that has been true. Since 
     $T$ is waiting 
     on $P$, $P$ must be false before $T$ went to waiting state. There must 
     exist another active thread $R$ after $T$ such that $R$ changed the state 
@@ -851,10 +852,10 @@ active after
 $C$; $D$ puts $16$ items into the buffer and then leaves the monitor. Before 
 leaving, $D$ finds that $P$ is true and then signals $C$. Therefore, $C$ 
 becomes active again and takes $32$ items of the buffer.
-Proposition \ref{pro:one} shows that the relay
+Proposition \ref{pro:relay_signal} shows that the relay
 invariance holds in our automatic-signaling mechanism. 
-Thus, $signalAll$ calls are avoidable in AutoSynch. 
-The remaining problem is how to efficiently find a thread waiting for a condition that is 
+Thus, {\em signalAll} calls are avoidable in {\em AutoSynch}. 
+The problem is now reduced to find a thread waiting for a condition that is 
 true. 
 
 \subsection{Predicate tag} \label{sec:tag}
@@ -863,21 +864,21 @@ true, we analyze every waiting condition and assign different tags
 to every predicate according to its semantics. These  tags
 help us prune predicates that are not true by examining the state 
 of the monitor. The idea behind the predicate tag is that, local variables cannot be
-changed during the $waituntil$ period; thus the values of local variables are
-used as keys when we do evaluation. 
+changed during the {\em waituntil} period; thus the values of local variables are
+used as keys when we evaluate predicates. 
 First, we define two types of 
 predicates according to their semantics. 
-\begin{definition}[Local and general expression]
+\begin{definition}[Local and shared expression]
     Consider an expression $E(\vec{x}): X \rightarrow \mathbb{D}$, where
     $\mathbb{D}$ represents one of the primitive data types in Java. If $X
-    \subseteq L$, then $E$ is a local expression. Otherwise, ($X \not\subseteq L$,)
-    $E$ is a general expression.  
+    \subseteq L$, then $E$ is a local expression. Otherwise, 
+    if $X \subseteq S$, $E$ is a shared expression.  
 \end{definition}
-We use $GE$ to denote a
-    general expression, and $LE$ to denote a local expression.
+We use $SE$ to denote a shared expression, and $LE$ to denote a local 
+expression.
 
 \begin{definition}[Equivalence predicate]
-    A predicate $P: (GE = LE)$ is an equivalence predicate.
+    A predicate $P: (SE = LE)$ is an equivalence predicate.
 \end{definition}
 %\begin{definition}
 %    A predicate $P: (v \neq c)$ is a non-equivalence predicate, where $v$ is the
@@ -885,35 +886,36 @@ We use $GE$ to denote a
 %    value.
 %\end{definition}
 \begin{definition}[Threshold predicate]
-   A predicate $P: (GE\ \boldsymbol{op}\ LE)$ is a threshold predicate, where 
+   A predicate $P: (SE\ \boldsymbol{op}\ LE)$ is a threshold predicate, where 
    $\boldsymbol{op}
     \in \{<,\ \le,\ >,\ \ge\}$.
     \end{definition}
-Note that, many predicates that are not equivalence or threshold predicates can be transformed into
-them. Consider the predicate $x = (y - b) / a$ 
-where $x, y \in L$ and $a,b \in S$. This predicate is equivalent to 
-$ax + b = y$ which is an equivalence predicate. Thus, these two types of predicates can represent a wide range of
-conditions in synchronization problems. 
+Note that, many predicates that are not equivalence or threshold predicates can 
+be transformed into them. Consider the predicate $(x - a = y + b)$, where 
+$x, y \in S$ and $a,b \in L$. This predicate is equivalent to 
+$(x - y = a + b)$ which is an equivalence predicate. Thus, these two types of 
+predicates can represent a wide range of conditions in synchronization problems. 
 
 Given an Equivalence or a Threshold predicate, we can apply the {\em globalization} operation 
-to get a constant value on the right hand side of the predicate. 
+to derive a constant value on the right hand side of the predicate. 
 %For example, consider a local expression 
 %$E = a \times b + c$, $a = 2$, $b = 4$, and $c = 8$ at time $t$, $E$ is $16$
 %after applying the {\em globalization} at time $t$. 
 %
-In AutoSynch, there are three types of tags, $Equivalence$, $Threshold$, and 
+In {\em AutoSynch}, there are three types of tags, $Equivalence$, $Threshold$, and 
 $None$. Every $Equivalence$ or $Threshold$ tag represents an equivalence predicate 
 or a threshold predicate, respectively. 
 If the predicate is neither equivalence nor threshold, it acquires the $None$
-tag. For example, consider the predicate $x + b*y > a$ where $a$ and $b$ are local variables with values $11$ and $2$.
-We first use the globalization to convert it to $(x+2*y > 11)$ and is
-represented by the tag $(Threshold,\ x + 2*y,\ 11,\ >)$. The formal definition of
+tag. For example, consider the $Threshold$ predicate $x + b > 2y + a$ where $a$ 
+and $b$ are local variables with values $11$ and $2$.
+We first use the globalization to convert it to $(x - 2y > 9)$, which is
+represented by the tag $(Threshold,\ x - 2y,\ 9,\ >)$. The formal definition of
 tag is as follows. 
 \begin{definition}
    A tag is a four-tuple $(M,\ expr,\ key,\ op)$, where  
    \begin{itemize}
       \item $M \in \{Equivalence,\ Threshold,\ None\}$;
-      \item $expr$ is a general expression after applying globalization if 
+      \item $expr$ is a shared expression if 
           $M \in \{Equivalence,\ Threshold\}$; otherwise, $expr= \perp$;
       \item $key$ is the value of a local expression after applying
           globalization if $M \in \{Equivalence,\ Threshold\}$; otherwise, 
@@ -926,13 +928,14 @@ We say that a tag is true (false) if the predicate representing the tag is
 true (false).
  
 \subsubsection{Predicate tagging}
-Tags are given to every predicate by the algorithm shown in
-Fig.~\ref{fig:tagging}. A tag is assigned to every conjunction. The tags of 
+A tag is assigned to every conjunction. The tags of 
 conjunctions of a predicate constitute the set of tags of the predicate. 
+Tags are given to every predicate by the algorithm shown in
+Fig.~\ref{fig:tagging}. 
 When assigning a tag to a conjunction, the equivalence tag has the highest 
 priority. The reason is that the set of values to make an equivalence predicate
 true is smaller than the set of values to make a threshold predicate true. The equivalence predicate is true 
-only when its general expression equals a specific value. 
+only when its shared expression equals a specific value. 
 For example, consider an equivalence 
 predicate $x = 8$ and a threshold predicate $x > 3$. The predicate $x = 8$ is true only when 
 the value of $x$ is $8$, whereas $x > 3$ is true for a much larger set of values.
@@ -951,16 +954,13 @@ to the conjunction; otherwise, the conjunction has a $None$ tag.
             framesep=3mm]
          tags = empty
          foreach conjunction c 
-           if c contains an equivalence predicate ge=le
-             tag t = (Equivalence, globalization(ge), 
-                 globalization(le), null)
-             add t to tags
-           else if c contains a threshold predicate ge op le
-             tag t = (Threshold, globalization(ge), 
-                 globalization(le), op)
-             add t to tags
+           if c contains an equivalence predicate se=le
+             tag t = (Equivalence, se, globalization(le), null)
+           else if c contains a threshold predicate se op le
+             tag t = (Threshold, se, globalization(le), op)
            else 
-             add (None, null, null, null) to tags
+             tag t = (None, null, null, null) 
+           add t to tags 
          return tags
     \end{Verbatim}
   \caption{Predicate Tagging}
@@ -985,30 +985,32 @@ searching process since we need to check both the tags.
 %Hence, we create only one 
 %tag for each conjunction.
  
-
+Note that multiple predicates with a shared conjunct may share a tag. For example,
+the predicates $(x=5) \wedge (z \leq 4)$ and $(x=5) \wedge (y \geq 4)$ would have a shared equivalence tag
+of $(x=5)$.
 
 \subsubsection{Tag signaling}
-Signaling mechanism is based on tags in AutoSynch. 
+Signaling mechanism is based on tags in {\em AutoSynch}. 
 Since the equivalence tag is more efficient in pruning the search space than the threshold tag, the
 predicates with equivalence are checked prior to the predicates with other 
 tags. If no predicate that is true can be found after checking $Equivalence$ 
 tags and $Threshold$ tags, our algorithm does the exhaustive search for the 
 predicates with $None$ tags. 
 
-\paragraph{Equivalence tag signaling}
-Observes that, an equivalence predicate becomes true only when its general
+\paragraph{Equivalence tag signaling:}
+Observes that, an equivalence predicate becomes true only when its shared 
 expression equals the specific value of its local expression after applying
-{\em globalization}. For distinct equivalence tags related to a same general 
+{\em globalization}. For distinct equivalence tags related to a same shared 
 expression, at most one tag can be true at a time because the value of its
 local expression is deterministic and unique at any time. By 
 observing the value of its local expression, the appropriate tag can be 
 identified. For example, suppose there are three $Equivalence$ tags for
 predicates $x = 3$, $x = 6$, and $x = 8$. We examine $x$ and find that
 its value is $8$. Then we know that only the third predicate $x = 8$ is true. Based on this 
-observation, for each unique general expression of an equivalence tag, we 
+observation, for each unique shared expression of an equivalence tag, we 
 create a hash table, where the value of the local expression is used as the 
 key. By using this 
-hash table and evaluating the general predicate at runtime, we can find a
+hash table and evaluating the shared expression at runtime, we can find a
 tag that is true in $O(1)$ time if there is any. Then we check the predicates 
 with the tag. 
 
@@ -1021,7 +1023,7 @@ with the tag.
 %a linked list. By checking the first two predicates of the 
 %linked list, at least one predicate is true. 
 
-\paragraph{Threshold tag signaling}
+\paragraph{Threshold tag signaling:}
 Consider the following example. Suppose there are two 
 predicates, $x > 5$ and $x > 3$. We know that if $x > 3$ is false, then 
 $x > 5$ cannot be true. Hence, we only need to check the predicate with the 
@@ -1030,7 +1032,7 @@ consider the predicates with the same local expression value but different
 operations, $x > 3$ and $x \ge 3$. The predicate $x > 3$ cannot be true when 
 $x \ge 3$ is false; i.e., we only need to check the predicate $x \ge 3$. We use
 a min-heap data structure for storing the threshold tags related to a same 
-general expression with $\boldsymbol{op} \in \{>, \ge\}$. If two predicates 
+shared expression with $\boldsymbol{op} \in \{>, \ge\}$. If two predicates 
 have the same local expression value but different operations, then the predicate 
 with $\ge$ is considered to have a smaller value than the 
 predicate with $>$ in the min-heap.
@@ -1054,29 +1056,41 @@ Similarly, the max-heap can be used for threshold tags with $\boldsymbol{op}
 %(<, \le)$. 
 %\end{definition}
 
-The signaling mechanism for threshold tag is shown if Fig.~\ref{fig:th_sig}. In
+The signaling mechanism for $Threshold$ tag is shown if Fig.~\ref{fig:th_sig}. In
 general, the tag in the root of a heap is checked. If the tag is false, all the
 descendant nodes are also false. Otherwise, all predicates with the tag
 need to be checked for finding a true predicate. To maintain the correctness, 
 if no predicate is true, the tag is removed from the heap temporarily. Then the
-tag in the new root is checked again until a true predicate is found or a
+tag in the position of the new heap root is checked again until a true predicate is found or a
 false tag is found. Those tags removed temporarily are reinserted to the heap.
-The reason to remove the tags is that the descendant of the tags may also be
-true since the tags are true. So we also need to check the descendant tags.
+The reason to remove the tags is that the descendants of the tags may also be
+true since the tags are true. So we also need to check the descendant tags. For
+example, consider the predicates $P_1: (x \ge 5) \wedge (y \ne 1)$ and 
+$P_2: (x > 7)$. $P_1$ has the tag $Q_1: (Threshold,\ x,\ 5,\ \ge)$ and $P_2$
+has the tag $Q_2: (Threshold,\ x,\ 7,\ >)$. $Q_1$ is the root and $Q_2$ is its
+descendant. Suppose at some instant time $x=3$, then $Q_1$ is false; thus, there is no
+need to check $Q_2$. Now, suppose $x = 9$ and $y = 1$, then $Q_1$ is true. We
+check all predicates have tag $Q_1$.  Since $P_1$ is false, no predicate has
+tag $Q_1$ is true. Then $Q_1$ is removed form the heap temporarily. We find the
+new root $Q_2$ is true and $P_2$ that having tag $Q_2$ is also true. We signal 
+a thread waiting for $P_2$ and then add $Q_1$ back to the heap. 
+
 \begin{figure}[ht!]
     \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
             framesep=3mm]
+         // peak(): retrieve but does not remvoe the root of the heap 
+         // poll(): retrieve and remove the root of the heap
          list backup = empty;
-         tag t = heap.peak();
+         tag t = heap.peek();
          while t is true
             foreach predicate p with t
                if p is true
-                  signal p
+                  signal a thread waiting on p
                   foreach b in backup 
                      heap.add(b)
-                  return
-            backup.insert(heap.pool())
-            t = heap.peak()
+                  return 
+            backup.insert(heap.poll())
+            t = heap.peek()
          foreach b in backup 
             heap.add(b)
     \end{Verbatim}
@@ -1085,106 +1099,121 @@ true since the tags are true. So we also need to check the descendant tags.
 \end{figure}
 
 
-Suppose there are $n$ $Threshold$ tags for a general expression with different 
-keys. Suppose that these tags are assigned to $m$ predicates. The computation
-complexity for maintaining the heap is $O(n\ ln(n))$ since each $insert$ 
-operation takes $ln(n)$. However, the performance is generally much better because we only
-need to check the predicates of the tags in the root in the most cases; finding
-a root takes $O(1)$. The worst case is that we need to check all predicates;
-thus, the computation complexity is $O(n\ ln(n) + m)$. However, this situation
-is very rare. 
+Suppose there are $n$ $Threshold$ tags for a shared expression with different 
+keys. Suppose that these tags are assigned to $m$ predicates. The time 
+complexity for maintaining the heap is $O(n\ \log(n))$ 
+However, the performance is generally much better because we only
+need to check the predicates of the tags in the root position in the most
+cases. The time complexity for finding the root is $O(1)$. In the worst case, 
+we need to check all predicates; thus, the time complexity is $O(n\ \log(n) + m)$. 
+However, this situation is rare. Furthermore, this algorithm is optimized for
+evaluating threshold predicates by sacrificing performance in tag management.  
 
-\section{AutoSynch implementation} \label{sec:imp}
-The AutoSynch implementation involves two parts, the preprocessor and the Java
-library of our condition manager. We built the preprocessor using JavaCC
-\cite{kod04}. The preprocessor translates an AutoSynch code to a Java code. Our
-signal-mechanism is implemented in the condition manager library. 
-The condition manager creates condition variables and maintains the association 
+
+\section{{\em AutoSynch} implementation} \label{sec:imp}
+The {\em AutoSynch} implementation involves two parts, the preprocessor and the Java
+library of condition manager. The preprocessor,  built using JavaCC
+\cite{kod04}, translates  {\em AutoSynch} code to Java code. Our
+signal-mechanism is implemented in the 
+the condition manager library which creates condition variables, and maintains the association 
 between predicates and condition variables. Furthermore, predicate tags are 
-also maintained by the condition mangers. It is the responsibility of this
+also maintained by the condition managers. It is the responsibility of the
 condition manager to decide which thread should be signaled. 
+
 \subsection{Preprocessor}
-The preprocessor of AutoSynch performs preprocessing in the following four 
-parts:
-\begin{enumerate}
-  \item Monitor-constructor: the constructor of the monitor class, including 
-    definitions and declarations of additional variables to provide mutual 
-    exclusion and synchronization of monitor. 
-  \item Monitor-function entry: executed before each member function, 
-    involving declarations of additional variables and code to maintain
-    mutual exclusion of monitor. 
-  \item Monitor-waituntil statement: including declarations of additional
-    variables and signal/await statements to implement the waituntil.
-  \item Monitor-function exit: executed before the return statement of 
-    each member function, involving code to invariance mutual exclusion and 
-    synchronization of monitor. 
-\end{enumerate}
+The {\em AutoSynch} class provides both mutual exclusion and conditional
+synchronization. To maintain these two properties, our preprocessor adds some 
+additional variables for any {\em AutoSynch} class. Fig.~\ref{fig:pre_cnst} 
+summarizes the definitions of additional variables in the
+constructor of an {\em AutoSynch} class. The lock 
+variable, $mutex$, is declared for mutual exclusion, which is acquired at the 
+beginning of every member function and released before the return statement.
+In addition, a condition manager, $condMgr$, is declared for synchronization. 
+The details of the condition manager are discussed in the next
+section.  
+
+
 \begin{figure}[ht!]
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
-            framesep=3mm,label=\fbox{\small\emph{Constructor}}]
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
+            framesep=3mm]
         Lock mutex
         ConditionManager condMgr 
         foreach shared predicate P
-          condMgr.addSharedPredicate(P)
+          tags = AnalyzePredicate(toDNF(P))
+          condMgr.registerSharedPredicate(P, tags)
+        foreach shared expression E
+          condMgr.registerSharedExpression(E)
     \end{Verbatim}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
-            framesep=3mm,label=\fbox{\small\emph{Entry}}]
-        lock mutex
-    \end{Verbatim}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=topline,
-            framesep=3mm,label=\fbox{\small\emph{Waituntil(P)}}]
-        if P is false 
-          if P is a general predicate 
-            P := Globalization(P)
-            if P is not in condMgr
-              condMgr.addGeneralPredicate(P)
-              
-          C = condMgr.getCondition(P)
-        
-          condMgr.signalOneAvailable()
-          do 
-            wait C
-          while P is false
-       
-          if P is general predicate and C has no waiter
-            condMgr.inactive(P) 
-    \end{Verbatim}
-    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
-            framesep=3mm,label=\fbox{\small\emph{Exit}}]
-        condMgr.signalOneAvailable() 
-        unlock mutex
-    \end{Verbatim}
-  \caption{Preprocessing of AutoSynch}
-  \label{fig:prep}
+  \caption{The additional variables for an {\em AutoSynch} class}
+  \label{fig:pre_cnst}
 \end{figure}  
 
-Fig.~\ref{fig:prep} summarizes the preprocessing of AutoSynch. One lock 
-variable, $mutex$, is declared for mutual exclusion, which is acquired at the 
-beginning of every member function and released before the return statement.
-In addition, a condition manager, $condMgr$, is declared for 
-synchronization. The details of the condition manager will be discussed in next
-section.  
+All predicates are transformed to DNF in the preprocessing process by De Morgan's laws and 
+distributive law. Then we analyze predicates to derive their tags. The condition 
+manager registers the predicates and shared expressions for predicate 
+evaluation. 
+The shared 
+predicates and shared expressions are identified in the preprocessing stage and added 
+in the constructor of the class as in Fig.~\ref{fig:pre_cnst}. We add shared
+predicates and shared expressions (but not complex predicates) in the construct because their semantics is
+static and never changes. A complex predicate is registered dynamically
+because its globalization may change according to the value of its local variables at
+runtime. In Java, the shared 
+predicates and shared expressions are created as inner classes that can access
+the shared variables appearing in them with
+$isTrue()$ or $getValue()$ functions for the condition manager to evaluate.
+The function $isTrue()$ returns the evaluation of the shared predicate and
+the function $getValue()$ returns the value of the shared expression.
 
-All predicates are transformed to DNF in
-preprocessing by De Morgan's laws and distributive law. All shared
-predicates are identified in the preprocessing and added in the constructor. 
+
+For every member function of an {\em AutoSynch} class, the {\em mutex.lock()} and
+{\em mutex.unlock()} are inserted at the beginning of the function and immediately before
+the {\em return} statement, respectively.
+% Note that, if a $return$ statement does not return an
+%object directly but makes a function call, then we need an additional variable $ret$ 
+%for storing the return value of the call before $mutex.unlock()$. The $ret$ is
+%then returned.
+%  
 
 %The predicate evaluation can be achieved through creating a class that can 
 %access the shared variables and the constant variables representing the local 
 %variable at runtime in the predicate. A $isTrue()$ function  
 
-In the waituntil statement, the predicate is checked initially. If 
-the is true, then the thread can continue. Otherwise, the type of
-predicate is checked. If the predicate is general, applying globalization to 
-the predicate derives a new predicate. Then we query the condition manager 
-whether the derived predicate has been added. If not, we add the 
-predicate to the condition manager. Then the corresponding condition variable
-can be obtained by calling $getCondition$ function of condition manager. The
-$signalOneAvailable$ function provides relay invariance and signal an
-appropriate thread. Then the thread goes into the waiting state until the
-predicate becomes true. After exiting waiting state, if the predicate is
-general predicate and the corresponding condition has no other waiting thread,
-then the predicate is inactivated by the condition manager.
+In the {\em waituntil} statement, the predicate is checked initially. If 
+it is true, then the thread can continue. Otherwise, the type of
+predicate is checked. If the predicate is complex, then we apply globalization 
+to it for deriving a new shared predicate. Then we query the condition manager 
+to determine
+whether the derived predicate has been added earlier. If not, we add the 
+predicate with its tags to the condition manager. Then, the corresponding 
+condition variable can be obtained by calling {\em getCondition()} function of the
+condition manager. The {\em relaySignal()} function maintains relay invariance 
+and signals an appropriate thread. Then, the thread goes into the waiting state 
+until the predicate becomes true. After exiting the waiting state, if the 
+predicate is complex and the corresponding condition has no other 
+waiting thread, then it is deactivated by the condition manager.
+
+\begin{figure}[ht!]
+    \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
+            framesep=3mm]
+        if P is false 
+          if P is a complex predicate 
+            P := Globalization(toDNF(P))
+            if P is not in condMgr
+              tags = AnalyzePredicate(P)
+              condMgr.registerComplexPredicate(P, tags)
+          C = condMgr.getCondition(P)
+          do 
+            condMgr.relaySignal()
+            wait C
+          while P is false
+          if P is complex predicate and C has no waiting thread
+            condMgr.inactive(P) 
+    \end{Verbatim}
+    \caption{Preprocessing for a {\em waituntil(P)} statement}
+  \label{fig:prep}
+\end{figure}  
+
 
 %\subsection{Map-Condition}
 %The map-condition predicate uses the data structure map to store pairs of 
@@ -1207,31 +1236,29 @@ then the predicate is inactivated by the condition manager.
 %
 
 
-\subsection{AutoSynch Java library: condition manager}
+\subsection{{\em AutoSynch} Java library: condition manager}
 The condition manager maintains the predicates and condition variables, and
-provides the signaling mechanism. 
-
-To avoid creating redundant predicates and condition variables, predicates that have 
-the same meaning should be mapped to the same condition variable. Two 
-predicates are syntax equivalent if they 
-are identical after applying globalization. Predicate table, implemented by a
+provides the signaling mechanism. To avoid creating redundant predicates and 
+condition variables, predicates that have the same meaning should be mapped to 
+the same condition variable. Two predicates are syntax equivalent if they 
+are identical after applying globalization. A predicate table, implemented by a
 hash table, records predicates and their associated condition variables. 
 
 \begin{figure*}[ht!]
   \centering
   \includegraphics[width=180mm]{fig/manager.eps}
-  \caption{A example of the condition manager in AutoSynch}
+  \caption{A example of the condition manager in {\em AutoSynch}}
   \label{fig:mgr}
 \end{figure*}
 
 
-When a predicate is added to the condition manager, the predicate is analyzed
-and its tags are created and stored in an appropriate data structure. 
+When a predicate is added to the condition manager, 
+its tags are stored in an appropriate data structure depending upon the type of its tag.
 Fig.~\ref{fig:mgr} shows an example. The symbol $\bullet$ indicates 
-a condition variable. The gray blank indicate the predicate is inactive,
+a condition variable. The gray blank indicates that the predicate is inactive,
 that is, no thread waits on it. A hash table is used for
-storing equivalence tags with the general expression $x$. In addition, 
-a min-heap and a max-heap are used for threshold tags. 
+storing equivalence tags with the shared expression $x$. In addition, 
+a min-heap and a max-heap are used for storing threshold tags. 
 
 %\begin{definition}
 %    A predicate is inactive if there is no thread waiting on it. Otherwise, we
@@ -1239,31 +1266,37 @@ a min-heap and a max-heap are used for threshold tags.
 %\end{definition}
 
 
-For finding a predicate that is true in Fig.~\ref{fig:mgr}, the value of $x$ is 
-examined. Suppose at this point $x=4$. We check the hash table with a
-constant time and cannot find a tag that is true. Then we check the root of 
-the max-heap and min-heap. Again, we find that both tags in the roots are
-false. Then we search for the predicates with the $None$ tag exhaustively. We 
-find $x \ne 5$ and signal the corresponding condition variable. As can
-be expected, the equivalence and threshold tags is helpful for searching a 
-predicate that is true.   
-
+For finding a predicate that is true in Fig.~\ref{fig:mgr}, the value of the
+shared expression $x$ is evaluated. We first check the hash table 
+(with $O(1)$ time complexity) using the value of the shared expression as the
+key. If we find a tag in the hash table, then we evaluate predicates that have
+the tag. If there exists a predicate is true, then we signal its corresponding 
+condition 
+variable. Otherwise, we check the max-heap and the min-heap. If we find that 
+both tags in the roots are false, we search for the predicates with the $None$ 
+tag exhaustively. If one of these predicates are true
+we signal the corresponding condition variable. As can
+be expected, the equivalence and threshold tags are helpful for searching 
+predicates that are true.   
 
 A predicate must be removed from the tag once no thread waits on 
 it to avoid unnecessary predicate evaluation. A threshold tag also needs to be
-removed once it has no predicate. The reason is that 
-we signal the root of the threshold predicate, an empty root 
-will introduce overhead to find the next tag. 
+removed once it has no predicate. 
+%The reason is that 
+%we signal the root of the threshold predicate as in Fig.~\ref{fig:th_sig}, an 
+%empty root will introduce overhead for searching a tag. 
 
 Predicates may be reused. Instead  of removing those predicate with no waiting
 thread, 
-we move those predicate to an inactivate list. If they are used later, then we 
-put them back. Otherwise, when the length of inactivate list exceeds some 
-threshold, we remove the oldest predicates from the list.
+we move those predicate to an inactive list. If they are used later, then we 
+remove them from the inactive list. Otherwise, when the length of the inactive list exceeds some 
+predefined threshold, we remove the oldest predicates from the list. Note that, the shared
+predicates are never removed since they are static and are added only at the
+constructor. 
 %\clearpage
 
 
-\section{Evaluations} \label{sec:eval}
+\section{Evaluation} \label{sec:eval}
 %\subsection{Saturation}
 \subsection{Environment}
 All of the experiments were conducted on a machine with 16 
@@ -1278,38 +1311,39 @@ Four implementations using different signaling mechanisms have been
 compared. 
 \begin{description}
     \item[Explicit-signal] Using the original Java explicit-signal mechanism. 
-    \item[AutoSynch] Using the approach described in this paper. 
-    \item[AutoSynch-T] Using the approach described in this paper but excluding
+    \item[{\em AutoSynch}] Using the approach described in this paper. 
+    \item[{\em AutoSynch-T}] Using the approach described in this paper but excluding
         predicate tagging. 
     \item[Baseline] Using the automatic-signal mechanism relying on only
-        one condition variable. It calls $signalAll$ all the time to check the
+        one condition variable. It calls {\em signalAll} all the time to check the
         predicates.
 \end{description}
 
 \subsection{Test problems}
 \begin{description}
-    \item[Producer-Consumer (PC)] The traditional producer-consumer shown in 
-        Fig.~\ref{fig:bb_exp}.
-    \item[Producer-Consumer* (PC*)] The producer-consumer* problem shown in
-        Fig.~\ref{fig:bb_exp}. 
+    \item[Pounded-buffer(BB)] The traditional producer-consumer, can be reduced
+        from the parameterized bounded-buffer in Fig.~\ref{fig:bb_exp} by
+        assuming $num = 1$ when $put()$ and $take()$ are called. 
+    \item[Parameterized bounded-buffer (PBB)] The parameterized bounded-buffer 
+        problem shown in Fig.~\ref{fig:bb_exp}. 
     \item[Round-Robin Access Pattern (RR)] Every test thread accesses the
         monitor in round-robin order. 
-    \item[Readers/Writers (RW)\cite{chp71}] The first approach is not FIFO
-        \cite{bh75b}. In the approach \cite{bh05}, a ticket is used
+    \item[Readers/Writers (RW)\cite{chp71}] 
+    %The first approach is not FIFO \cite{bh75b}. 
+    We use the approach given in \cite{bh05}, where a ticket is used
         to maintain the accessing order of readers and writers. Every reader
-        and writer get a ticket number indicating its arrival order. Readers
-        and writers are waiting on the monitor for their turn. Our experiments
-        are based on this approach. 
-\end{description}
+        and writer gets a ticket number indicating its arrival order. Readers
+        and writers wait on the monitor for their turn. \end{description}
 
-Tab.~\ref{tab:complexity} summarizes the computing complexity for maintaining 
+Table~\ref{tab:complexity} summarizes the computing complexity for maintaining 
 condition variable and deciding which thread should be signaled. The column $C$
 indicates the computing complexity for maintaining condition variable, while 
 the column $S$ indicates the computing complexity for deciding which condition 
-variable should be signaled. Note that, for producer-consumer* problem, it
-takes $O(ln(n))$ to maintain the condition variable in $AutoSync$. The reason 
+variable should be signaled. Note that, for parameterized bounded-buffer 
+problem, it takes $O(\log(n))$ to maintain the condition variable in 
+$AutoSync$. The reason 
 is that we use heap as underlying data structure for threshold predicates. The 
-computing complexity of add and remove operations is $O(ln(n))$.
+computing complexity of add and remove operations is $O(\log(n))$.
 
 \begin{table*}[ht!]
    \centering
@@ -1327,14 +1361,15 @@ computing complexity of add and remove operations is $O(ln(n))$.
       baseline & $O(1)$ & $O(n^2)$ & $O(1)$ & $O(n^2)$ & $O(1)$ & $O(n^2)$ &
       $O(1)$ & $O(n^2)$ \\
       \hline 
-      AutoSynch-T & $O(1)$ & $O(1)$ & $O(1)$ & $O(n)$ & $O(1)$ & $O(n)$ & $O(1)$ 
+      {\em  AutoSynch-T} & $O(1)$ & $O(1)$ & $O(1)$ & $O(n)$ & $O(1)$ & $O(n)$ & $O(1)$ 
       & $O(n)$ \\
       \hline 
-      AutoSynch & $O(1)$ & $O(1)$ & $O(ln(n))$ & $O(1)$ & $O(1)$ & $O(1)$ & 
+      {\em AutoSynch} & $O(1)$ & $O(1)$ & $O(\log(n))$ & $O(1)$ & $O(1)$ & $O(1)$ & 
       $O(1)$ & $O(1)$\\
       \hline 
    \end{tabular}
-   \caption{The computing complexity}
+   \caption{The time complexity for registering a predicate (column C) and signaling a thread when the condition becomes true
+   (column S).}
    \label{tab:complexity}
 \end{table*}
 
@@ -1343,7 +1378,7 @@ computing complexity of add and remove operations is $O(ln(n))$.
    \begin{tabular}{|c||c|c||c|c||c|c||c|c|c|c|c|}
       \hline 
       & \multicolumn{2}{c||}{await} & \multicolumn{2}{c||}{lock} & 
-        \multicolumn{2}{c||}{signalOne} & \multicolumn{2}{c|}{Tag Mger} &
+        \multicolumn{2}{c||}{relaySignal} & \multicolumn{2}{c|}{Tag Mger} &
         \multicolumn{2}{c|}{others} & total \\
       \hline
          & T & \% & T & \% & T & \% & T & \% & T & \% & T \\
@@ -1352,10 +1387,10 @@ computing complexity of add and remove operations is $O(ln(n))$.
       explicit & $21365$ & $99.7\%$ & $28$ & $0.15\%$ & $NA$ & $NA$ & $NA$ &
       $NA$  & $28$ & $0.15\%$ & $21433$ \\
       \hline 
-      AutoSynch-T & $410377$ & $98.5\%$ & $3140$ & $0.7\%$ & $2108$ & $0.5\%$
+      {\em AutoSynch-T} & $410377$ & $98.5\%$ & $3140$ & $0.7\%$ & $2108$ & $0.5\%$
       & $NA$ & $NA$ & $1033$ & $0.2\%$ & $416658$\\
       \hline 
-      AutoSynch & $96754$ & $98.8\%$ & $812$ & $0.8\%$ & $112$ & $0.1\%$ & 
+      {\em AutoSynch} & $96754$ & $98.8\%$ & $812$ & $0.8\%$ & $112$ & $0.1\%$ & 
       $124$ & $0.1\%$ & $148$ & $0.02\%$ & $21433$\\
       \hline 
    \end{tabular}
@@ -1384,16 +1419,16 @@ computing complexity of add and remove operations is $O(ln(n))$.
 \subsection{Experimental results}
 
 
-Fig.~\ref{fig:pc_eval} shows the results of producer-consumer problem. The 
+Fig.~\ref{fig:pc_eval} shows the results of the producer-consumer problem. The 
 x-axis indicates the number of producers and consumers; the y-axis indicates 
 the runtime in milliseconds. Total 
-512000 $put$ and $take$ operations were executed by
+512,000 $put$ and $take$ operations were executed by
 all producers and consumers. As expected, the baseline is much slower than
 other three signaling mechanisms, which have similar performance. This 
-phenomenon can be explained as follows. There are only two waituntil statements 
+phenomenon can be explained as follows. There are only two {\em waituntil} statements 
 with global predicates, $count > 0$ and $count < items.length$. Therefore, the 
-complexity for signaling a thread in AutoSynch and AutoSynch-T are also constant. 
-Hence, both AutoSynch and AutoSynch-T are as efficient as explicit-signal 
+complexity for signaling a thread in {\em AutoSynch} and {\em AutoSynch-T} is also constant. 
+Hence, both {\em AutoSynch} and {\em AutoSynch-T} are as efficient as the explicit-signal 
 mechanism. 
 
 \begin{figure}[ht!]
@@ -1403,45 +1438,49 @@ mechanism.
   \label{fig:pc_eval}
 \end{figure}
 
-Fig.~\ref{fig:rpc_eval} shows the results of producer-consumer* problem. Total
-512000 items are $put$ and then $taken$. The x-axis indicates the number of 
+Fig.~\ref{fig:rpc_eval} shows the results of the parameterized bounded-buffer 
+problem. Total
+512,000 items are $put$ and then $taken$. The x-axis indicates the number of 
 consumers; the y-axis indicates the runtime in milliseconds. Only one producer
 was in this experiment. The producer put a item into the buffer a time. A 
 consumer randomly take $b/2$ to $b$ items a time, where $b = 128$ is the size of 
-the buffer. Fig.~\ref{fig:rpc_eval} indicates that AutoSynch and AutoSynch-T are
+the buffer. Fig.~\ref{fig:rpc_eval} indicates that {\em AutoSynch} and {\em
+AutoSynch-T} are
 much faster than the baseline and the explicit-signal mechanism. The reason is
 that both explicit-signal mechanism and baseline use signallAll calls. In this
 experiment setup, many unnecessary context switches were introduced since a
 consumer takes a large amount of items a time but the producer only puts one
-item a time. Both AutoSynch and AutoSynch-T are similar in
+item a time. Both {\em AutoSynch} and {\em AutoSynch-T} are similar in
 Fig.~\ref{fig:rpc_eval} due to the scaling. We compare them in
-Fig.~\ref{fig:rpch_eval}. As can be seen, the AutoSynch has a consistent
-performance even when the number of producers increases. Although AutoSynch-T has
+Fig.~\ref{fig:rpch_eval}. As can be seen, the {\em AutoSynch} has a consistent
+performance even when the number of producers increases. Although {\em
+AutoSynch-T} has
 slightly better performance when the number of producers is small; its 
 performance decrease significantly as the number of producers increases. It can
-be explained as follows. AutoSynch has some computing overhead in maintaining 
+be explained as follows. {\em AutoSynch} has some computing overhead in maintaining 
 tags and predicates. When the number of producers is small, the benefit of
-predicate tagging is less than the computing overhead. However, AutoSynch is
+predicate tagging is less than the computing overhead. However, {\em AutoSynch} is
 much more scalable with this slight performance sacrifice.
 
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/rpc.eps}
-  \caption{The results of producer-consumer* problem}
+  \caption{The results of the parameterized bounded-buffer problem}
   \label{fig:rpc_eval}
 \end{figure}
 
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=80mm]{fig/csrpc.eps}
-  \caption{The number of context switches of producer-consumer* problem}
+  \caption{The number of context switches of the parametrized bounded-buffer 
+  problem}
   \label{fig:csrpc_eval}
 \end{figure}
 
 %\begin{figure}[ht!]
 %  \centering
 %  \includegraphics[width=80mm]{fig/rpch.eps}
-%  \caption{The results of producer-consumer* problem comparing AutoSynch and
+%  \caption{The results of producer-consumer* problem comparing {\em AutoSynch} and
 %  AutoSynch-T}
 %  \label{fig:rpch_eval}
 %\end{figure}
@@ -1469,7 +1508,7 @@ much more scalable with this slight performance sacrifice.
 %has the similar results. The implementations of Naive and N-condition are as 
 %efficient as the implementation of explicit signal monitor. 
 %
-Fig.~\ref{fig:rr_eval} shows the results of round-robin access pattern. The
+Fig.~\ref{fig:rr_eval} shows the results of the round-robin access pattern. The
 x-axis indicates the number of threads; the y-axis indicates the
 runtime in milliseconds. In this set of experiments, threads are allowed to enter a
 monitor in round-robin scheduling. Total 128000 operations were performed on 
@@ -1479,10 +1518,10 @@ monitor. Since the baseline is around 50 times slower than the explicit-signal
 mechanism, the result of baseline is not plotted in Fig.~\ref{fig:rr_eval} due
 to the scaling issues. 
 As can be seen, the performance of explicit-signal mechanism is steady 
-as the number of thread increases. In comparison with AutoSynch-T, the runtime 
-increases significantly as the number of thread increase. For AutoSynch, the 
+as the number of thread increases. In comparison with {\em AutoSynch-T}, the runtime 
+increases significantly as the number of thread increase. For {\em AutoSynch}, the 
 performance is slower than the explicit-signal mechanism between 2.3 to 2.4
-times. However, the performance of AutoSynch does not decrease as the number of
+times. However, the performance of {\em AutoSynch} does not decrease as the number of
 threads increases. 
 
 \begin{figure}[ht!]
@@ -1547,7 +1586,7 @@ threads increases.
 %as the number of thread increases. In comparison with AutoSynch-T, the runtime 
 %increases significantly as the number of thread increase. For AutoSynch, the 
 %performance is slower than the explicit-signal mechanism between 2.3 to 2.4
-%times. However, the performance of AutoSynch does not decrease as the number of
+%times. However, the performance of {\em AutoSynch} does not decrease as the number of
 %threads increases. 
 
 Fig.~\ref{fig:rw_eval} shows the results of readers/writers problem. The
@@ -1556,12 +1595,12 @@ runtime in milliseconds. The ratio of the number of writers to the number of
 readers is fixed at 1 to 5 in all cases. Total 128000 write/read operations are
 performed by each writer and reader. Note that, multiple readers can perform
 their read operations simultaneously; therefore, the performance may increases
-as the number of readers increases. In comparison with AutoSynch-T, the
-performance of AutoSynch-T is better than AutoSynch when the numbers of writers
-and readers are small. The runtime of AutoSynch-T increases significantly as 
-the number of thread increases. AutoSynch outperformed AutoSynch-T when the
+as the number of readers increases. In comparison with {\em AutoSynch-T}, the
+performance of {\em AutoSynch-T} is better than {\em AutoSynch} when the numbers of writers
+and readers are small. The runtime of {\em AutoSynch-T} increases significantly as 
+the number of thread increases. {\em AutoSynch} outperformed {\em AutoSynch-T} when the
 numbers of writers and readers are greater than 16 and 80 respectively. For 
-AutoSynch, the performance is slower than the explicit-signal mechanism between 
+{\em AutoSynch}, the performance is slower than the explicit-signal mechanism between 
 1.5 to 1.8 times.
 
 
@@ -1614,31 +1653,26 @@ AutoSynch, the performance is slower than the explicit-signal mechanism between
 
 
 \section{Conclusion} \label{sec:conclu}
-In this paper, we propose AutoSynch framework that supports 
-automatic-signal mechanism with $AutoSynch$ class and $waituntil$ statement.
-AutoSynch uses the {\em globalization} operation to enable the general predicate 
+In this paper, we propose {\em AutoSynch} framework that supports 
+automatic-signal mechanism with {\em AutoSynch} class and {\em waituntil} statement.
+{\em AutoSynch} uses the {\em globalization} operation to enable the complex predicate 
 evaluation in every thread. Next, it provides {\em relay invariance} that some
-thread waiting for a condition has met is always signaled to avoid $signalAll$
-calls. AutoSynch also uses predicate tag to accelerate the process in deciding
+thread waiting for a condition has met is always signaled to avoid {\em signalAll}
+calls. {\em AutoSynch} also uses predicate tag to accelerate the process in deciding
 which thread should be signaled. 
 
-To evaluate the effectiveness of AutoSynch, we built a prototype implementation
-using JavaCC \cite{kod04}, Java Compiler Compiler,  and applied it to four
+To evaluate the effectiveness of {\em AutoSynch}, we built a prototype implementation
+using JavaCC \cite{kod04}, Java Compiler Compiler,  and applied it to many
 conditional synchronization problems. The experimental results indicate that 
-AutoSynch implementations of these problems perform significantly better than
-other automatic-signal monitor. Even though AutoSynch is around 2.3 times 
-slower than the explicit in the worse case of our experiments, AutoSynch is
-around 288 times faster than the explicit-signal in the bounded-buffer* problem 
-that relies on $signalAll$ calls. 
+{\em AutoSynch} implementations of these problems perform significantly better than
+other automatic-signal monitor. Even though {\em AutoSynch} is around 2.3 times 
+slower than the explicit in the worse case of our experiments, {\em AutoSynch} is
+around 31 times faster than the explicit-signal in the parameterized 
+bounded-buffer problem that relies on {\em signalAll} calls. 
 
 In the future, we plan to optimize our framework through using the architecture
 information. For example, we can get the number of cores of a machine, and
-then limit the number of executing threads to avoid unnecessary competition by
-using this information. Another area for future work is relaxing the mutual
-exclusion when we perform predicate evaluations of $waituntil$ statements. Let
-multiple threads evaluate predicate simultaneously may increase the
-performance. 
-
+then limit the number of executing threads to avoid unnecessary contention.
 % use section* for acknowledgement
 
 

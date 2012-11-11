@@ -1,18 +1,17 @@
 {
   "exp_info": {
-    "name": "SleepingBarber",
-    "main_class": "examples.SleepingBarber.TestSleepingBarber",
+    "name": "SyncRoom",
+    "main_class": "examples.SyncRoom.TestSyncRoom",
     "main_dir": "../build",
     "result_base_dir": "results",
-    "num_times": 20,
+    "num_times": 10,
     "params_order": [
-      "num_seat", "monitor_type", "num_barber", "num_consumers", 
-      "num_tasks"
+      "monitor_type", "num_proc", "num_task", "num_room" 
     ],
     "output_order": [
       "runtime"
     ],
-    "group_by": "num_consumers",
+    "group_by": "num_proc",
     "stat_by": "monitor_type"
   },
   "fig_setup": {
@@ -20,16 +19,13 @@
     "fig_data": [
         {
             "source": "runtime",
-            "name": "SleepingBarber"
+            "name": "SyncRoom"
         }
     ]
   },
   "exp_params": {
-    "num_seat": [
-        16
-    ],
-    "num_tasks": [ 
-      51200
+    "num_task": [ 
+      5120
     ],
     "monitor_type": [
       "explicit",
@@ -37,11 +33,11 @@
       "tag",
       "naive"
     ],
-    "num_barber": [
-        1
-    ],
-    "num_consumers": [
+    "num_proc": [
       2, 4, 8, 16, 32, 64, 128, 256
+    ],
+    "num_room": [
+      8
     ]
   }
 }

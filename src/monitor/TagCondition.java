@@ -42,7 +42,11 @@ public class TagCondition extends AbstractCondition {
                     mger.addComplexCondition(this);    
                 } else {
                     for (int i = 0; i < tags.length; i++) {
-                        tags[i].addCondition(this);
+                        if (tags[i] != null) {
+                            tags[i].addCondition(this);
+                        } else {
+                            mger.addComplexCondition(this);    
+                        }
                     }
                 }
             }
@@ -63,7 +67,11 @@ public class TagCondition extends AbstractCondition {
                     mger.removeComplexCondition(this);    
                 } else {
                     for (int i = 0; i < tags.length; i++) {
-                        tags[i].removeCondition(this); 
+                        if (tags[i] != null) {
+                            tags[i].removeCondition(this); 
+                        } else {
+                            mger.removeComplexCondition(this);    
+                        }
                     }
                 }
             }
