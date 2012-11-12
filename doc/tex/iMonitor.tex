@@ -395,7 +395,7 @@ much simpler than the explicit-signal monitor.
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=80mm]{fig/flow.eps}
+  \includegraphics[width=70mm]{fig/flow.eps}
   \caption{The framework of {\em  AutoSynch}}
   \label{fig:fw}
 \end{figure}
@@ -500,7 +500,7 @@ performance compared to other automatic-signal mechanisms \cite{bh05}. In \cite{
 the automatic-signal mechanism is 10-50 times
 slower than the explicit-signal mechanism; however, {\em AutoSynch} is 
 only 2.33 times slower than the explicit-signal mechanism even in the worst 
-case of our experiment results. Furthermore, {\em AutoSynch} is 31
+case of our experiment results. Furthermore, {\em AutoSynch} is 26.9
 %YYY: 288 => new number
 times faster than the explicit-signal mechanism in the parameterized
 bounded-buffer problem that rely on 
@@ -1313,7 +1313,12 @@ X5560 Quad Core CPUs (2.80 GHz) and 64 GBs memory running Linux 2.6.18.
 %explicit-signal monitor with original Java and the automatic-signal monitor with
 %AutoSynch framework. 
 
-For each problems, we compare the average runtime. \dots
+Our experiments are {\em saturation} tests \cite{bh05}, in which only
+monitor accessing function is performed. That is, no extra work is in the
+monitor or out of the monitor. For every experimental setting, we  
+perform 25 times, and remove the best and the worst results. Then we compare 
+the average runtime for different signaling mechanisms.
+
 \subsection{Signaling mechanisms}
 Four implementations using different signaling mechanisms have been 
 compared. 
@@ -1328,14 +1333,35 @@ compared.
 \end{description}
 
 \subsection{Test problems}
+Eight conditional synchronization problems are implemented for evaluating our
+approach. 
+
+\subsubsection{Shared predicate synchronization problem}
 \begin{description}
     \item[Bounded-buffer(BB) \cite{dijk65, dijk71}] The traditional 
-        producer-consumer, can be reduced
-        from the parameterized bounded-buffer in Fig.~\ref{fig:bb_exp} by
-        assuming $num = 1$ when $put()$ and $take()$ are called. 
-    \item [Sleeping barber(SB) \cite{dijk65, dijk71}]
-    \item [$H_2O$ problem(H2O) \cite{and00}]
-    \item [Dining philosophers(DP) \cite{dijk71}]
+        bounded-buffer problem. Every producer waits if the buffer is full,
+        while every consumer waits if the buffer is empty. 
+    \item [Sleeping barber(SB) \cite{dijk65, dijk71}] The problem is analogous 
+        to a barbershop with one barber. A barber has number of waiting
+        chairs. Every time when he finishes cut, he checks whether some
+        customers are waiting. If there are, he cuts hair for one customer. If 
+        no customers waiting, the barber goes to sleep. Every customer arrives
+        and checks what the barber is doing. If the barber is sleeping, then he 
+        wakes the barber and has haircut. Otherwise, the customer checks
+        whether there is any free waiting chair. If there is, the customer
+        waits; otherwise, the customer leaves. 
+    \item [$H_2O$ problem(H2O) \cite{and00}] This is the simulation of water
+        generation. Every $H$ atom waits if there is no $O$ atom or another $H$
+        atom. Every $O$ atom waits if the number of $H$ atom is less than $2$. 
+\end{description}
+\subsubsection{Shared predicate synchronization problem}
+\begin{description}
+    \item [Dining philosophers(DP) \cite{dijk71}] A number of philosophers are 
+        siting around at a table with a dish in front of them and a chopstick 
+        in between each philosopher. A philosopher needs to pick two chopsticks at the
+        same time for eating and he does not put down a chopstick until he finishes 
+        eating. If the chopstick is hold by another philosopher, then the philosopher 
+        that wants to eat must wait.
     \item[Round-Robin Access Pattern (RR)] Every test thread accesses the
         monitor in round-robin order. 
     \item[Readers/Writers (RW) \cite{chp71}] 
@@ -1344,7 +1370,13 @@ compared.
         to maintain the accessing order of readers and writers. Every reader
         and writer gets a ticket number indicating its arrival order. Readers
         and writers wait on the monitor for their turn. 
-    \item[Group mutual exclusion and room synchronization(GM) \cite{jou98}]
+    \item[Group mutual exclusion and room synchronization(GM) \cite{jou98}] $n$
+        processes try to attend one of $m$ sessions. Processes can attend the
+        same session concurrently. However, they cannot attend the difference
+        sessions at the same time. 
+\end{description}
+\subsubsection{Synchronization problem required {\em signalAll} in explicit }
+\begin{description}
     \item[Parameterized bounded-buffer (PBB)  \cite{dijk65, dijk71}] The 
         parameterized bounded-buffer problem shown in Fig.~\ref{fig:bb_exp}. 
 \end{description}
@@ -1433,67 +1465,56 @@ computing complexity of add and remove operations is $O(\log(n))$.
 \subsection{Experimental results}
 
 
-Fig.~\ref{fig:pc_eval} shows the results of the producer-consumer problem. The 
-x-axis indicates the number of producers and consumers; the y-axis indicates 
-the runtime in milliseconds. Total 
-512,000 $put$ and $take$ operations were executed by
-all producers and consumers. As expected, the baseline is much slower than
-other three signaling mechanisms, which have similar performance. This 
-phenomenon can be explained as follows. There are only two {\em waituntil} statements 
-with global predicates, $count > 0$ and $count < items.length$. Therefore, the 
-complexity for signaling a thread in {\em AutoSynch} and {\em AutoSynch-T} is also constant. 
-Hence, both {\em AutoSynch} and {\em AutoSynch-T} are as efficient as the explicit-signal 
-mechanism. 
+%Fig.~\ref{fig:pc_eval} shows the results of the producer-consumer problem. The 
+%x-axis indicates the number of producers and consumers; the y-axis indicates 
+%the runtime in milliseconds. Total 
+%512,000 $put$ and $take$ operations were executed by
+%all producers and consumers. 
+Fig.~\ref{fig:pc_eval} to \ref{fig:sb_eval} plot the results for the
+bounded-buffer, the $H_2O$, and the sleeping barber problem. As expected, 
+the baseline is much slower than other three signaling mechanisms, which have
+similar performance in the bounded-buffer problem and the $H_2O$ problem. This 
+phenomenon can be explained as follows. There are only a constant number of
+shared predicate in {\em waituntil} statements for automatic-signal mechanisms.  
+For example, in the bounded-buffer problem, two {\em waituntil} statements 
+with global predicates, {\em count $>$ 0} (not empty condition) and {\em count
+$<$ buff.length} (not full condition). Therefore, the 
+complexity for signaling a thread in {\em AutoSynch} and {\em AutoSynch-T} is 
+also constant. Hence, both {\em AutoSynch} and {\em AutoSynch-T} are as 
+efficient as the explicit-signal mechanism. An interesting point is that the
+performance of the baseline is as efficient as others in the sleeping barber
+problem. The reason is that the {\em signalAll} calls of the baseline does not
+increase the number of context switches. Whenever a signaled customers
+re-acquire the monitor, he can have a haircut since the previous customer has
+had haircut. These experiments illustrate that the automatic-signal mechanisms
+are as efficient as the explicit-signal mechanisms for synchronization problems
+relying on only shared predicates. 
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=80mm]{fig/pc.eps}
-  \caption{The results of producer-consumer problem}
+  \includegraphics[width=70mm]{fig/pc.eps}
+  \caption{The results of bounded-buffer problem}
   \label{fig:pc_eval}
 \end{figure}
 
-Fig.~\ref{fig:rpc_eval} shows the results of the parameterized bounded-buffer 
-problem. Total
-512,000 items are $put$ and then $taken$. The x-axis indicates the number of 
-consumers; the y-axis indicates the runtime in milliseconds. Only one producer
-was in this experiment. The producer put a item into the buffer a time. A 
-consumer randomly take $b/2$ to $b$ items a time, where $b = 128$ is the size of 
-the buffer. Fig.~\ref{fig:rpc_eval} indicates that {\em AutoSynch} and {\em
-AutoSynch-T} are
-much faster than the baseline and the explicit-signal mechanism. The reason is
-that both explicit-signal mechanism and baseline use signallAll calls. In this
-experiment setup, many unnecessary context switches were introduced since a
-consumer takes a large amount of items a time but the producer only puts one
-item a time. Both {\em AutoSynch} and {\em AutoSynch-T} are similar in
-Fig.~\ref{fig:rpc_eval} due to the scaling. We compare them in
-Fig.~\ref{fig:rpch_eval}. As can be seen, the {\em AutoSynch} has a consistent
-performance even when the number of producers increases. Although {\em
-AutoSynch-T} has
-slightly better performance when the number of producers is small; its 
-performance decrease significantly as the number of producers increases. It can
-be explained as follows. {\em AutoSynch} has some computing overhead in maintaining 
-tags and predicates. When the number of producers is small, the benefit of
-predicate tagging is less than the computing overhead. However, {\em AutoSynch} is
-much more scalable with this slight performance sacrifice.
-
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=80mm]{fig/rpc.eps}
-  \caption{The results of the parameterized bounded-buffer problem}
-  \label{fig:rpc_eval}
+  \includegraphics[width=70mm]{fig/h2o.eps}
+  \caption{The results of $H_2O$ problem}
+  \label{fig:h2o_eval}
 \end{figure}
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=80mm]{fig/csrpc.eps}
-  \caption{The number of context switches of the parametrized bounded-buffer 
-  problem}
-  \label{fig:csrpc_eval}
+  \includegraphics[width=70mm]{fig/sb.eps}
+  \caption{The results of sleeping barber problem}
+  \label{fig:sb_eval}
 \end{figure}
+
 
 %\begin{figure}[ht!]
 %  \centering
-%  \includegraphics[width=80mm]{fig/rpch.eps}
+%  \includegraphics[width=70mm]{fig/rpch.eps}
 %  \caption{The results of producer-consumer* problem comparing {\em AutoSynch} and
 %  AutoSynch-T}
 %  \label{fig:rpch_eval}
@@ -1540,9 +1561,23 @@ threads increases.
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=80mm]{fig/rr.eps}
+  \includegraphics[width=70mm]{fig/dp.eps}
+  \caption{The results of dining philosophers problem}
+  \label{fig:dp_eval}
+\end{figure}
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=70mm]{fig/rr.eps}
   \caption{The results of round-robin access pattern}
   \label{fig:rr_eval}
+\end{figure}
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=70mm]{fig/trw.eps}
+  \caption{The results of readers/writers problem}
+  \label{fig:rw_eval}
 \end{figure}
 
 
@@ -1566,7 +1601,7 @@ threads increases.
 %
 %\begin{figure}[ht!]
 %  \centering
-%  \includegraphics[width=80mm]{fig/dp.eps}
+%  \includegraphics[width=70mm]{fig/dp.eps}
 %  \caption{The results of dining philosophers problem}
 %  \label{fig:dp_eval}
 %\end{figure}
@@ -1618,52 +1653,63 @@ numbers of writers and readers are greater than 16 and 80 respectively. For
 1.5 to 1.8 times.
 
 
+In Fig.~\ref{fig:rpc_eval}, we compare the results of the parameterized 
+bounded-bufer in which {\em signalAll} calls are required in the 
+explicit-signal mechanism. In this experiment, there is one producer, which
+randomly puts 1 to 128 items every time. The y-axis indicates the number of 
+consumers. Every consumer randomly takes 1 to 128 itmes every time. As can be
+seen, the performance of the explicit-signal mechanism decreases as the number
+of consuemrs increases. {\em AutoSynch} outperforms the explicit-signal 
+mechanism by 26.9 times when the number of thread is 256. This can be explained 
+by Fig.~\ref{fig:csrpc_eval} that depicts the number of contexts switches. The
+number of context switches increases quadratically in the explicit-signal
+mechanism in which the number of context siwthcs is around 2.7 millions when 
+thread is 256. However, the numbers of context swithes are stable  in {\em
+AutoSynch} even the number of threads increasing. It has around 5440 context
+swiches when the number of thread is 256. This experiment demostractes
+that the number of context swiches can be dramatically reduced and the
+perfomance can be increased in {\em AutoSynch} for the problems requreied 
+{\em signalAll} calls in the explicit-signal mechanism. 
+%Fig.~\ref{fig:rpc_eval} shows the results of the parameterized bounded-buffer 
+%problem. Total
+%512,000 items are $put$ and then $taken$. The x-axis indicates the number of 
+%consumers; the y-axis indicates the runtime in milliseconds. Only one producer
+%was in this experiment. The producer put a item into the buffer a time. A 
+%consumer randomly take $b/2$ to $b$ items a time, where $b = 128$ is the size of 
+%the buffer. Fig.~\ref{fig:rpc_eval} indicates that {\em AutoSynch} and {\em
+%AutoSynch-T} are
+%much faster than the baseline and the explicit-signal mechanism. The reason is
+%that both explicit-signal mechanism and baseline use signallAll calls. In this
+%experiment setup, many unnecessary context switches were introduced since a
+%consumer takes a large amount of items a time but the producer only puts one
+%item a time. Both {\em AutoSynch} and {\em AutoSynch-T} are similar in
+%Fig.~\ref{fig:rpc_eval} due to the scaling. We compare them in
+%Fig.~\ref{fig:rpch_eval}. As can be seen, the {\em AutoSynch} has a consistent
+%performance even when the number of producers increases. Although {\em
+%AutoSynch-T} has
+%slightly better performance when the number of producers is small; its 
+%performance decrease significantly as the number of producers increases. It can
+%be explained as follows. {\em AutoSynch} has some computing overhead in maintaining 
+%tags and predicates. When the number of producers is small, the benefit of
+%predicate tagging is less than the computing overhead. However, {\em AutoSynch} is
+%much more scalable with this slight performance sacrifice.
+
+
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=80mm]{fig/trw.eps}
-  \caption{The results of readers/writers problem}
-  \label{fig:rw_eval}
+  \includegraphics[width=70mm]{fig/rpc.eps}
+  \caption{The results of the parameterized bounded-buffer problem}
+  \label{fig:rpc_eval}
 \end{figure}
 
 \begin{figure}[ht!]
   \centering
-  \includegraphics[width=80mm]{fig/sb.eps}
-  \caption{The results of sleeping barber problem}
-  \label{fig:sb_eval}
+  \includegraphics[width=70mm]{fig/csrpc.eps}
+  \caption{The number of context switches of the parametrized bounded-buffer 
+  problem}
+\label{fig:csrpc_eval}
 \end{figure}
 
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/dp.eps}
-  \caption{The results of dining philosophers problem}
-  \label{fig:sb_eval}
-\end{figure}
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/h2o.eps}
-  \caption{The results of $H_2O$ problem}
-  \label{fig:h2o_eval}
-\end{figure}
-
-%\subsection{Performance under different workload}
-%Conduct experiment for readers/writers problem. There is a delay between each
-%read/write operation. As the length of delay increase, the workload of the
-%monitor decrease. Measure the average response time of the monitor. 
-
-%\begin{figure}[ht!]
-%  \centering
-%  \includegraphics[width=80mm]{fig/strw.eps}
-%  \caption{The results of readers/writers problem under different workload}
-%  \label{fig:srw_eval}
-%\end{figure}
-
-
-
-%fair? FIFO not discussed. performance 
-
-
-%predicate can include member function?
 
 
 \section{Conclusion} \label{sec:conclu}
@@ -1675,18 +1721,23 @@ thread waiting for a condition has met is always signaled to avoid {\em signalAl
 calls. {\em AutoSynch} also uses predicate tag to accelerate the process in deciding
 which thread should be signaled. 
 
+%fair? FIFO not discussed. performance 
+%predicate can include member function?
 To evaluate the effectiveness of {\em AutoSynch}, we built a prototype implementation
-using JavaCC \cite{kod04}, Java Compiler Compiler,  and applied it to many
+using JavaCC \cite{kod04}, Java Compiler Compiler,  and applied it to eight 
 conditional synchronization problems. The experimental results indicate that 
 {\em AutoSynch} implementations of these problems perform significantly better than
 other automatic-signal monitor. Even though {\em AutoSynch} is around 2.3 times 
 slower than the explicit in the worse case of our experiments, {\em AutoSynch} is
-around 31 times faster than the explicit-signal in the parameterized 
+around 26.9 times faster than the explicit-signal in the parameterized 
 bounded-buffer problem that relies on {\em signalAll} calls. 
 
 In the future, we plan to optimize our framework through using the architecture
 information. For example, we can get the number of cores of a machine, and
-then limit the number of executing threads to avoid unnecessary contention.
+then limit the number of executing threads to avoid unnecessary contention. Our 
+current implementation of {\em AutoSynch} is built upon constructs provided 
+by Java. Thus, there is possibility of further performance improvement if the 
+approach was to be implemented within the JVM. 
 % use section* for acknowledgement
 
 
