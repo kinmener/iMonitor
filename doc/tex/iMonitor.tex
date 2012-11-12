@@ -1078,21 +1078,21 @@ a thread waiting for $P_2$ and then add $Q_1$ back to the heap.
 \begin{figure}[ht!]
     \begin{Verbatim}[fontsize=\footnotesize,gobble=8,frame=lines,
             framesep=3mm]
-         // peak(): retrieve but does not remvoe the root of the heap 
-         // poll(): retrieve and remove the root of the heap
+         // peak(): retrieve but does not remvoe the root 
+         // poll(): retrieve and remove the root 
          list backup = empty;
          tag t = heap.peek();
          while t is true
-            foreach predicate p with t
-               if p is true
-                  signal a thread waiting on p
-                  foreach b in backup 
-                     heap.add(b)
-                  return 
-            backup.insert(heap.poll())
-            t = heap.peek()
+           foreach predicate p with t
+             if p is true
+               signal a thread waiting on p
+               foreach b in backup 
+                 heap.add(b)
+               return 
+           backup.insert(heap.poll())
+           t = heap.peek()
          foreach b in backup 
-            heap.add(b)
+           heap.add(b)
     \end{Verbatim}
   \caption{Threshold tag signaling}
   \label{fig:th_sig}
@@ -1101,11 +1101,11 @@ a thread waiting for $P_2$ and then add $Q_1$ back to the heap.
 
 Suppose there are $n$ $Threshold$ tags for a shared expression with different 
 keys. Suppose that these tags are assigned to $m$ predicates. The time 
-complexity for maintaining the heap is $O(n\ \log(n))$ 
+complexity for maintaining the heap is $O(n \log(n))$ 
 However, the performance is generally much better because we only
 need to check the predicates of the tags in the root position in the most
 cases. The time complexity for finding the root is $O(1)$. In the worst case, 
-we need to check all predicates; thus, the time complexity is $O(n\ \log(n) + m)$. 
+we need to check all predicates; thus, the time complexity is $O(n \log(n) + m)$. 
 However, this situation is rare. Furthermore, this algorithm is optimized for
 evaluating threshold predicates by sacrificing performance in tag management.  
 
@@ -1297,43 +1297,57 @@ constructor.
 
 
 \section{Evaluation} \label{sec:eval}
+We discuss the experiments conducted for evaluating the performance of {\em
+AutoSynch} in this section. We compare the performances of different signaling
+mechanisms in three sets of classical conditional synchronization problems. 
+The first set of problems relies on only shared predicates for synchronization. 
+Next, we explore the performance for problems using complex predicates. 
+Finally, we evaluate the problems on which {\em signalAll} calls are required 
+in the explicit-signal mechanism. 
+
 %\subsection{Saturation}
-\subsection{Environment}
-All of the experiments were conducted on a machine with 16 
-Intel(R) Xeon(R) X5560 CPUs and 64 GBs memory. 
+\subsection{Experimental environment}
+All of the experiments were conducted on a machine with 16 Intel(R) Xeon(R) 
+X5560 Quad Core CPUs (2.80 GHz) and 64 GBs memory running Linux 2.6.18. 
 %Four kinds of experiments were performed to evaluate the performances of the
 %explicit-signal monitor with original Java and the automatic-signal monitor with
 %AutoSynch framework. 
 
-
+For each problems, we compare the average runtime. \dots
 \subsection{Signaling mechanisms}
 Four implementations using different signaling mechanisms have been 
 compared. 
 \begin{description}
     \item[Explicit-signal] Using the original Java explicit-signal mechanism. 
-    \item[{\em AutoSynch}] Using the approach described in this paper. 
-    \item[{\em AutoSynch-T}] Using the approach described in this paper but excluding
-        predicate tagging. 
     \item[Baseline] Using the automatic-signal mechanism relying on only
         one condition variable. It calls {\em signalAll} all the time to check the
         predicates.
+    \item[{\em AutoSynch-T}] Using the approach described in this paper but excluding
+        predicate tagging. 
+    \item[{\em AutoSynch}] Using the approach described in this paper. 
 \end{description}
 
 \subsection{Test problems}
 \begin{description}
-    \item[Pounded-buffer(BB)] The traditional producer-consumer, can be reduced
+    \item[Bounded-buffer(BB) \cite{dijk65, dijk71}] The traditional 
+        producer-consumer, can be reduced
         from the parameterized bounded-buffer in Fig.~\ref{fig:bb_exp} by
         assuming $num = 1$ when $put()$ and $take()$ are called. 
-    \item[Parameterized bounded-buffer (PBB)] The parameterized bounded-buffer 
-        problem shown in Fig.~\ref{fig:bb_exp}. 
+    \item [Sleeping barber(SB) \cite{dijk65, dijk71}]
+    \item [$H_2O$ problem(H2O) \cite{and00}]
+    \item [Dining philosophers(DP) \cite{dijk71}]
     \item[Round-Robin Access Pattern (RR)] Every test thread accesses the
         monitor in round-robin order. 
-    \item[Readers/Writers (RW)\cite{chp71}] 
+    \item[Readers/Writers (RW) \cite{chp71}] 
     %The first approach is not FIFO \cite{bh75b}. 
     We use the approach given in \cite{bh05}, where a ticket is used
         to maintain the accessing order of readers and writers. Every reader
         and writer gets a ticket number indicating its arrival order. Readers
-        and writers wait on the monitor for their turn. \end{description}
+        and writers wait on the monitor for their turn. 
+    \item[Group mutual exclusion and room synchronization(GM) \cite{jou98}]
+    \item[Parameterized bounded-buffer (PBB)  \cite{dijk65, dijk71}] The 
+        parameterized bounded-buffer problem shown in Fig.~\ref{fig:bb_exp}. 
+\end{description}
 
 Table~\ref{tab:complexity} summarizes the computing complexity for maintaining 
 condition variable and deciding which thread should be signaled. The column $C$
@@ -1637,12 +1651,12 @@ numbers of writers and readers are greater than 16 and 80 respectively. For
 %read/write operation. As the length of delay increase, the workload of the
 %monitor decrease. Measure the average response time of the monitor. 
 
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=80mm]{fig/strw.eps}
-  \caption{The results of readers/writers problem under different workload}
-  \label{fig:srw_eval}
-\end{figure}
+%\begin{figure}[ht!]
+%  \centering
+%  \includegraphics[width=80mm]{fig/strw.eps}
+%  \caption{The results of readers/writers problem under different workload}
+%  \label{fig:srw_eval}
+%\end{figure}
 
 
 
@@ -1926,6 +1940,9 @@ then limit the number of executing threads to avoid unnecessary contention.
 \begin{thebibliography}{}
 \softraggedright
 
+\bibitem {and00}
+    G. R. Andrews. \emph{Multithreaded, Parallel, and Distributed Programming}.
+    Addison-Wesley, MA, 2000.  
 \bibitem {bh75a}
   P. Brinch Hansen, \emph{The Programming language concurrent Pascal}. IEEE
   Trans.~Software Engineering, 1(2), 199--207, June, 1975.
@@ -1954,7 +1971,7 @@ then limit the number of executing threads to avoid unnecessary contention.
 
 \bibitem{dijk65} 
     E. W. Dijkstra, \emph{Cooperating Sequential Processes}.  Technical Report
-    EWD-123. 
+    EWD-123, 1965. 
     
 \bibitem{dijk68} 
     E. W. Dijkstra, \emph{The structure of the “``THE''-multiprogramming
@@ -1979,7 +1996,8 @@ then limit the number of executing threads to avoid unnecessary contention.
 \bibitem {hoa74}
   C. A. R. Hoare, \emph{Monitors: an operating system structuring concept}. 
   Commun.~ACM, 17(10), 549--557, Oct.~1974. 
-
+\bibitem {jou98} \emph{Asynchronous group mutual exclusion}. ACM Symposium on 
+    Principles of Distributed Computing, 51--60, Aug.~1998. 
 \bibitem{kes77} 
     J. L. W. Kessels. \emph{An alternative to event queues for synchronization 
     in monitors}. Commun.~ACM, 20(7), 500--503, July 1977.
