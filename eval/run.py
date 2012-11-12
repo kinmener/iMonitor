@@ -1,5 +1,5 @@
-#! /opt/local/bin/python3.3
-# /home/ecelrc/students/whung1/local/bin/python3
+#! /home/ecelrc/students/whung1/local/bin/python3
+# /opt/local/bin/python3.3
 from subprocess import check_call, Popen, PIPE
 from time import sleep, localtime, strftime
 from optparse import OptionParser
@@ -156,7 +156,7 @@ if __name__ == "__main__":
 
             stat_file[j].write(\
                     str(params_list[group_by_idx][params_idx[group_by_idx]]) \
-                    + " " + str(round(avg/1000, 1)) + "\n")
+                    + " " + str(round(avg/1000, 2)) + "\n")
 
 
         # maintain the params idx

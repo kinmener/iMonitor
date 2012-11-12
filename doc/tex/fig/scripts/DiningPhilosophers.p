@@ -5,7 +5,7 @@ set logscale x 2                         # log scale y axes
 unset label                            # remove any previous labels
 set xtic font "Times-New-Roman, 12"
 set ytic font "Times-New-Roman, 12"
-set xlabel "# philosophies" font "Times-New-Roman, 12"
+set xlabel "# philosophers" font "Times-New-Roman, 12"
 set ylabel "runtime(seconds)" font "Times-New-Roman, 12"
 set key left top
 set xr [2:256]
