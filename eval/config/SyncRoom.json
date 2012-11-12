@@ -4,7 +4,7 @@
     "main_class": "examples.SyncRoom.TestSyncRoom",
     "main_dir": "../build",
     "result_base_dir": "results",
-    "num_times": 10,
+    "num_times": 25,
     "params_order": [
       "monitor_type", "num_proc", "num_task", "num_room" 
     ],
@@ -25,7 +25,7 @@
   },
   "exp_params": {
     "num_task": [ 
-      5120
+      2560 
     ],
     "monitor_type": [
       "explicit",

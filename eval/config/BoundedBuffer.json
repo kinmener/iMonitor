@@ -4,7 +4,7 @@
     "main_class": "examples.BoundedBuffer.TestBoundedBuffer",
     "main_dir": "../build",
     "result_base_dir": "results",
-    "num_times": 10,
+    "num_times": 25,
     "params_order": [
       "buf_size", "monitor_type", "num_proc", "num_tasks", "delay"
     ],

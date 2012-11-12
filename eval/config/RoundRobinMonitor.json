@@ -4,7 +4,7 @@
     "main_class": "examples.RoundRobinMonitor.Test",
     "main_dir": "../build",
     "result_base_dir": "results",
-    "num_times": 1,
+    "num_times": 25,
     "params_order": [
       "num_proc", "num_tasks", "monitor_type", "delay"
     ],
@@ -30,8 +30,7 @@
     "monitor_type": [
       "explicit",
       "set",
-      "tag",
-      "naive"
+      "tag"
     ],
     "num_proc": [
       2, 4, 8, 16, 32, 64, 128, 256
