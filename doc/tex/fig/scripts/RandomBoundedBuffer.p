@@ -9,7 +9,5 @@ set xlabel "# consumers" font "Times-New-Roman, 16"
 set ylabel "runtime(seconds)" font "Times-New-Roman, 16"
 set key left top
 set xr [2:256]
-#      "RandomBoundedBuffer/naive.dat" using 1:2 title 'baseline' with linespoints, \
-#      "RandomBoundedBuffer/set.dat" using 1:2 title 'AutoSynch-T' with linespoints, \
 plot  "RandomBoundedBuffer/explicit.dat" using 1:2 title 'explicit' with linespoints, \
       "RandomBoundedBuffer/tag.dat" using 1:2 title 'AutoSynch' with linespoints
