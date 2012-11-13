@@ -1333,7 +1333,7 @@ compared.
 \end{description}
 
 \subsection{Test problems}
-Eight conditional synchronization problems are implemented for evaluating our
+Seven conditional synchronization problems are implemented for evaluating our
 approach. 
 
 \subsubsection{Shared predicate synchronization problem}
@@ -1356,12 +1356,6 @@ approach.
 \end{description}
 \subsubsection{Shared predicate synchronization problem}
 \begin{description}
-    \item [Dining philosophers(DP) \cite{dijk71}] A number of philosophers are 
-        siting around at a table with a dish in front of them and a chopstick 
-        in between each philosopher. A philosopher needs to pick two chopsticks at the
-        same time for eating and he does not put down a chopstick until he finishes 
-        eating. If the chopstick is hold by another philosopher, then the philosopher 
-        that wants to eat must wait.
     \item[Round-Robin Access Pattern (RR)] Every test thread accesses the
         monitor in round-robin order. 
     \item[Readers/Writers (RW) \cite{chp71}] 
@@ -1370,10 +1364,16 @@ approach.
         to maintain the accessing order of readers and writers. Every reader
         and writer gets a ticket number indicating its arrival order. Readers
         and writers wait on the monitor for their turn. 
-    \item[Group mutual exclusion and room synchronization(GM) \cite{jou98}] $n$
-        processes try to attend one of $m$ sessions. Processes can attend the
-        same session concurrently. However, they cannot attend the difference
-        sessions at the same time. 
+%    \item[Group mutual exclusion and room synchronization(GM) \cite{jou98}] $n$
+%        processes try to attend one of $m$ sessions. Processes can attend the
+%        same session concurrently. However, they cannot attend the difference
+%        sessions at the same time. 
+    \item [Dining philosophers(DP) \cite{dijk71}] A number of philosophers are 
+        siting around at a table with a dish in front of them and a chopstick 
+        in between each philosopher. A philosopher needs to pick two chopsticks at the
+        same time for eating and he does not put down a chopstick until he finishes 
+        eating. If the chopstick is hold by another philosopher, then the philosopher 
+        that wants to eat must wait.
 \end{description}
 \subsubsection{Synchronization problem required {\em signalAll} in explicit }
 \begin{description}
@@ -1381,15 +1381,16 @@ approach.
         parameterized bounded-buffer problem shown in Fig.~\ref{fig:bb_exp}. 
 \end{description}
 
-Table~\ref{tab:complexity} summarizes the computing complexity for maintaining 
-condition variable and deciding which thread should be signaled. The column $C$
+Table~\ref{tab:complexity} summarizes the time complexity for maintaining 
+condition variable and deciding which thread should be signaled. Column $C$ in
+the table 
 indicates the computing complexity for maintaining condition variable, while 
 the column $S$ indicates the computing complexity for deciding which condition 
 variable should be signaled. Note that, for parameterized bounded-buffer 
 problem, it takes $O(\log(n))$ to maintain the condition variable in 
 $AutoSync$. The reason 
 is that we use heap as underlying data structure for threshold predicates. The 
-computing complexity of add and remove operations is $O(\log(n))$.
+time complexity of add and remove operations is $O(\log(n))$.
 
 \begin{table*}[ht!]
    \centering
@@ -1419,30 +1420,6 @@ computing complexity of add and remove operations is $O(\log(n))$.
    \label{tab:complexity}
 \end{table*}
 
-\begin{table*}[ht!]
-   \centering
-   \begin{tabular}{|c||c|c||c|c||c|c||c|c|c|c|c|}
-      \hline 
-      & \multicolumn{2}{c||}{await} & \multicolumn{2}{c||}{lock} & 
-        \multicolumn{2}{c||}{relaySignal} & \multicolumn{2}{c|}{Tag Mger} &
-        \multicolumn{2}{c|}{others} & total \\
-      \hline
-         & T & \% & T & \% & T & \% & T & \% & T & \% & T \\
-      \hline 
-      \hline 
-      explicit & $21365$ & $99.7\%$ & $28$ & $0.15\%$ & $NA$ & $NA$ & $NA$ &
-      $NA$  & $28$ & $0.15\%$ & $21433$ \\
-      \hline 
-      {\em AutoSynch-T} & $410377$ & $98.5\%$ & $3140$ & $0.7\%$ & $2108$ & $0.5\%$
-      & $NA$ & $NA$ & $1033$ & $0.2\%$ & $416658$\\
-      \hline 
-      {\em AutoSynch} & $96754$ & $98.8\%$ & $812$ & $0.8\%$ & $112$ & $0.1\%$ & 
-      $124$ & $0.1\%$ & $148$ & $0.02\%$ & $21433$\\
-      \hline 
-   \end{tabular}
-   \caption{The CPU usage for round robin}
-   \label{tab:cpu}
-\end{table*}
 
 
 %\subsection{Testbed}
@@ -1487,8 +1464,8 @@ problem. The reason is that the {\em signalAll} calls of the baseline does not
 increase the number of context switches. Whenever a signaled customers
 re-acquire the monitor, he can have a haircut since the previous customer has
 had haircut. These experiments illustrate that the automatic-signal mechanisms
-are as efficient as the explicit-signal mechanisms for synchronization problems
-relying on only shared predicates. 
+are can be as efficient as the explicit-signal mechanisms for synchronization 
+problems relying on only shared predicates. 
 
 \begin{figure}[ht!]
   \centering
@@ -1512,21 +1489,31 @@ relying on only shared predicates.
 \end{figure}
 
 
-%\begin{figure}[ht!]
-%  \centering
-%  \includegraphics[width=70mm]{fig/rpch.eps}
-%  \caption{The results of producer-consumer* problem comparing {\em AutoSynch} and
-%  AutoSynch-T}
-%  \label{fig:rpch_eval}
-%\end{figure}
 
-%Fig.~\ref{fig:rw_eval} shows the results of reader-writer problem. The
-%x-axis indicates the number of readers and writers; the y-axis indicates the
-%runtime in seconds. Total 1280 read/write operations were executed by all
-%readers and writers. Since readers can read with each other at the same time.
-%The runtime decreases as number of readers increases. Need to figure out why 
-%explicit-signal approach is so slow in 1/5. Maybe the implementation? 
-%
+Fig.~\ref{fig:rr_eval} to \ref{fig:dp_eval} presents the experimental results for
+the round-robin access pattern, readers/writers, %group mutual exclusion and room synchronization, 
+and dining philosophers problem. The results of the
+baseline does not plot in these figures since its performances are extremely
+inefficient in comparison to other mechanisms.  In this set of experiments, 
+the explicit-signal mechanism has an advantage since it can explicitly signal 
+the next thread to enter the monitor. As can be seen, the performance of 
+explicit-signal mechanism is steady as the number of thread increases in
+the round-robin access pattern and the reader/writers problem. In 
+{\em AutoSynch-T}, its runtime increases significantly as the 
+number of thread increase. For {\em AutoSynch}, the performance is slower than 
+the explicit-signal mechanism between 1.2 to 2.6 times for round-robin access
+pattern. However, the performance of {\em AutoSynch} does not decrease as the 
+number of threads increases. Note that, in the readers/writers problem, the
+{\em AutoSynch-T} is more efficient than {\em AutoSynch} when the number of
+threads is small. The reason is that {\em AutoSynch} sacrifices performance for
+maintaining predicate tags. The benefit of predicate tagging increases as the
+number of threads increases. Another interesting points is that, the
+performance of the explicit signal mechanism does not outperform implicit
+signal mechanisms much in the dining philosophers problem. The reasons is that
+a philosopher only compete with two other philosophers sitting near him even
+the number of philosophers increases. 
+
+
 
 
 %The dining philosophers problem is often used in computer science to describe 
@@ -1543,45 +1530,6 @@ relying on only shared predicates.
 %has the similar results. The implementations of Naive and N-condition are as 
 %efficient as the implementation of explicit signal monitor. 
 %
-Fig.~\ref{fig:rr_eval} shows the results of the round-robin access pattern. The
-x-axis indicates the number of threads; the y-axis indicates the
-runtime in milliseconds. In this set of experiments, threads are allowed to enter a
-monitor in round-robin scheduling. Total 128000 operations were performed on 
-the monitor. In this set of experiment, the explicit-signal mechanism has an 
-advantage since it can explicitly signal the next thread to enter the 
-monitor. Since the baseline is around 50 times slower than the explicit-signal
-mechanism, the result of baseline is not plotted in Fig.~\ref{fig:rr_eval} due
-to the scaling issues. 
-As can be seen, the performance of explicit-signal mechanism is steady 
-as the number of thread increases. In comparison with {\em AutoSynch-T}, the runtime 
-increases significantly as the number of thread increase. For {\em AutoSynch}, the 
-performance is slower than the explicit-signal mechanism between 2.3 to 2.4
-times. However, the performance of {\em AutoSynch} does not decrease as the number of
-threads increases. 
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=70mm]{fig/dp.eps}
-  \caption{The results of dining philosophers problem}
-  \label{fig:dp_eval}
-\end{figure}
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=70mm]{fig/rr.eps}
-  \caption{The results of round-robin access pattern}
-  \label{fig:rr_eval}
-\end{figure}
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=70mm]{fig/trw.eps}
-  \caption{The results of readers/writers problem}
-  \label{fig:rw_eval}
-\end{figure}
-
-
-%\subsection{Practical}
 %Fig.~\ref{fig:dp_eval} shows the results of dining philosophers problem. The
 %x-axis indicates the number of philosophers; the y-axis indicates the
 %runtime in seconds. Every philosopher performed 100 eat operations with a
@@ -1597,33 +1545,30 @@ threads increases.
 %%These results suggest that if applications do not have many operations to access
 %%a monitor, the performance will not have much difference in automatic-signal and
 %%explicit-signal monitor.
-%
-%
-%\begin{figure}[ht!]
-%  \centering
-%  \includegraphics[width=70mm]{fig/dp.eps}
-%  \caption{The results of dining philosophers problem}
-%  \label{fig:dp_eval}
-%\end{figure}
 
-%\begin{figure}
-%  \centering
-%  \subfloat[Explicit-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{ExplicitTicketReadersWriters}
-%    }
-%    \label{subfig:rw_exam_exp}
-%  }
-%  \\
-%  \subfloat[Automatic-Signal] {
-%    \fbox{
-%      \BUseVerbatim[fontsize=\footnotesize]{AutoSynchTicketReadersWriters}
-%    }
-%    \label{subfig:rw_exam_imp}
-%  }
-%  \caption{Random Bounded-buffer example}
-%  \label{fig:rbb_exp}
-%\end{figure}
+%Fig.~\ref{fig:rw_eval} shows the results of reader-writer problem. The
+%x-axis indicates the number of readers and writers; the y-axis indicates the
+%runtime in seconds. Total 1280 read/write operations were executed by all
+%readers and writers. Since readers can read with each other at the same time.
+%The runtime decreases as number of readers increases. Need to figure out why 
+%explicit-signal approach is so slow in 1/5. Maybe the implementation? 
+%
+
+%Fig.~\ref{fig:rr_eval} shows the results of the round-robin access pattern. The
+%x-axis indicates the number of threads; the y-axis indicates the
+%runtime in milliseconds. In this set of experiments, threads are allowed to enter a
+%monitor in round-robin scheduling. Total 128000 operations were performed on 
+%the monitor. In this set of experiment, the explicit-signal mechanism has an 
+%advantage since it can explicitly signal the next thread to enter the 
+%monitor. Since the baseline is around 50 times slower than the explicit-signal
+%mechanism, the result of baseline is not plotted in Fig.~\ref{fig:rr_eval} due
+%to the scaling issues. 
+%As can be seen, the performance of explicit-signal mechanism is steady 
+%as the number of thread increases. In comparison with {\em AutoSynch-T}, the runtime 
+%increases significantly as the number of thread increase. For {\em AutoSynch}, the 
+%performance is slower than the explicit-signal mechanism between 2.3 to 2.4
+%times. However, the performance of {\em AutoSynch} does not decrease as the number of
+%threads increases. 
 
 %Fig.~\ref{fig:rw_eval} shows the results of reads/writers problem. The
 %x-axis indicates the number of writers; the y-axis indicates the
@@ -1638,19 +1583,77 @@ threads increases.
 %times. However, the performance of {\em AutoSynch} does not decrease as the number of
 %threads increases. 
 
-Fig.~\ref{fig:rw_eval} shows the results of readers/writers problem. The
-x-axis indicates the number of writers and readers; the y-axis indicates the
-runtime in milliseconds. The ratio of the number of writers to the number of
-readers is fixed at 1 to 5 in all cases. Total 128000 write/read operations are
-performed by each writer and reader. Note that, multiple readers can perform
-their read operations simultaneously; therefore, the performance may increases
-as the number of readers increases. In comparison with {\em AutoSynch-T}, the
-performance of {\em AutoSynch-T} is better than {\em AutoSynch} when the numbers of writers
-and readers are small. The runtime of {\em AutoSynch-T} increases significantly as 
-the number of thread increases. {\em AutoSynch} outperformed {\em AutoSynch-T} when the
-numbers of writers and readers are greater than 16 and 80 respectively. For 
-{\em AutoSynch}, the performance is slower than the explicit-signal mechanism between 
-1.5 to 1.8 times.
+%Fig.~\ref{fig:rw_eval} shows the results of readers/writers problem. The
+%x-axis indicates the number of writers and readers; the y-axis indicates the
+%runtime in milliseconds. The ratio of the number of writers to the number of
+%readers is fixed at 1 to 5 in all cases. Total 128000 write/read operations are
+%performed by each writer and reader. Note that, multiple readers can perform
+%their read operations simultaneously; therefore, the performance may increases
+%as the number of readers increases. In comparison with {\em AutoSynch-T}, the
+%performance of {\em AutoSynch-T} is better than {\em AutoSynch} when the numbers of writers
+%and readers are small. The runtime of {\em AutoSynch-T} increases significantly as 
+%the number of thread increases. {\em AutoSynch} outperformed {\em AutoSynch-T} when the
+%numbers of writers and readers are greater than 16 and 80 respectively. For 
+%{\em AutoSynch}, the performance is slower than the explicit-signal mechanism between 
+%1.5 to 1.8 times.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=70mm]{fig/rr.eps}
+  \caption{The results of round-robin access pattern}
+  \label{fig:rr_eval}
+\end{figure}
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=70mm]{fig/trw.eps}
+  \caption{The results of readers/writers problem}
+  \label{fig:rw_eval}
+\end{figure}
+
+%\begin{figure}[ht!]
+%  \centering
+%  \includegraphics[width=70mm]{fig/sr.eps}
+%  \caption{The results of group mutual exclusion and room synchronization problem}
+%  \label{fig:sr_eval}
+%\end{figure}
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=70mm]{fig/dp.eps}
+  \caption{The results of dining philosophers problem}
+  \label{fig:dp_eval}
+\end{figure}
+
+Table \ref{tab:cpu} presents the CPU usage for the round robin access pattern
+with 128 threads. As can be seen, the predicate tagging significantly improves
+the process for finding a predicate that is true. The CPU time of relaySingal 
+process is reduced $95\%$.  
+
+\begin{table*}[ht!]
+   \centering
+   \begin{tabular}{|c||c|c||c|c||c|c||c|c|c|c|c|}
+      \hline 
+      & \multicolumn{2}{c||}{await} & \multicolumn{2}{c||}{lock} & 
+        \multicolumn{2}{c||}{relaySignal} & \multicolumn{2}{c|}{Tag Mger} &
+        \multicolumn{2}{c|}{others} & total \\
+      \hline
+         & T & \% & T & \% & T & \% & T & \% & T & \% & T \\
+      \hline 
+      \hline 
+      explicit & $21365$ & $99.7\%$ & $28$ & $0.15\%$ & $NA$ & $NA$ & $NA$ &
+      $NA$  & $28$ & $0.15\%$ & $21433$ \\
+      \hline 
+      {\em AutoSynch-T} & $410377$ & $98.5\%$ & $3140$ & $0.7\%$ & $2108$ & $0.5\%$
+      & $NA$ & $NA$ & $1033$ & $0.2\%$ & $416658$\\
+      \hline 
+      {\em AutoSynch} & $96754$ & $98.8\%$ & $812$ & $0.8\%$ & $112$ & $0.1\%$ & 
+      $124$ & $0.1\%$ & $148$ & $0.02\%$ & $21433$\\
+      \hline 
+   \end{tabular}
+   \caption{The CPU usage for the round robin access pattern}
+   \label{tab:cpu}
+\end{table*}
 
 
 In Fig.~\ref{fig:rpc_eval}, we compare the results of the parameterized 
@@ -1662,7 +1665,7 @@ seen, the performance of the explicit-signal mechanism decreases as the number
 of consuemrs increases. {\em AutoSynch} outperforms the explicit-signal 
 mechanism by 26.9 times when the number of thread is 256. This can be explained 
 by Fig.~\ref{fig:csrpc_eval} that depicts the number of contexts switches. The
-number of context switches increases quadratically in the explicit-signal
+number of context switches increases in the explicit-signal
 mechanism in which the number of context siwthcs is around 2.7 millions when 
 thread is 256. However, the numbers of context swithes are stable  in {\em
 AutoSynch} even the number of threads increasing. It has around 5440 context
@@ -1713,7 +1716,7 @@ perfomance can be increased in {\em AutoSynch} for the problems requreied
 
 
 \section{Conclusion} \label{sec:conclu}
-In this paper, we propose {\em AutoSynch} framework that supports 
+In this paper, we have proposed {\em AutoSynch} framework that supports 
 automatic-signal mechanism with {\em AutoSynch} class and {\em waituntil} statement.
 {\em AutoSynch} uses the {\em globalization} operation to enable the complex predicate 
 evaluation in every thread. Next, it provides {\em relay invariance} that some
@@ -1724,7 +1727,7 @@ which thread should be signaled.
 %fair? FIFO not discussed. performance 
 %predicate can include member function?
 To evaluate the effectiveness of {\em AutoSynch}, we built a prototype implementation
-using JavaCC \cite{kod04}, Java Compiler Compiler,  and applied it to eight 
+using JavaCC \cite{kod04}, Java Compiler Compiler,  and applied it to seven 
 conditional synchronization problems. The experimental results indicate that 
 {\em AutoSynch} implementations of these problems perform significantly better than
 other automatic-signal monitor. Even though {\em AutoSynch} is around 2.3 times 
