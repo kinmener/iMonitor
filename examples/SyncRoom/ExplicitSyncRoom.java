@@ -59,12 +59,12 @@ public class ExplicitSyncRoom extends SyncRoom {
         rcnt[n]--;
         if (rcnt[n] == 0) {
             usedRoom = -1;
-            Condition cond = mapCondition.get(serving);
-            if (cond != null) {
-                cond.signal();
-            }
         }
         Common.println(Thread.currentThread() + " leaves room " + n);
+        Condition cond = mapCondition.get(serving);
+        if (cond != null) {
+            cond.signal();
+        }
         mutex.unlock();
     }
 }
