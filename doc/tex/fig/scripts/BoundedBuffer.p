@@ -12,4 +12,5 @@ set xr [2:256]
 plot  "BoundedBuffer/explicit.dat" using 1:2 title 'explicit' with linespoints, \
       "BoundedBuffer/naive.dat" using 1:2 title 'baseline' with linespoints, \
       "BoundedBuffer/set.dat" using 1:2 title 'AutoSynch-T' with linespoints, \
+      "BoundedBuffer/lesslock.dat" using 1:2 title 'lesslock' with linespoints, \
       "BoundedBuffer/tag.dat" using 1:2 title 'AutoSynch' with linespoints

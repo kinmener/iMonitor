@@ -34,6 +34,7 @@
       "explicit",
       "set",
       "tag",
+      "lesslock",
       "naive"
     ],
     "num_proc": [
