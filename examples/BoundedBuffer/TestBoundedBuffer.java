@@ -28,6 +28,9 @@ public class TestBoundedBuffer {
         try {
             bufSize = Integer.parseInt(args[0]);
             switch(args[1].charAt(0)) {
+                case 'l':
+                    rw_controller = new LessLockBoundedBuffer(bufSize);
+                    break;
                 case 'e':
                     rw_controller = new ExplicitBoundedBuffer(bufSize);
                     break;

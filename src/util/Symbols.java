@@ -9,5 +9,5 @@
 package util;
 
 public class Symbols { 
-    public static final boolean isDebug = false;
+    public static final boolean isDebug = true;
 }
