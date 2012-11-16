@@ -34,6 +34,9 @@ public class TestBoundedBuffer {
                 case 'e':
                     rw_controller = new ExplicitBoundedBuffer(bufSize);
                     break;
+                case 'c':
+                    rw_controller = new NoLockBoundedBuffer(bufSize);
+                    break;
                 default:
                     rw_controller = 
                         new iMonitorBoundedBuffer(bufSize, args[1].charAt(0));
