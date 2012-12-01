@@ -153,7 +153,8 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
             }} ) ;
     }
 
-    public void put(final int n) {
+    public void put(final Object[] objs) {
+        final int n = objs.length;
         monitor.DoWithin( new Runnable() {
             public void run() {
                 if (n + count > items.length) {
@@ -227,7 +228,7 @@ public class iMonitorBoundedBuffer extends ObjectBoundedBuffer {
                      */
                 }
                 for (int i = 0; i < n; i++) {
-                    items[putPtr++] = new Object();
+                    items[putPtr++] = objs[i];
                     if (putPtr == items.length) putPtr = 0;
                 }
                 count += n;

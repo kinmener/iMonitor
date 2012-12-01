@@ -78,7 +78,7 @@ public class LessLockBoundedBuffer extends ObjectBoundedBuffer {
             mutex.unlock();
         }
     }
-    public void put(final int n) throws InterruptedException {
+    public void put(final Object[] objs) throws InterruptedException {
     }
     public Object[] take(final int n) throws InterruptedException {
         return null;

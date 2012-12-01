@@ -65,8 +65,9 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
         }
     } 
 
-    public void put(final int n) throws InterruptedException {
+    public void put(final Object[] objs) throws InterruptedException {
         mutex.lock();
+        int n = objs.length;
         try {
             while ((n + count) > items.length) {
                 numContextSwitch++;
@@ -74,7 +75,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
                 notFull.await();
             }
             for (int i = 0; i < n; i++) {
-                items[putPtr++] = new Object(); 
+                items[putPtr++] = objs[i];
                 if (putPtr == items.length) putPtr = 0;
             }
             count += n;

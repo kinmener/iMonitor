@@ -62,7 +62,7 @@ public class NoLockBoundedBuffer extends ObjectBoundedBuffer {
         refThread.compareAndSet(Thread.currentThread(), null);
         return x;
     }
-    public void put(final int n) throws InterruptedException {
+    public void put(Object[] objs) throws InterruptedException {
     }
     public Object[] take(final int n) throws InterruptedException {
         return null;

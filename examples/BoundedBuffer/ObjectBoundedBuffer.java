@@ -18,7 +18,7 @@ public abstract class ObjectBoundedBuffer {
     public abstract long getNumContextSwitch();
     public abstract void put (Object x)  throws InterruptedException ;
     public abstract Object take ()  throws InterruptedException ;
-    public abstract void put(final int n) throws InterruptedException;
+    public abstract void put(final Object[] objs) throws InterruptedException;
     public abstract Object[] take(final int n) throws InterruptedException;
     public abstract int getNumFreeSlot();
 
