@@ -6,7 +6,7 @@ unset label                            # remove any previous labels
 set xtic font "Times-New-Roman, 16"
 set ytic font "Times-New-Roman, 16"
 set xlabel "# consumers" font "Times-New-Roman, 16"
-set ylabel "# context switches ($\times$ 1000)" font "Times-New-Roman, 16"
+set ylabel "# context switches (x1000)" font "Times-New-Roman, 16"
 set key left top
 set xr [2:256]
 plot  "CSRandomBoundedBuffer/explicit.dat" using 1:2 title 'explicit' with linespoints, \
