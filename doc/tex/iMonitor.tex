@@ -1148,14 +1148,14 @@ evaluating threshold predicates by sacrificing performance in tag management.
 
 
 \section{{\em AutoSynch} implementation} \label{sec:imp}
-The {\em AutoSynch} implementation involves two parts, the preprocessor and the Java
-library of condition manager. The preprocessor,  built using JavaCC
+The {\em AutoSynch} implementation involves two parts, the preprocessor and the 
+Java library of condition manager. The preprocessor,  built using JavaCC
 \cite{kod04}, translates  {\em AutoSynch} code to Java code. Our
-signal-mechanism is implemented in 
-the condition manager library that creates condition variables, and maintains the association 
-between predicates and condition variables. Furthermore, predicate tags are 
-also maintained by the condition managers. It is the responsibility of the
-condition manager to decide which thread should be signaled. 
+signal-mechanism is implemented in the condition manager library that creates 
+condition variables, and maintains the association between predicates and 
+condition variables. Furthermore, predicate tags are also maintained by the 
+condition managers. It is the responsibility of the condition manager to decide 
+which thread should be signaled. 
 
 \subsection{Preprocessor}
 The {\em AutoSynch} class provides both mutual exclusion and conditional
@@ -1763,7 +1763,7 @@ performance can be increased in {\em AutoSynch} for the problems required
 
 
 
-\section{Conclusions} \label{sec:conclu}
+\section{Discussions and Conclusions} \label{sec:conclu}
 In this paper, we have proposed {\em AutoSynch} framework that supports 
 automatic-signal mechanism with {\em AutoSynch} class and {\em waituntil} statement.
 {\em AutoSynch} uses the {\em globalization} operation to enable the complex predicate 
@@ -1771,6 +1771,12 @@ evaluation in every thread. Next, it provides {\em relay invariance} that some
 thread waiting for a condition has met is always signaled to avoid {\em signalAll}
 calls. {\em AutoSynch} also uses predicate tag to accelerate the process in deciding
 which thread should be signaled. 
+
+Fairness is not guaranteed in our system. Our approach favors signaling a 
+thread waiting on a predicate that is easy to evaluate and is likely to be 
+true. We focus on the efficiency of our automatic-signal monitor at this point.
+Fairness may be an important issue for some concurrent applications and we plan
+to address it in future.
 
 %fair? FIFO not discussed. performance 
 %predicate can include member function?
@@ -1791,7 +1797,9 @@ by Java. Thus, there is possibility of further performance improvement if the
 approach was to be implemented within the JVM. 
 % use section* for acknowledgement
 
-
+\section*{Acknowledgement}
+The authors thank Himanshu Chauhan, Yen-Jung Chang, John Bridgman, and Craig 
+Chase for the helpful comments to improve the paper. 
 
 
 
