@@ -5,10 +5,9 @@ set size 0.5, 0.5
 unset label                            # remove any previous labels
 set xtic font "Times-New-Roman, 16"
 set ytic font "Times-New-Roman, 16"
-set xlabel "workload time(microseconds)" font "Times-New-Roman, 16"
-set ylabel "runtime(milliseconds)" font "Times-New-Roman, 16"
+set xlabel "delay time(microseconds)" font "Times-New-Roman, 16"
+set ylabel "runtime ratio" font "Times-New-Roman, 16"
 set key left top
-set xr [0:1000]
-plot  "SRoundRobinMonitor/explicit.dat" using 1:2 title 'explicit' with linespoints, \
-      "SRoundRobinMonitor/set.dat" using 1:2 title 'baseline' with linespoints, \
-      "SRoundRobinMonitor/tag.dat" using 1:2 title 'tag' with linespoints
+#set xr [0:10000]
+plot  "rrexplicit.dat" using 1:($3/$2) title 'AutoSynch' with linespoints, \
+      "rrexplicit.dat" using 1:($4/$2) title 'AutoSynch-T' with linespoints 

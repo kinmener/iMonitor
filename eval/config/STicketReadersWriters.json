@@ -4,16 +4,17 @@
     "main_class": "examples.TicketReadersWriters.TestTicketReadersWriters",
     "main_dir": "../build",
     "result_base_dir": "results",
-    "num_times": 10,
+    "num_times": 25,
     "params_order": [
       "monitor_type", "num_proc", "total_tasks",
       "max_read_time", "max_write_time", "delay"
     ],
     "output_order": [
-         "runtime"
+      "runtime"
     ],
     "group_by": "delay",
-    "stat_by": "monitor_type"
+    "stat_by": "monitor_type",
+    "fig_dir": "../doc/tex/fig"
   },
   "fig_setup": {
     "fig_dir": "../doc/tex/fig",
@@ -21,12 +22,12 @@
         {
             "source": "runtime",
             "name": "STicketReadersWriters"
-	}
+        }
     ]
   },
   "exp_params": {
     "total_tasks": [ 
-      12800
+      128000
     ],
     "max_read_time": [
       0 
@@ -40,20 +41,10 @@
       "tag"
     ],
     "num_proc": [
-      64
+      64 
     ],
     "delay": [
-      0, 250, 500, 750, 
-      1000, 1250, 1500, 1750,
-      2000, 2250, 2500, 2750,
-      3000, 3250, 3500, 3750,
-      4000, 4250, 4500, 4750,
-      5000, 5250, 5500, 5750,
-      6000, 6250, 6500, 6750,
-      7000, 7250, 7500, 7750,
-      8000, 8250, 8500, 8750,
-      9000, 9250, 9500, 9750,
-      10000
+        0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000
     ]
   }
 }

@@ -34,30 +34,33 @@ class Reader extends Thread {
             catch(InterruptedException e) {
                 
             }
-            monitor.endRead();
             responseTime += (System.nanoTime() - startTime);
-            int delay = (int) (maxDelay * Math.random());
+            monitor.endRead();
+            
+            //int delay = (int) (maxDelay * Math.random());
+            int delay = maxDelay;
             if (delay != 0) {
-                try {
-                    if (delay >= 1000000) {
-                        Thread.sleep(delay / 1000000, delay % 1000000);
-                    } else {
-                        Thread.sleep(0, delay);
-                    }
-                } catch(InterruptedException e) {
-                }
+                //try {
+                //    if (delay >= 1000000) {
+                //        Thread.sleep(delay / 1000000, delay % 1000000);
+                //    } else {
+                //        Thread.sleep(0, delay);
+                //    }
+                //} catch(InterruptedException e) {
+                //}
 
-                /*
-                 *long startmaxDelay = System.nanoTime();
-                 *while (true) {
-                 *    int tmp = 0;
-                 *    tmp += 1;
-                 *    tmp *= 2;
-                 *    if ((System.nanoTime() - startmaxDelay > maxDelay)) {
-                 *        break; 
-                 *    }
-                 *}
-                 */
+                
+                long startDelay = System.nanoTime();
+                while (true) {
+                    int tmp = 0;
+                    tmp += 1;
+                    tmp *= 2;
+                    if ((System.nanoTime() - startDelay > delay)) {
+                        break; 
+                    }
+                    Thread.yield();
+                }
+                
             }
         }
         doneCounter.increment() ;
@@ -98,29 +101,31 @@ class Writer extends Thread {
             catch(InterruptedException e) {
                 
             }
-            monitor.endWrite();
             responseTime += (System.nanoTime() - startTime);
-            int delay = (int) (maxDelay * Math.random());
+            monitor.endWrite();
+            //int delay = (int) (maxDelay * Math.random());
+            int delay = maxDelay;
             if (delay != 0) {
-                try {
-                    if (delay >= 1000000) {
-                        Thread.sleep(delay / 1000000, delay % 1000000);
-                    } else {
-                        Thread.sleep(0, delay );
+                //try {
+                //    if (delay >= 1000000) {
+                //        Thread.sleep(delay / 1000000, delay % 1000000);
+                //    } else {
+                //        Thread.sleep(0, delay );
+                //    }
+                //} catch(InterruptedException e) {
+                //}
+                
+                long startDelay = System.nanoTime();
+                while (true) {
+                    int tmp = 0;
+                    tmp += 1;
+                    tmp *= 2;
+                    if ((System.nanoTime() - startDelay > delay)) {
+                        break; 
                     }
-                } catch(InterruptedException e) {
-                }
-                /*
-                 *long startmaxDelay = System.nanoTime();
-                 *while (true) {
-                 *    int tmp = 0;
-                 *    tmp += 1;
-                 *    tmp *= 2;
-                 *    if ((System.nanoTime() - startmaxDelay > maxDelay)) {
-                 *        break; 
-                 *    }
-                 *}   
-                 */
+                    Thread.yield();
+                }   
+                
             }
         }
         doneCounter.increment() ;
@@ -186,10 +191,10 @@ public class TestTicketReadersWriters {
        
         double totalResponseTime = 0.0f;
         //for (int i = 0; i < READERS; i++) {
-        //    totalResponseTime += r[i].getAvgResponseTime();
+        //  totalResponseTime += r[i].getAvgResponseTime();
         //}
         //for (int i = 0; i < WRITERS; i++) {
-        //    totalResponseTime += w[i].getAvgResponseTime();
+        //  totalResponseTime += w[i].getAvgResponseTime();
         //}
         long execTime = System.currentTimeMillis() - startTime;
         System.out.println( execTime );

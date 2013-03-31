@@ -5,27 +5,42 @@ class TestThread extends Thread {
     private RoundRobinMonitor monitor;
     private int numAccess; 
     private int myId;
-    private int delay;
+    private int maxDelay;
     private long responseTime; 
     public TestThread(RoundRobinMonitor monitor, int numAccess, int myId, 
-            int delay) {
+            int maxDelay) {
         this.monitor = monitor;
         this.numAccess = numAccess;
         this.myId = myId;
-        this.delay = delay;
+        this.maxDelay = maxDelay;
         responseTime = 0;
     }
     public void run() {
         for(int i = 0; i < numAccess; ++i) {
+            //int delay = (int) (maxDelay * Math.random());
+            int delay =  maxDelay;
             if (delay != 0) {
-                try {
-                    if (delay >= 1000000) {
-                        Thread.sleep(delay / 1000000, delay % 1000000);  
-                    } else {
-                        Thread.sleep(0, delay);  
+                //try {
+                //    if (delay >= 1000000) {
+                //        Thread.sleep(delay / 1000000, delay % 1000000);
+                //    } else {
+                //        Thread.sleep(0, delay);
+                //    }
+                //} catch(InterruptedException e) {
+                //}
+
+                
+                long startDelay = System.nanoTime();
+                while (true) {
+                    int tmp = 0;
+                    tmp += 1;
+                    tmp *= 2;
+                    if ((System.nanoTime() - startDelay > delay)) {
+                        break; 
                     }
-                } catch(InterruptedException e) {
+                    Thread.yield();
                 }
+                
             }
             long startTime = System.nanoTime();
             monitor.access(myId);
@@ -43,7 +58,7 @@ public class Test{
     {
         int numProc = 16;
         int totalNumAccess = 1000;
-        int delay = 0;
+        int maxDelay = 0;
         RoundRobinMonitor monitor = null;
         try {
             numProc = Integer.parseInt(args[0]); 
@@ -60,7 +75,7 @@ public class Test{
                     monitor = 
                         new iMonitorRoundRobin(numProc, args[2].charAt(0));
             }
-            delay = Integer.parseInt(args[3]) * 1000; // microsecond 
+            maxDelay = Integer.parseInt(args[3]) * 1000; // microsecond 
         } catch(Exception e) {
             if(monitor == null) {
                 monitor = new ExplicitRoundRobinMonitor(numProc);
@@ -71,7 +86,7 @@ public class Test{
         TestThread[] testThreads = new TestThread[numProc];
         for (int i = 0; i < numProc; ++i) {
             testThreads[i] = new TestThread(monitor, totalNumAccess/numProc, i, 
-                    delay);
+                    maxDelay);
             testThreads[i].start();
         }
  //       double totalResponseTime = 0.0f;
