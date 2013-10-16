@@ -131,8 +131,8 @@
 
 \renewcommand*{\thefootnote}{\fnsymbol{footnote}}
 
-\pgfdeclareimage[height=1.0cm]{utbig}{logos/UTWordmark}
-\pgfdeclareimage[height=0.6cm]{ut}{logos/UTWordmark}
+\pgfdeclareimage[height=1.0cm]{utbig}{fig/UTWordmark}
+\pgfdeclareimage[height=0.6cm]{ut}{fig/UTWordmark}
 % \pgfdeclareimage[height=1.5cm]{sclogo}{logos/SC12}
 % \pgfdeclareimage[height=1.0cm]{scsmall}{logos/SC12}
 
@@ -162,7 +162,8 @@
 {
     Parallel and Distributed Systems Laboratory \\
     Department of Electrical \& Computer Engineering \\ \mbox{}  \\  
-    \pgfuseimage{utbig} 
+    %\pgfuseimage{utbig} 
+    \includegraphics[height=1cm]{fig/UTWordmark}
 }
 \date[PLDI 2013]
 %{\pgfuseimage{sclogo} }
@@ -274,6 +275,7 @@
           }
         }
     \end{lstlisting}
+    {\hfill \includegraphics[width=0.36\linewidth]{fig/cb}}
 \end{frame}
 
 %\begin{frame}[fragile]
@@ -536,15 +538,32 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Opportunity}
-    The signalAll call
-    \begin{itemize}
-        \item Introduces redundant context switches
-        \item Is required in explicit signaling 
-    \end{itemize}
-\end{frame}
+%\begin{frame}
+%    \frametitle{Opportunity}
+%    The signalAll call
+%    \begin{itemize}
+%        \item Introduces redundant context switches
+%        \item Is required in explicit signaling 
+%    \end{itemize}
+%\end{frame}
 
+\begin{frame}
+    \frametitle{Design Principles}
+    Reduce number of context switches and predicate evaluations
+    \begin{description}
+      \item[Predicate evaluation] \  
+        \begin{itemize}
+            \item Is essential in automatic signaling to decide which thread
+              should be signaled
+        \end{itemize}
+        
+      \item[Context switches] Avoid signalAll calls
+        \begin{itemize}
+            \item Introduces redundant context switches
+            \item Is required in explicit signaling 
+        \end{itemize}
+    \end{description}
+\end{frame}
 \begin{frame}
     \frametitle{Parameterized Bounded Buffer}
     \begin{figure}[ht!]
@@ -554,6 +573,26 @@
     \end{figure}
 \end{frame}
 
+\begin{frame}[fragile]
+    \frametitle{Parameterized Bounded Buffer}
+    \begin{lstlisting}[style=base, gobble=4]
+          public Object[] take(@int num@) {
+            mutex.lock();
+            while (count < num) {
+              @insufficientItem.await();@
+            }
+            Object[] ret = new Object[num];
+            for (int i = 0; i < num; i++) {
+              ret[i] = buff[takePtr++];
+              takePtr %= buff.length;
+            }
+            count -= num;
+            @insufficientSpace.signalAll();@
+            mutex.unlock();
+            return ret;
+          }
+    \end{lstlisting}
+\end{frame}
 %\begin{frame}[fragile]
 %    \frametitle{A Parameterized Bounded Buffer}
 %    \begin{lstlisting}[style=base, gobble=4]
@@ -569,27 +608,6 @@
 %            count += items.length;
 %            @insufficientItem.signalAll()@;
 %            mutex.unlock();
-%          }
-%    \end{lstlisting}
-%\end{frame}
-
-%\begin{frame}[fragile]
-%    \frametitle{A Parameterized Bounded Buffer}
-%    \begin{lstlisting}[style=base, gobble=4]
-%          public Object[] take(@int num@) {
-%            mutex.lock();
-%            while (count < num) {
-%              @insufficientItem.await();@
-%            }
-%            Object[] ret = new Object[num];
-%            for (int i = 0; i < num; i++) {
-%              ret[i] = buff[takePtr++];
-%              takePtr %= buff.length;
-%            }
-%            count -= num;
-%            @insufficientSpace.signalAll();@
-%            mutex.unlock();
-%            return ret;
 %          }
 %    \end{lstlisting}
 %\end{frame}
@@ -872,6 +890,8 @@
             \end{itemize}
     \end{description}
 \end{frame}
+
+
 
 \begin{frame}
     \frametitle{Evaluation: Shared Predicate}

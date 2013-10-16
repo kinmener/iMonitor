@@ -37,6 +37,9 @@ public class TestBoundedBuffer {
                 case 'c':
                     rw_controller = new NoLockBoundedBuffer(bufSize);
                     break;
+                case 'j':
+                    rw_controller = new JDKBoundedBuffer(bufSize);
+                    break;
                 default:
                     rw_controller = 
                         new iMonitorBoundedBuffer(bufSize, args[1].charAt(0));

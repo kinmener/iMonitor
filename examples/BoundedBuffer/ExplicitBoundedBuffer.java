@@ -38,7 +38,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
             items[putPtr] = x; 
             if (++putPtr == items.length) putPtr = 0;
             ++count;
-            Common.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
+            //Common.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
             notEmpty.signal();
         } finally {
             mutex.unlock();
@@ -57,7 +57,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
             Object x = items[takePtr]; 
             if (++takePtr == items.length) takePtr = 0;
             --count;
-            Common.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
+            //Common.println("Consumer " + Thread.currentThread() + " takes, #obj: " + count) ; 
             notFull.signal();
             return x;
         } finally {
@@ -79,7 +79,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
                 if (putPtr == items.length) putPtr = 0;
             }
             count += n;
-            Common.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
+            //Common.println("Producer " + Thread.currentThread() + " puts, #obj: " + count) ; 
             notEmpty.signalAll();
         } finally {
             mutex.unlock();
@@ -102,7 +102,7 @@ class ExplicitBoundedBuffer extends ObjectBoundedBuffer{
                 if (takePtr == items.length) takePtr = 0;
             }
             count -= n;
-            Common.println("Consumer " + Thread.currentThread() + " takes " + n + " objs, remaining #obj: " + count) ; 
+            //Common.println("Consumer " + Thread.currentThread() + " takes " + n + " objs, remaining #obj: " + count) ; 
             notFull.signalAll();
             return ret;
         } finally {

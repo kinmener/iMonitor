@@ -1322,7 +1322,10 @@ count\cf0  = 10}</string>
 		</dict>
 	</array>
 	<key>GridInfo</key>
-	<dict/>
+	<dict>
+		<key>GridSpacing</key>
+		<real>+infinity</real>
+	</dict>
 	<key>GuidesLocked</key>
 	<string>NO</string>
 	<key>GuidesVisible</key>
@@ -1376,7 +1379,7 @@ count\cf0  = 10}</string>
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2013-05-26 21:06:30 +0000</string>
+	<string>2013-05-29 21:18:16 +0000</string>
 	<key>Modifier</key>
 	<string>Wei-Lun Hung</string>
 	<key>NotesVisible</key>
